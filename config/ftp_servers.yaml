@@ -1,0 +1,173 @@
+# FTP Server Configuration for i-GNSS
+# ====================================
+# Defines all FTP/SFTP/HTTPS servers for data and product downloads.
+
+servers:
+  # NASA CDDIS Archive (Primary IGS data center)
+  CDDIS:
+    url: "gdc.cddis.eosdis.nasa.gov"
+    protocol: "https"
+    timeout: 120
+    max_retries: 3
+    data_paths:
+      eph:
+        final:
+          root: "/archive/gnss/products"
+          remote_tree_type: "gpsweek"
+          prefix: "igs"
+          body: "{gpsweek}{dow}"
+          extension: "sp3"
+          compression: "Z"
+        rapid:
+          root: "/archive/gnss/products"
+          remote_tree_type: "gpsweek"
+          prefix: "igr"
+          body: "{gpsweek}{dow}"
+          extension: "sp3"
+          compression: "Z"
+        ultra:
+          root: "/archive/gnss/products"
+          remote_tree_type: "gpsweek"
+          prefix: "igu"
+          body: "{gpsweek}{dow}_{hour:02d}"
+          extension: "sp3"
+          compression: "Z"
+      erp:
+        final:
+          root: "/archive/gnss/products"
+          remote_tree_type: "gpsweek"
+          prefix: "igs"
+          body: "{gpsweek}7"
+          extension: "erp"
+          compression: "Z"
+      clk:
+        final:
+          root: "/archive/gnss/products"
+          remote_tree_type: "gpsweek"
+          prefix: "igs"
+          body: "{gpsweek}{dow}"
+          extension: "clk"
+          compression: "Z"
+      daily:
+        root: "/archive/gnss/data/daily"
+        remote_tree_type: "yyyy_doy"
+
+  # IGS BKG Mirror
+  IGS:
+    url: "igs.bkg.bund.de"
+    protocol: "ftp"
+    username: "anonymous"
+    passive: true
+    timeout: 60
+    max_retries: 3
+    data_paths:
+      eph:
+        final:
+          root: "/IGS/products"
+          remote_tree_type: "gpsweek"
+      daily:
+        root: "/IGS/obs"
+        remote_tree_type: "yyyy_doy"
+      hourly:
+        root: "/IGS/obs"
+        remote_tree_type: "yyyy_doy"
+
+  # CODE Analysis Center (University of Bern)
+  CODE:
+    url: "ftp.aiub.unibe.ch"
+    protocol: "ftp"
+    username: "anonymous"
+    passive: true
+    timeout: 60
+    max_retries: 3
+    data_paths:
+      dcb:
+        final:
+          root: "/CODE"
+          remote_tree_type: "year"
+          prefix: "P1C1"
+          body: "{yy}{month:02d}"
+          extension: "DCB"
+          compression: "Z"
+      eph:
+        final:
+          root: "/CODE"
+          remote_tree_type: "year"
+          prefix: "COD"
+          body: "{gpsweek}{dow}"
+          extension: "EPH"
+          compression: "Z"
+        rapid:
+          root: "/CODE"
+          prefix: "COD"
+          body: "{gpsweek}{dow}"
+          extension: "EPH_R"
+          compression: "Z"
+
+  # BKG FTP Server
+  BKGE:
+    url: "igs-ftp.bkg.bund.de"
+    protocol: "ftp"
+    username: "anonymous"
+    passive: true
+    timeout: 60
+    max_retries: 3
+    data_paths:
+      eph:
+        final:
+          root: "/IGS/products"
+          remote_tree_type: "gpsweek"
+
+  # GFZ Potsdam
+  GFZ:
+    url: "ftp.gfz-potsdam.de"
+    protocol: "ftp"
+    username: "anonymous"
+    passive: true
+    timeout: 60
+    data_paths:
+      eph:
+        final:
+          root: "/pub/GNSS/products/final"
+          remote_tree_type: "gpsweek"
+        rapid:
+          root: "/pub/GNSS/products/rapid"
+          remote_tree_type: "gpsweek"
+
+  # ESA Navigation Support Office
+  ESA:
+    url: "navigation-office.esa.int"
+    protocol: "ftp"
+    username: "anonymous"
+    timeout: 60
+    data_paths:
+      eph:
+        final:
+          root: "/aux/aux_data/gnss_products/igs"
+          remote_tree_type: "gpsweek"
+
+  # SOPAC (Scripps)
+  SOPAC:
+    url: "garner.ucsd.edu"
+    protocol: "ftp"
+    username: "anonymous"
+    timeout: 60
+    data_paths:
+      eph:
+        final:
+          root: "/pub/products"
+          remote_tree_type: "gpsweek"
+      daily:
+        root: "/pub/rinex"
+        remote_tree_type: "yyyy_doy"
+
+  # UNAVCO
+  UNAVCO:
+    url: "data-out.unavco.org"
+    protocol: "ftp"
+    username: "anonymous"
+    timeout: 60
+    data_paths:
+      daily:
+        root: "/pub/rinex/obs"
+        remote_tree_type: "yyyy_doy"

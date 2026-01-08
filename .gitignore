@@ -1,0 +1,105 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Data files (don't commit actual data)
+*.duckdb
+*.duckdb.wal
+data/
+downloads/
+logs/
+
+# GNSS data files
+*.rnx
+*.RNX
+*.crx
+*.CRX
+*.sp3
+*.SP3
+*.clk
+*.CLK
+*.erp
+*.ERP
+*.dcb
+*.DCB
+*.Z
+*.gz
+
+# Sensitive configuration (use .example versions)
+config/settings.local.yaml
+config/credentials.yaml
+.env
+.env.local
+
+# BSW campaign directories
+campaigns/
+
+# Test outputs
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Perl legacy (keep locally but don't push to GitHub)
+mod/
+conf/
+cron/
+info/
+info_SD/
+BERN54/
+GPSUSER/
+OUTPUT/
+callers/
+*.pl
+*.pm
+*.sh
+*.xml
+
+# Output/log files
+output.*
+*.log
+*.log-*
+
+# Local settings (use .example version)
+config/settings.yaml
+
+# Other legacy/local directories
+tivoli/
+utilities/
+utilities.tar
+outy

@@ -1,0 +1,101 @@
+# i-GNSS Configuration File (EXAMPLE)
+# ====================================
+# Copy this file to settings.yaml and customize for your environment.
+# This YAML file configures all aspects of the i-GNSS processing system.
+
+# Database Configuration
+database:
+  path: "${HOME}/data/ignss.duckdb"  # Path to DuckDB database
+  read_only: false
+
+# Bernese GNSS Software Configuration
+# Update these paths to match your BSW installation
+bsw:
+  bsw_root: "/path/to/BERN54"           # BSW installation root
+  temp_dir: "/tmp/bsw"                   # Temporary directory
+  user_dir: "/path/to/BERN54/GPS"        # User directory
+  exec_dir: "/path/to/BERN54/GPS/EXE"    # Executables directory
+  queue_dir: "/path/to/BERN54/GPS/BPE"   # BPE queue directory
+  campaign_root: "/path/to/campaigns"    # Campaign output directory
+  loadgps_setvar: "/path/to/BERN54/LOADGPS.setvar"
+
+# Data Directory Configuration
+data:
+  oedc_dir: "/path/to/data/oedc"         # GNSS products directory
+  rinex_dir: "/path/to/data/rinex"       # RINEX data directory
+  info_dir: "/path/to/i-GNSS/info"       # Station info files
+
+# Processing Configuration
+processing:
+  proc_type: "hourly"
+
+  # Orbit products
+  orbit_product: "IGS"
+  orbit_type: "final"
+
+  # Earth Rotation Parameters
+  erp_product: "IGS"
+  erp_type: "final"
+
+  # Clock products
+  clock_product: "IGS"
+  clock_type: "final"
+
+  # DCB products
+  dcb_product: "CODE"
+  dcb_type: "final"
+
+  # Processing options
+  use_clockprep: false
+  use_teqc: false
+  use_cc2noncc: false
+
+  # Latency for CRON mode
+  latency_hours: 3
+
+# FTP Configuration
+ftp:
+  servers:
+    CDDIS:
+      url: "gdc.cddis.eosdis.nasa.gov"
+      protocol: "https"
+      timeout: 120
+      max_retries: 3
+
+    IGS:
+      url: "igs.bkg.bund.de"
+      protocol: "ftp"
+      username: "anonymous"
+      passive: true
+      timeout: 60
+      max_retries: 3
+
+    CODE:
+      url: "ftp.aiub.unibe.ch"
+      protocol: "ftp"
+      username: "anonymous"
+      passive: true
+      timeout: 60
+      max_retries: 3
+
+    BKGE:
+      url: "igs-ftp.bkg.bund.de"
+      protocol: "ftp"
+      username: "anonymous"
+      passive: true
+
+# Email Notification Configuration
+email:
+  enabled: false
+  smtp_server: "localhost"
+  smtp_port: 25
+  sender: "ignss@localhost"
+  recipients: []
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  log_dir: "logs"
+  log_to_file: true
+  log_to_console: true
+  json_format: false
