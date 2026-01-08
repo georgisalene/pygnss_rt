@@ -11,6 +11,7 @@ from pygnss_rt.database.models import (
     ZTDResult,
 )
 from pygnss_rt.database.products import ProductManager
+from pygnss_rt.database.met import MetManager
 
 __all__ = [
     "DatabaseManager",
@@ -23,4 +24,5 @@ __all__ = [
     "ProcessingRun",
     "ZTDResult",
     "ProductManager",
+    "MetManager",
 ]

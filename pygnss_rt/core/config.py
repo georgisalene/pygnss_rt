@@ -170,3 +170,36 @@ def load_settings(config_path: Path | str | None = None) -> Settings:
             break
 
     return Settings(**config_data)
+
+
+def load_config(config_path: Path | str | None = None) -> dict[str, Any]:
+    """Load raw configuration dictionary from YAML file.
+
+    Simpler alternative to load_settings() that returns raw dict
+    for cases where Pydantic validation is not needed.
+
+    Args:
+        config_path: Path to YAML configuration file.
+
+    Returns:
+        Configuration dictionary.
+    """
+    search_paths = []
+
+    if config_path:
+        search_paths.append(Path(config_path))
+    else:
+        search_paths.extend([
+            Path("config/settings.local.yaml"),
+            Path("config/settings.yaml"),
+            Path.home() / ".pygnss_rt" / "settings.yaml",
+        ])
+
+    for path in search_paths:
+        if path.exists():
+            with open(path) as f:
+                raw_data = yaml.safe_load(f)
+                if raw_data:
+                    return expand_env_vars(raw_data)
+
+    return {}

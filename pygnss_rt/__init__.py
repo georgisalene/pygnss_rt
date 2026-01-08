@@ -6,7 +6,7 @@ Bernese GNSS Software (BSW) for Precise Point Positioning (PPP) and
 tropospheric parameter estimation.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.3.0"
 __author__ = "PyGNSS-RT Team"
 
 from pygnss_rt.core.orchestrator import IGNSS

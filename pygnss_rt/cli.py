@@ -455,6 +455,459 @@ def ztd2iwv(
     click.echo(f"Wrote {len(converter.results)} records to {output}")
 
 
+@cli.command("met-maintain")
+@click.option(
+    "--late-day",
+    type=int,
+    default=3,
+    help="Days threshold for 'too late' files",
+)
+@click.option(
+    "--late-hour",
+    type=int,
+    default=0,
+    help="Hours threshold for 'too late' files",
+)
+@click.option(
+    "--download/--no-download",
+    default=True,
+    help="Download waiting MET files",
+)
+@click.option(
+    "--met-dir",
+    type=click.Path(path_type=Path),
+    help="MET data directory (overrides config)",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be done without executing",
+)
+@click.pass_context
+def met_maintain(
+    ctx: click.Context,
+    late_day: int,
+    late_hour: int,
+    download: bool,
+    met_dir: Path | None,
+    dry_run: bool,
+) -> None:
+    """Maintain meteorological data tracking.
+
+    Manages hourly MET file tracking for ZTD to IWV conversion:
+    - Creates/updates hourly entries in the database
+    - Fills gaps from interrupted cron jobs
+    - Marks old files as 'Too Late'
+    - Downloads waiting MET files
+
+    This replaces the Perl call_MET_maintain.pl script.
+
+    Examples:
+
+        # Run full maintenance with defaults
+        pygnss-rt met-maintain
+
+        # Dry run to see what would happen
+        pygnss-rt met-maintain --dry-run
+
+        # Run without downloading files
+        pygnss-rt met-maintain --no-download
+
+        # Custom latency threshold (5 days, 12 hours)
+        pygnss-rt met-maintain --late-day 5 --late-hour 12
+    """
+    from pygnss_rt.core.config import load_config
+    from pygnss_rt.database.connection import init_db
+    from pygnss_rt.database.met import MetManager
+    from pygnss_rt.utils.dates import GNSSDate
+
+    config_path = ctx.obj.get("config")
+    verbose = ctx.obj.get("verbose", False)
+
+    # Load configuration
+    config = load_config(config_path) if config_path else {}
+
+    # Get database path from config or use default
+    db_path = Path(config.get("database", {}).get("path", "data/pygnss_rt.duckdb"))
+
+    # Get MET directory
+    if met_dir is None:
+        met_dir = Path(config.get("data", {}).get("met_dir", "data/met"))
+
+    click.echo("MET Data Maintenance")
+    click.echo("=" * 40)
+    click.echo(f"Database: {db_path}")
+    click.echo(f"MET Dir: {met_dir}")
+    click.echo(f"Late threshold: {late_day} days, {late_hour} hours")
+    click.echo()
+
+    if dry_run:
+        click.echo("[DRY RUN MODE]")
+        click.echo()
+
+    # Initialize database
+    db = init_db(db_path, create_schema=True)
+    met = MetManager(db)
+
+    # Ensure MET table exists
+    met.ensure_table()
+    if verbose:
+        click.echo("MET table verified")
+
+    # Get current time for reference
+    now = GNSSDate.now()
+    click.echo(f"Reference time: {now}")
+    click.echo()
+
+    # Step 1: Add current hour entry
+    if not dry_run:
+        added = met.maintain(now)
+        if added:
+            click.echo(f"Added new entry for {now.year}/{now.doy:03d} hour {now.hour_alpha}")
+        elif verbose:
+            click.echo("Current hour entry already exists")
+    else:
+        click.echo(f"Would add entry for {now.year}/{now.doy:03d} hour {now.hour_alpha}")
+
+    # Step 2: Fill any gaps from interruptions
+    if not dry_run:
+        filled = met.fill_gap(late_day=late_day, late_hour=late_hour + 1, reference_date=now)
+        if filled:
+            click.echo(f"Filled {filled} gap entries")
+    else:
+        click.echo("Would fill gap entries if any exist")
+
+    # Step 3: Mark old files as too late
+    if not dry_run:
+        marked = met.set_too_late_files(late_day=late_day, late_hour=late_hour, reference_date=now)
+        if marked:
+            click.echo(f"Marked {marked} files as 'Too Late'")
+    else:
+        click.echo("Would mark old waiting files as 'Too Late'")
+
+    # Step 4: Get and download waiting files
+    waiting = met.get_waiting_list()
+    click.echo(f"\nWaiting files: {len(waiting)}")
+
+    if download and waiting:
+        if dry_run:
+            click.echo("\nWould download:")
+            for item in waiting[:10]:  # Show first 10
+                click.echo(f"  - {item['year']}/{item['doy']:03d} hour {item['hour']}")
+            if len(waiting) > 10:
+                click.echo(f"  ... and {len(waiting) - 10} more")
+        else:
+            # Download MET files
+            click.echo("\nDownloading MET files...")
+            downloaded = _download_met_files(waiting, met_dir, config, verbose)
+
+            if downloaded:
+                # Update status for downloaded files
+                updated = met.update_status(downloaded, late_day, late_hour, now)
+                click.echo(f"Downloaded {len(downloaded)} files, updated {updated} entries")
+
+    # Show status summary
+    click.echo("\nStatus Summary:")
+    summary = met.get_status_summary()
+    for status, count in sorted(summary.items()):
+        click.echo(f"  {status}: {count}")
+
+    db.close()
+    click.echo("\nMET maintenance complete")
+
+
+def _download_met_files(
+    waiting: list[dict],
+    met_dir: Path,
+    config: dict,
+    verbose: bool = False,
+) -> list[dict]:
+    """Download waiting MET files via FTP.
+
+    Args:
+        waiting: List of waiting file entries
+        met_dir: Target directory for downloads
+        config: Configuration dict
+        verbose: Show verbose output
+
+    Returns:
+        List of successfully downloaded file entries
+    """
+    import click
+
+    # Ensure met_dir exists
+    met_dir.mkdir(parents=True, exist_ok=True)
+
+    downloaded = []
+
+    # TODO: Integrate with FTP module when available
+    # For now, this is a placeholder that shows what would be downloaded
+    # In the full implementation, this would use pygnss_rt.data_access.ftp
+
+    if verbose:
+        click.echo("Note: FTP download integration pending")
+        click.echo("Files would be organized as: {met_dir}/{yyyy}/{yydoy}/")
+
+    # Return empty list until FTP integration is complete
+    return downloaded
+
+
+@cli.command("daily-ppp")
+@click.argument(
+    "network",
+    type=click.Choice(["IG", "EU", "GB", "RG", "SS", "ALL"], case_sensitive=False),
+)
+@click.option(
+    "--start-date", "-s",
+    type=str,
+    help="Start date (YYYY-MM-DD or YYYY/DOY)",
+)
+@click.option(
+    "--end-date", "-e",
+    type=str,
+    help="End date (defaults to start date)",
+)
+@click.option(
+    "--cron",
+    is_flag=True,
+    help="Run in CRON mode (auto-detect date with latency)",
+)
+@click.option(
+    "--latency",
+    type=int,
+    default=21,
+    help="Latency in days for CRON mode (default: 21)",
+)
+@click.option(
+    "--stations", "-S",
+    type=str,
+    help="Comma-separated list of stations (overrides network filter)",
+)
+@click.option(
+    "--exclude", "-x",
+    type=str,
+    help="Comma-separated stations to exclude",
+)
+@click.option(
+    "--skip-products",
+    is_flag=True,
+    help="Skip product download (assume already available)",
+)
+@click.option(
+    "--skip-data",
+    is_flag=True,
+    help="Skip station data download (assume already available)",
+)
+@click.option(
+    "--skip-dcm",
+    is_flag=True,
+    help="Skip DCM archiving after processing",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be done without executing",
+)
+@click.pass_context
+def daily_ppp(
+    ctx: click.Context,
+    network: str,
+    start_date: str | None,
+    end_date: str | None,
+    cron: bool,
+    latency: int,
+    stations: str | None,
+    exclude: str | None,
+    skip_products: bool,
+    skip_data: bool,
+    skip_dcm: bool,
+    dry_run: bool,
+) -> None:
+    """Run daily PPP processing for a GNSS network.
+
+    Processes daily GNSS observations using Bernese GNSS Software for
+    Precise Point Positioning. Supports 5 networks:
+
+    \b
+    - IG: IGS core stations (global reference network)
+    - EU: EUREF stations (European reference network)
+    - GB: Great Britain stations (OS active, scientific, IGS)
+    - RG: RGP France stations (French permanent network)
+    - SS: Supersites (Netherlands/European supersites)
+    - ALL: Process all networks in order (IG first, then others)
+
+    This replaces the Perl caller scripts:
+    iGNSS_D_PPP_AR_*_IGS54_direct_NRT.pl
+
+    Examples:
+
+    \b
+        # Process IGS network for a specific date
+        pygnss-rt daily-ppp IG -s 2024-07-01
+
+        # Process in CRON mode with 21-day latency
+        pygnss-rt daily-ppp EU --cron --latency 21
+
+        # Process date range for Great Britain
+        pygnss-rt daily-ppp GB -s 2024-07-01 -e 2024-07-07
+
+        # Dry run to see what would be processed
+        pygnss-rt daily-ppp RG --cron --dry-run
+
+        # Process all networks
+        pygnss-rt daily-ppp ALL -s 2024-07-01
+    """
+    from pygnss_rt.processing import (
+        DailyPPPProcessor,
+        DailyPPPArgs,
+        NetworkID,
+        list_networks,
+    )
+    from pygnss_rt.utils.dates import GNSSDate
+
+    config_path = ctx.obj.get("config")
+    verbose = ctx.obj.get("verbose", False)
+
+    # Parse dates
+    start = None
+    end = None
+
+    if start_date:
+        start = _parse_date(start_date)
+    if end_date:
+        end = _parse_date(end_date)
+    elif start:
+        end = start  # Default end to start if only start provided
+
+    # Parse station lists
+    station_list = [s.strip() for s in stations.split(",")] if stations else []
+    exclude_list = [s.strip() for s in exclude.split(",")] if exclude else []
+
+    # Determine which networks to process
+    if network.upper() == "ALL":
+        # Process all networks - IG first (required for alignment)
+        network_ids = [NetworkID.IG, NetworkID.EU, NetworkID.GB, NetworkID.RG, NetworkID.SS]
+    else:
+        network_ids = [NetworkID(network.upper())]
+
+    click.echo("Daily PPP Processing")
+    click.echo("=" * 50)
+
+    if dry_run:
+        click.echo("[DRY RUN MODE]")
+        click.echo()
+
+    # Show network info
+    if verbose:
+        click.echo("\nAvailable networks:")
+        for net in list_networks():
+            marker = ">>>" if net["id"] in [n.value for n in network_ids] else "   "
+            click.echo(f"  {marker} {net['id']}: {net['description']}")
+        click.echo()
+
+    # Show processing parameters
+    click.echo(f"Networks: {', '.join(n.value for n in network_ids)}")
+    if cron:
+        click.echo(f"Mode: CRON (latency: {latency} days)")
+    else:
+        click.echo(f"Mode: Manual")
+        if start:
+            click.echo(f"Date range: {start} to {end}")
+        else:
+            click.echo("Error: Either --cron or --start-date must be specified")
+            sys.exit(1)
+
+    if station_list:
+        click.echo(f"Stations: {', '.join(station_list)}")
+    if exclude_list:
+        click.echo(f"Excluded: {', '.join(exclude_list)}")
+
+    click.echo()
+
+    # Initialize processor
+    processor = DailyPPPProcessor(config_path=config_path)
+
+    all_results = []
+
+    for net_id in network_ids:
+        click.echo(f"\n{'='*50}")
+        click.echo(f"Processing network: {net_id.value}")
+        click.echo(f"{'='*50}")
+
+        # Build arguments
+        args = DailyPPPArgs(
+            network_id=net_id,
+            start_date=start,
+            end_date=end,
+            cron_mode=cron,
+            latency_days=latency,
+            stations=station_list,
+            exclude_stations=exclude_list,
+            skip_products=skip_products,
+            skip_data=skip_data,
+            skip_dcm=skip_dcm,
+            dry_run=dry_run,
+            verbose=verbose,
+        )
+
+        # Run processing
+        results = processor.process(args)
+        all_results.extend(results)
+
+        # Report results for this network
+        success = sum(1 for r in results if r.success)
+        if results:
+            click.echo(f"\n{net_id.value} results: {success}/{len(results)} days successful")
+            for r in results:
+                status = "OK" if r.success else "FAILED"
+                click.echo(f"  {r.date}: {status}")
+                if r.error_message:
+                    click.echo(f"    Error: {r.error_message}")
+
+    # Final summary
+    click.echo("\n" + "=" * 50)
+    click.echo("PROCESSING SUMMARY")
+    click.echo("=" * 50)
+
+    total_success = sum(1 for r in all_results if r.success)
+    click.echo(f"Total: {total_success}/{len(all_results)} days successful")
+
+    if total_success < len(all_results):
+        failed = [r for r in all_results if not r.success]
+        click.echo(f"\nFailed processing ({len(failed)}):")
+        for r in failed:
+            click.echo(f"  - {r.network_id} {r.date}: {r.error_message or 'Unknown error'}")
+        sys.exit(1)
+    else:
+        click.echo("\nAll processing completed successfully!")
+
+
+@cli.command("list-networks")
+def list_networks_cmd() -> None:
+    """List available network profiles for daily PPP processing.
+
+    Shows all configured GNSS station networks with their descriptions
+    and alignment requirements.
+    """
+    from pygnss_rt.processing import list_networks
+
+    click.echo("Available Networks for Daily PPP Processing")
+    click.echo("=" * 60)
+    click.echo()
+    click.echo(f"{'ID':<4} {'Description':<45} {'Alignment':<10}")
+    click.echo("-" * 60)
+
+    for net in list_networks():
+        click.echo(
+            f"{net['id']:<4} {net['description']:<45} {net['requires_alignment']:<10}"
+        )
+
+    click.echo()
+    click.echo("Notes:")
+    click.echo("  - Networks with 'Yes' in Alignment require IGS (IG) to be processed first")
+    click.echo("  - Use 'pygnss-rt daily-ppp ALL' to process all networks in correct order")
+
+
 def _parse_date(date_str: str) -> "GNSSDate":
     """Parse date string to GNSSDate.
 

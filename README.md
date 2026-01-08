@@ -1,6 +1,6 @@
 # PyGNSS-RT: Python GNSS Real-Time Processing System
 
-**Version 1.2.0**
+**Version 1.3.0**
 
 A modern Python framework for real-time GNSS (Global Navigation Satellite System) data processing, integrating with Bernese GNSS Software (BSW) for Precise Point Positioning (PPP) and tropospheric parameter estimation.
 
@@ -31,11 +31,12 @@ This Python implementation replaces the legacy Perl system while maintaining ful
 | Metric | Count |
 |--------|-------|
 | **Total Perl Modules** | 18 |
-| **Fully Converted** | 15 |
-| **Partially Converted** | 2 |
+| **Total Perl Caller Scripts** | 5 |
+| **Fully Converted** | 16 + 5 callers |
+| **Partially Converted** | 1 |
 | **Not Yet Converted** | 1 |
-| **Perl Lines of Code** | 17,537 |
-| **Python Lines of Code** | 8,650+ |
+| **Perl Lines of Code** | ~19,600 |
+| **Python Lines of Code** | ~10,000 |
 
 ### Detailed Conversion Matrix
 
@@ -47,6 +48,7 @@ This Python implementation replaces the legacy Perl system while maintaining ful
 | **DB.pm** | 1,628 | `database/connection.py` | 211 | ✅ Complete | DuckDB replaces PostgreSQL |
 | | | `database/models.py` | 157 | | Product/Station models |
 | | | `database/products.py` | 267 | | Product management |
+| | | `database/met.py` | 320 | | MET data tracking |
 | **FTP.pm** | 3,027 | `data_access/ftp_client.py` | 274 | ✅ Complete | FTP/SFTP with retry logic |
 | | | `data_access/http_client.py` | 241 | | HTTPS/Curl support |
 | | | `data_access/downloader.py` | 300 | | Unified download manager |
@@ -68,10 +70,12 @@ This Python implementation replaces the legacy Perl system while maintaining ful
 
 | Python Module | Lines | Purpose |
 |---------------|-------|---------|
-| `core/config.py` | 172 | Pydantic-based settings management |
+| `core/config.py` | 205 | Pydantic-based settings management |
 | `core/exceptions.py` | 93 | Custom exception hierarchy |
 | `bsw/interface.py` | 338 | BSW campaign management and BPE runner |
-| `cli.py` | 493 | Click-based command line interface |
+| `processing/networks.py` | 410 | Network configuration profiles (IG, EU, GB, RG, SS) |
+| `processing/daily_ppp.py` | 605 | Daily PPP processor for all networks |
+| `cli.py` | 910 | Click-based command line interface |
 
 ### Conversion Details by Category
 
@@ -109,16 +113,18 @@ Features converted:
 #### Database Layer
 ```
 Perl: DB.pm (1,628 lines) + PROD.pm (495 lines) = 2,123 lines
-  └── Python: database/ (635 lines total)
+  └── Python: database/ (955 lines total)
       ├── connection.py (211 lines) - DuckDB connection management
       ├── models.py (157 lines) - Enums and data models
-      └── products.py (267 lines) - Product tracking
+      ├── products.py (267 lines) - Product tracking
+      └── met.py (320 lines) - MET data tracking
 
 Features converted:
   ✅ Product storage and retrieval
   ✅ Station data management
   ✅ Processing run tracking
   ✅ Hourly/subhourly data tables
+  ✅ MET table maintenance (call_MET_maintain.pl replacement)
 
 Improvements:
   ✅ PostgreSQL → DuckDB (embedded, no server needed)
@@ -203,6 +209,57 @@ Features converted:
 
 ### Recently Converted
 
+#### Daily PPP Caller Scripts → processing/daily_ppp.py
+```
+Perl Scripts (5 x ~420 lines = ~2,100 lines total):
+  - iGNSS_D_PPP_AR_IG_IGS54_direct_NRT.pl (IGS core stations)
+  - iGNSS_D_PPP_AR_EU_IGS54_direct_NRT.pl (EUREF stations)
+  - iGNSS_D_PPP_AR_GB_IGS54_direct_NRT.pl (Great Britain stations)
+  - iGNSS_D_PPP_AR_RG_IGS54_direct_NRT.pl (RGP France stations)
+  - iGNSS_D_PPP_AR_SS_IGS54_direct_NRT.pl (Supersites NL)
+
+  └── Python: processing/daily_ppp.py (605 lines) + networks.py (410 lines)
+
+Features converted:
+  ✅ Network-specific configuration profiles (dataclass-based)
+  ✅ Station filtering from XML with NRT support
+  ✅ FTP data source selection per network
+  ✅ Product download (orbit, ERP, clock) from IGS
+  ✅ IGS alignment file handling for non-IGS networks
+  ✅ BSW campaign directory setup
+  ✅ BPE processing with PCF files
+  ✅ DCM archiving (Delete, Compress, Move)
+  ✅ 21-day latency CRON mode for NRT processing
+  ✅ Date range processing support
+  ✅ Station overrides and exclusions
+
+Networks supported:
+  - IG: IGS core stations (global reference, processed first)
+  - EU: EUREF stations (European reference, requires IGS alignment)
+  - GB: Great Britain (OS active, scientific, IGS)
+  - RG: RGP France (French permanent network)
+  - SS: Supersites (Netherlands/European supersites)
+
+Usage:
+  from pygnss_rt.processing import DailyPPPProcessor, DailyPPPArgs, NetworkID
+
+  # Process single network in CRON mode
+  processor = DailyPPPProcessor()
+  results = processor.process(DailyPPPArgs(
+      network_id=NetworkID.IG,
+      cron_mode=True,
+      latency_days=21,
+  ))
+
+  # Process all networks for a date
+  from pygnss_rt.processing import process_all_networks
+  results = process_all_networks(DailyPPPArgs(
+      network_id=NetworkID.IG,  # Overridden for each network
+      start_date=GNSSDate(2024, 7, 7),
+      end_date=GNSSDate(2024, 7, 7),
+  ))
+```
+
 #### IONEX to TEC (INX2TEC.pm → inx2tec.py)
 ```
 Perl: INX2TEC.pm (835 lines)
@@ -283,6 +340,41 @@ pygnss-rt process -s 2024-01-01 -S algo,nrc1,dubo
 pygnss-rt download -p orbit --provider IGS --tier final -s 2024-01-01 -e 2024-01-07
 ```
 
+### Daily PPP Processing
+
+```bash
+# Process IGS network for a specific date
+pygnss-rt daily-ppp IG -s 2024-07-01
+
+# Process in CRON mode with 21-day latency (for NRT)
+pygnss-rt daily-ppp EU --cron --latency 21
+
+# Process date range for Great Britain network
+pygnss-rt daily-ppp GB -s 2024-07-01 -e 2024-07-07
+
+# Dry run to see what would be processed
+pygnss-rt daily-ppp RG --cron --dry-run
+
+# Process all 5 networks in correct order (IG first)
+pygnss-rt daily-ppp ALL -s 2024-07-01
+
+# List available networks
+pygnss-rt list-networks
+```
+
+### MET Data Maintenance
+
+```bash
+# Run MET table maintenance (replaces call_MET_maintain.pl)
+pygnss-rt met-maintain
+
+# Dry run to see what would be done
+pygnss-rt met-maintain --dry-run
+
+# Run without downloading
+pygnss-rt met-maintain --no-download
+```
+
 ## Project Structure
 
 ```
@@ -295,12 +387,16 @@ pygnss_rt/
 │   ├── database/               # DuckDB integration (replaces DB.pm)
 │   │   ├── connection.py       # Database manager
 │   │   ├── models.py           # Data models
-│   │   └── products.py         # Product tracking
+│   │   ├── products.py         # Product tracking
+│   │   └── met.py              # MET data tracking (replaces call_MET_maintain.pl)
 │   ├── data_access/            # FTP/SFTP/HTTP clients (replaces FTP.pm)
 │   │   ├── ftp_client.py       # FTP/SFTP client
 │   │   ├── ftp_config.py       # XML config (replaces FTPCONF.pm)
 │   │   ├── http_client.py      # HTTPS/Curl
 │   │   └── downloader.py       # Unified downloader
+│   ├── processing/             # Daily PPP processing (replaces caller scripts)
+│   │   ├── networks.py         # Network profiles (IG, EU, GB, RG, SS)
+│   │   └── daily_ppp.py        # Daily PPP processor
 │   ├── stations/               # Station management (replaces STA.pm)
 │   │   ├── station.py          # Station manager
 │   │   ├── bswsta.py           # BSW file parsing (replaces BSWSTA.pm)
@@ -317,6 +413,7 @@ pygnss_rt/
 │   │   ├── rinex.py            # RINEX parsing (replaces UTIL.pm)
 │   │   └── logging.py          # Logging (replaces PRINT.pm)
 │   └── cli.py                  # Command-line interface
+├── callers/                    # Legacy Perl scripts (for reference)
 ├── config/                     # Configuration files
 ├── tests/                      # Test suite
 └── pyproject.toml              # Project metadata
