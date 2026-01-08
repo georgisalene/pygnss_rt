@@ -84,11 +84,15 @@ info_SD/
 BERN54/
 GPSUSER/
 OUTPUT/
-callers/
 *.pl
 *.pm
-*.sh
 *.xml
+*.sh
+
+# Exclude Perl callers but keep Python cron helpers
+callers/*
+!callers/pygnss_cron.sh
+!callers/crontab.example
 
 # Output/log files
 output.*

@@ -1,0 +1,30 @@
+# PyGNSS-RT Crontab Configuration
+# Install with: crontab crontab.example
+#
+# Processing types:
+#   - hourly: Process 1-hour RINEX files (typically H_XX format)
+#   - subhourly: Process 15-minute RINEX files (typically S_XX format)
+#   - daily: Process 24-hour RINEX files (typically D_XX format)
+#
+# Latency: Hours to wait for products (final=24h, rapid=3h, ultra-rapid=1h)
+#------------------------------------------------------------------------------
+
+# Environment
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+MAILTO=your.email@example.com
+
+# Hourly processing - run at minute 45 with 3-hour latency
+# Uses rapid products (IGR, IGU)
+45 * * * * /home/ahunegnaw/Python_IGNSS/i-GNSS/callers/pygnss_cron.sh hourly 3 >> /var/log/pygnss/hourly_$(date +\%Y\%m\%d).log 2>&1
+
+# Sub-hourly processing - run every 15 minutes with 1-hour latency
+# Uses ultra-rapid products (IGU)
+# 0,15,30,45 * * * * /home/ahunegnaw/Python_IGNSS/i-GNSS/callers/pygnss_cron.sh subhourly 1 >> /var/log/pygnss/subhourly_$(date +\%Y\%m\%d).log 2>&1
+
+# Daily processing - run at 06:00 UTC with 24-hour latency
+# Uses final products (IGS)
+0 6 * * * /home/ahunegnaw/Python_IGNSS/i-GNSS/callers/pygnss_cron.sh daily 24 >> /var/log/pygnss/daily_$(date +\%Y\%m\%d).log 2>&1
+
+# Log rotation - clean up logs older than 30 days (run daily at midnight)
+0 0 * * * find /var/log/pygnss -name "*.log" -mtime +30 -delete
