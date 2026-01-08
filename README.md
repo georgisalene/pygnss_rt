@@ -1,6 +1,6 @@
 # PyGNSS-RT: Python GNSS Real-Time Processing System
 
-**Version 1.1.0**
+**Version 1.2.0**
 
 A modern Python framework for real-time GNSS (Global Navigation Satellite System) data processing, integrating with Bernese GNSS Software (BSW) for Precise Point Positioning (PPP) and tropospheric parameter estimation.
 
@@ -31,11 +31,11 @@ This Python implementation replaces the legacy Perl system while maintaining ful
 | Metric | Count |
 |--------|-------|
 | **Total Perl Modules** | 18 |
-| **Fully Converted** | 14 |
+| **Fully Converted** | 15 |
 | **Partially Converted** | 2 |
-| **Not Yet Converted** | 2 |
+| **Not Yet Converted** | 1 |
 | **Perl Lines of Code** | 17,537 |
-| **Python Lines of Code** | 8,057 |
+| **Python Lines of Code** | 8,650+ |
 
 ### Detailed Conversion Matrix
 
@@ -61,7 +61,7 @@ This Python implementation replaces the legacy Perl system while maintaining ful
 | **PROD.pm** | 495 | `database/products.py` | (incl.) | ✅ Complete | Merged into database module |
 | **PRINT.pm** | 119 | `utils/logging.py` | 91 | ✅ Complete | Structured logging with structlog |
 | **ORBIT.pm** | 405 | `data_access/downloader.py` | (incl.) | ⚠️ Partial | Basic orbit handling; SP3 parsing TODO |
-| **INX2TEC.pm** | 835 | - | - | ❌ Not Started | IONEX to TEC conversion |
+| **INX2TEC.pm** | 835 | `atmosphere/inx2tec.py` | 593 | ✅ Complete | IONEX to TEC conversion with COST-716 output |
 | **TIVOLI2.pm** | 172 | - | - | ❌ Not Started | Tivoli archiving (legacy, may not be needed) |
 
 ### New Python Modules (No Perl Equivalent)
@@ -199,8 +199,41 @@ Features converted:
 
 | Module | Lines | Reason |
 |--------|-------|--------|
-| **INX2TEC.pm** | 835 | IONEX to TEC conversion - specialized ionosphere processing |
 | **TIVOLI2.pm** | 172 | Legacy Tivoli tape archiving - may be obsolete |
+
+### Recently Converted
+
+#### IONEX to TEC (INX2TEC.pm → inx2tec.py)
+```
+Perl: INX2TEC.pm (835 lines)
+  └── Python: atmosphere/inx2tec.py (593 lines)
+
+Features converted:
+  ✅ IONEX file parsing (header and TEC maps)
+  ✅ Global ionosphere grid (71 lat x 72 lon = 5112 points)
+  ✅ Hourly TEC conversion to COST-716 format
+  ✅ Sub-hourly (15-minute) TEC conversion
+  ✅ European region filtering for sub-hourly data
+  ✅ TEC scaling with IONEX exponent
+  ✅ File creation timestamp handling
+
+Classes:
+  - IONEXParser: Parse IONEX format files
+  - IONEXHeader: IONEX file header data
+  - IONEXData: Complete parsed IONEX data
+  - GridPoint: Single grid point with TEC values
+  - INX2TEC: Main converter class
+
+Usage:
+  from pygnss_rt.atmosphere import INX2TEC, convert_ionex_to_tec
+
+  # Simple conversion
+  output = convert_ionex_to_tec("input.inx", hourly=True)
+
+  # With options
+  converter = INX2TEC(solution_name="MIGH")
+  output = converter.convert_hourly("input.inx", output_dir="/path/to/output")
+```
 
 ---
 
@@ -272,8 +305,9 @@ pygnss_rt/
 │   │   ├── station.py          # Station manager
 │   │   ├── bswsta.py           # BSW file parsing (replaces BSWSTA.pm)
 │   │   └── coordinates.py      # Transforms (replaces CRD.pm)
-│   ├── atmosphere/             # Troposphere (replaces ZTD2IWV.pm)
-│   │   └── ztd2iwv.py          # ZTD to IWV conversion
+│   ├── atmosphere/             # Troposphere & Ionosphere
+│   │   ├── ztd2iwv.py          # ZTD to IWV conversion (replaces ZTD2IWV.pm)
+│   │   └── inx2tec.py          # IONEX to TEC conversion (replaces INX2TEC.pm)
 │   ├── bsw/                    # Bernese interface (replaces LOADENV.pm)
 │   │   ├── environment.py      # BSW environment
 │   │   └── interface.py        # Campaign & BPE runner

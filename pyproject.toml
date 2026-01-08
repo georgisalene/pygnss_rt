@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pygnss-rt"
-version = "1.1.0"
+version = "1.2.0"
 description = "Python GNSS Real-Time Processing System"
 readme = "README.md"
 requires-python = ">=3.10"
