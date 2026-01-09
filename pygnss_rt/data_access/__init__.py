@@ -7,10 +7,11 @@ from pygnss_rt.data_access.downloader import DataDownloader, DownloadResult
 from pygnss_rt.data_access.station_downloader import (
     StationDownloader,
     ProviderConfig,
-    StationDownloadResult,
-    DownloadRequest,
-    RINEXFileType,
+    DownloadTask,
+    DownloadResult as StationDownloadResult,
+    RINEXType,
     DEFAULT_PROVIDERS,
+    download_stations_for_processing,
 )
 
 __all__ = [
@@ -25,8 +26,9 @@ __all__ = [
     # Station downloader
     "StationDownloader",
     "ProviderConfig",
+    "DownloadTask",
     "StationDownloadResult",
-    "DownloadRequest",
-    "RINEXFileType",
+    "RINEXType",
     "DEFAULT_PROVIDERS",
+    "download_stations_for_processing",
 ]
