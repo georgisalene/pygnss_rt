@@ -35,6 +35,20 @@ from pygnss_rt.data_access.download_callers import (
     run_all_download_jobs,
     DOWNLOAD_CALLERS,
 )
+from pygnss_rt.data_access.gen_files_downloader import (
+    # Main class
+    GENFilesDownloader,
+    GENDownloaderConfig,
+    GENDownloadResult,
+    GENFileSpec,
+    BSWVersion,
+    # Default file lists
+    DEFAULT_CONFIG_FILES,
+    DEFAULT_REF_FILES,
+    # Convenience functions
+    download_gen_files,
+    download_antenna_files,
+)
 
 __all__ = [
     "FTPClient",
@@ -71,4 +85,14 @@ __all__ = [
     "run_download_job",
     "run_all_download_jobs",
     "DOWNLOAD_CALLERS",
+    # GEN files downloader (replaces genFilesDownloader*.pm)
+    "GENFilesDownloader",
+    "GENDownloaderConfig",
+    "GENDownloadResult",
+    "GENFileSpec",
+    "BSWVersion",
+    "DEFAULT_CONFIG_FILES",
+    "DEFAULT_REF_FILES",
+    "download_gen_files",
+    "download_antenna_files",
 ]
