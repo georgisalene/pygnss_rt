@@ -908,6 +908,210 @@ def list_networks_cmd() -> None:
     click.echo("  - Use 'pygnss-rt daily-ppp ALL' to process all networks in correct order")
 
 
+@cli.command("nrddp-tro")
+@click.option(
+    "--start-date", "-s",
+    type=str,
+    help="Start date (YYYY-MM-DD or YYYY/DOY)",
+)
+@click.option(
+    "--end-date", "-e",
+    type=str,
+    help="End date (defaults to start date)",
+)
+@click.option(
+    "--start-hour",
+    type=int,
+    default=0,
+    help="Start hour (0-23, default: 0)",
+)
+@click.option(
+    "--end-hour",
+    type=int,
+    default=23,
+    help="End hour (0-23, default: 23)",
+)
+@click.option(
+    "--cron",
+    is_flag=True,
+    help="Run in CRON mode (auto-detect date/hour with latency)",
+)
+@click.option(
+    "--latency",
+    type=int,
+    default=3,
+    help="Latency in hours for CRON mode (default: 3)",
+)
+@click.option(
+    "--exclude", "-x",
+    type=str,
+    help="Comma-separated stations to exclude",
+)
+@click.option(
+    "--skip-products",
+    is_flag=True,
+    help="Skip product download",
+)
+@click.option(
+    "--skip-data",
+    is_flag=True,
+    help="Skip station data download",
+)
+@click.option(
+    "--skip-iwv",
+    is_flag=True,
+    help="Skip ZTD to IWV conversion",
+)
+@click.option(
+    "--skip-dcm",
+    is_flag=True,
+    help="Skip DCM archiving",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be done without executing",
+)
+@click.pass_context
+def nrddp_tro(
+    ctx: click.Context,
+    start_date: str | None,
+    end_date: str | None,
+    start_hour: int,
+    end_hour: int,
+    cron: bool,
+    latency: int,
+    exclude: str | None,
+    skip_products: bool,
+    skip_data: bool,
+    skip_iwv: bool,
+    skip_dcm: bool,
+    dry_run: bool,
+) -> None:
+    """Run NRDDP TRO (Near Real-Time Tropospheric) processing.
+
+    Hourly processing for tropospheric parameter estimation combining
+    stations from all available networks (IGS, EUREF, OS, RGP, etc.).
+    Produces ZTD and IWV products.
+
+    This replaces the Perl caller scripts:
+    - iGNSS_NRDDP_TRO_54_nrt_direct.pl
+    - iGNSS_NRDDP_TRO_BSW54_direct.pl
+
+    Key features:
+    - Hourly processing (vs daily for PPP)
+    - Dynamic NRT coordinates (updated daily)
+    - All-network station merging (10+ networks)
+    - NEQ stacking (4-hour accumulation)
+    - ZTD to IWV conversion
+
+    Examples:
+
+    \b
+        # Process in CRON mode (3-hour latency)
+        pygnss-rt nrddp-tro --cron --latency 3
+
+        # Process specific date/hour range
+        pygnss-rt nrddp-tro -s 2024-09-16 --start-hour 0 --end-hour 23
+
+        # Process single hour
+        pygnss-rt nrddp-tro -s 2024-09-16 --start-hour 12 --end-hour 12
+
+        # Dry run to see what would be processed
+        pygnss-rt nrddp-tro --cron --dry-run
+    """
+    from pygnss_rt.processing import (
+        NRDDPTROProcessor,
+        NRDDPTROArgs,
+    )
+    from pygnss_rt.utils.dates import GNSSDate
+
+    config_path = ctx.obj.get("config")
+    verbose = ctx.obj.get("verbose", False)
+
+    # Parse dates
+    start = None
+    end = None
+
+    if start_date:
+        start = _parse_date(start_date)
+    if end_date:
+        end = _parse_date(end_date)
+    elif start:
+        end = start
+
+    # Parse exclusion list
+    exclude_list = [s.strip() for s in exclude.split(",")] if exclude else []
+
+    click.echo("NRDDP TRO Processing")
+    click.echo("=" * 60)
+
+    if dry_run:
+        click.echo("[DRY RUN MODE]")
+        click.echo()
+
+    # Show parameters
+    if cron:
+        click.echo(f"Mode: CRON (latency: {latency} hours)")
+    else:
+        if start:
+            click.echo(f"Date range: {start} to {end}")
+            click.echo(f"Hour range: {start_hour:02d}:00 - {end_hour:02d}:00 UTC")
+        else:
+            click.echo("Error: Either --cron or --start-date must be specified")
+            sys.exit(1)
+
+    if exclude_list:
+        click.echo(f"Excluded: {', '.join(exclude_list)}")
+
+    click.echo()
+
+    # Build arguments
+    args = NRDDPTROArgs(
+        start_date=start,
+        end_date=end,
+        start_hour=start_hour,
+        end_hour=end_hour,
+        cron_mode=cron,
+        latency_hours=latency,
+        exclude_stations=exclude_list,
+        skip_products=skip_products,
+        skip_data=skip_data,
+        skip_iwv=skip_iwv,
+        skip_dcm=skip_dcm,
+        dry_run=dry_run,
+        verbose=verbose,
+    )
+
+    # Initialize processor
+    processor = NRDDPTROProcessor(config_path=config_path)
+
+    # Run processing
+    results = processor.process(args)
+
+    # Report results
+    click.echo("\n" + "=" * 60)
+    click.echo("NRDDP TRO SUMMARY")
+    click.echo("=" * 60)
+
+    success_count = sum(1 for r in results if r.success)
+    click.echo(f"Total: {success_count}/{len(results)} hours successful")
+
+    if success_count < len(results):
+        failed = [r for r in results if not r.success]
+        click.echo(f"\nFailed hours ({len(failed)}):")
+        for r in failed:
+            click.echo(f"  - {r.session_name}: {r.error_message or 'Unknown error'}")
+        sys.exit(1)
+    else:
+        click.echo("\nAll processing completed successfully!")
+
+    # Show IWV summary if generated
+    total_iwv = sum(r.iwv_records for r in results)
+    if total_iwv > 0:
+        click.echo(f"\nIWV records generated: {total_iwv}")
+
+
 def _parse_date(date_str: str) -> "GNSSDate":
     """Parse date string to GNSSDate.
 
