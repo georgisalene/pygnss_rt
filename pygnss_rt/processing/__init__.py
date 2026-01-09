@@ -29,6 +29,16 @@ from pygnss_rt.processing.bsw_options import (
     PPP_OPTION_DIRS,
     NRDDP_OPTION_DIRS,
 )
+from pygnss_rt.processing.neq_stacking import (
+    NEQStacker,
+    NEQStackingConfig,
+    NEQNameScheme,
+    NEQFileInfo,
+    create_neq_stacking_config,
+    NRDDP_TRO_STACKING,
+    NRDDP_TRO_SUBHOURLY_STACKING,
+    NO_STACKING,
+)
 
 __all__ = [
     # Network configuration
@@ -57,4 +67,13 @@ __all__ = [
     "get_option_dirs",
     "PPP_OPTION_DIRS",
     "NRDDP_OPTION_DIRS",
+    # NEQ stacking
+    "NEQStacker",
+    "NEQStackingConfig",
+    "NEQNameScheme",
+    "NEQFileInfo",
+    "create_neq_stacking_config",
+    "NRDDP_TRO_STACKING",
+    "NRDDP_TRO_SUBHOURLY_STACKING",
+    "NO_STACKING",
 ]

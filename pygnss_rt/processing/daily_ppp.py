@@ -30,6 +30,11 @@ from pygnss_rt.processing.bsw_options import (
     BSWOptionsConfig,
     get_option_dirs,
 )
+from pygnss_rt.processing.neq_stacking import (
+    NEQStacker,
+    NEQStackingConfig,
+    NO_STACKING,
+)
 from pygnss_rt.utils.dates import GNSSDate
 
 
@@ -78,6 +83,9 @@ class DailyPPPArgs:
     # Processing options
     use_clockprep: bool = True
     use_cc2noncc: bool = False
+
+    # NEQ stacking configuration (for hourly processing)
+    neq_stacking: NEQStackingConfig | None = None
 
     # Skip options (for debugging/partial runs)
     skip_products: bool = False  # Skip product download
@@ -668,6 +676,14 @@ class DailyPPPProcessor:
                     "ext": arch_spec.extensions,
                     "dstDir": arch_spec.dest_dir,
                 }
+
+        # Add NEQ stacking configuration
+        neq_config = args.neq_stacking or NO_STACKING
+        bsw_args["COMBNEQ"] = {
+            "yesORno": "yes" if neq_config.enabled else "no",
+            "n2stack": neq_config.n_hours_to_stack,
+            "nameScheme": neq_config.name_scheme.value if hasattr(neq_config.name_scheme, 'value') else str(neq_config.name_scheme),
+        }
 
         return bsw_args
 
