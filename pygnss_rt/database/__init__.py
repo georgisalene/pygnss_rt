@@ -24,6 +24,12 @@ from pygnss_rt.database.daily_data import (
     SDStatus,
     SDStatistics,
 )
+from pygnss_rt.database.subhourly_met import (
+    SubhourlyMetManager,
+    SMEntry,
+    SMStatus,
+    SMStatistics,
+)
 
 __all__ = [
     "DatabaseManager",
@@ -47,4 +53,9 @@ __all__ = [
     "SDEntry",
     "SDStatus",
     "SDStatistics",
+    # Subhourly MET (SM) management
+    "SubhourlyMetManager",
+    "SMEntry",
+    "SMStatus",
+    "SMStatistics",
 ]

@@ -604,3 +604,453 @@ def write_station_list(
     writer = StationListWriter()
     writer.add_stations(station_ids)
     return writer.write(output_path)
+
+
+# =============================================================================
+# CRD File Reader and Converters
+# Replaces Perl crd2otl.pl and crd2staXml.pl utilities
+# =============================================================================
+
+class CRDFileReader:
+    """Reader for Bernese .CRD coordinate files.
+
+    Parses CRD files and extracts station coordinates.
+    """
+
+    def __init__(self):
+        """Initialize CRD reader."""
+        self._stations: list[StationCoordinate] = []
+        self._datum: str = ""
+        self._epoch: str = ""
+
+    @classmethod
+    def from_file(cls, filepath: Path | str) -> "CRDFileReader":
+        """Read CRD file.
+
+        Args:
+            filepath: Path to CRD file
+
+        Returns:
+            CRDFileReader instance with parsed data
+        """
+        reader = cls()
+        reader.parse(filepath)
+        return reader
+
+    def parse(self, filepath: Path | str) -> list[StationCoordinate]:
+        """Parse CRD file.
+
+        Args:
+            filepath: Path to CRD file
+
+        Returns:
+            List of StationCoordinate objects
+        """
+        filepath = Path(filepath)
+
+        if not filepath.exists():
+            raise FileNotFoundError(f"CRD file not found: {filepath}")
+
+        stations = []
+
+        with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+            for line_num, line in enumerate(f, 1):
+                # Skip header lines (first 6 lines typically)
+                if line_num <= 6:
+                    # Try to extract datum and epoch from header
+                    if "DATUM:" in line.upper():
+                        parts = line.split(":")
+                        if len(parts) >= 2:
+                            self._datum = parts[1].split()[0].strip()
+                    if "EPOCH:" in line.upper():
+                        parts = line.split("EPOCH:")
+                        if len(parts) >= 2:
+                            self._epoch = parts[1].split()[0].strip()
+                    continue
+
+                # Clean up line
+                line = line.strip()
+                if not line:
+                    continue
+
+                # Skip lines without letters (station names have letters)
+                if not any(c.isalpha() for c in line):
+                    continue
+
+                # Parse station line
+                parts = line.split()
+                if len(parts) < 5:
+                    continue
+
+                try:
+                    # Format: NUM STATION X Y Z [FLAG]
+                    # or: NUM STATION DESC X Y Z [FLAG]
+                    station_id = parts[1]
+
+                    # Find the first numeric field (X coordinate)
+                    x_idx = -1
+                    for i, p in enumerate(parts):
+                        try:
+                            float(p)
+                            if abs(float(p)) > 1000:  # Coordinates are > 1000m
+                                x_idx = i
+                                break
+                        except ValueError:
+                            continue
+
+                    if x_idx == -1 or x_idx + 2 >= len(parts):
+                        continue
+
+                    x = float(parts[x_idx])
+                    y = float(parts[x_idx + 1])
+                    z = float(parts[x_idx + 2])
+
+                    # Check for flag at end
+                    flag = "A"
+                    if x_idx + 3 < len(parts):
+                        potential_flag = parts[x_idx + 3]
+                        if len(potential_flag) == 1 and potential_flag.isalpha():
+                            flag = potential_flag
+
+                    station = StationCoordinate(
+                        station_id=station_id,
+                        x=x,
+                        y=y,
+                        z=z,
+                        flag=flag,
+                    )
+                    stations.append(station)
+
+                except (ValueError, IndexError):
+                    continue
+
+        self._stations = stations
+
+        logger.info(
+            "Read CRD file",
+            path=str(filepath),
+            stations=len(stations),
+        )
+
+        return stations
+
+    @property
+    def stations(self) -> list[StationCoordinate]:
+        """Get parsed stations."""
+        return self._stations
+
+    @property
+    def datum(self) -> str:
+        """Get reference datum."""
+        return self._datum
+
+    @property
+    def epoch(self) -> str:
+        """Get reference epoch."""
+        return self._epoch
+
+
+def crd_to_otl(
+    crd_path: Path | str,
+    otl_path: Path | str | None = None,
+) -> int:
+    """Convert CRD file to OTL format for ocean tide loading requests.
+
+    Replaces Perl crd2otl.pl utility.
+
+    Extracts station coordinates from CRD file and writes them in
+    a format suitable for ocean tide loading coefficient requests.
+
+    Args:
+        crd_path: Path to input CRD file
+        otl_path: Path to output OTL file (defaults to .OTL extension)
+
+    Returns:
+        Number of stations converted
+    """
+    crd_path = Path(crd_path)
+
+    if otl_path is None:
+        otl_path = crd_path.with_suffix(".OTL")
+    else:
+        otl_path = Path(otl_path)
+
+    # Read CRD file
+    reader = CRDFileReader.from_file(crd_path)
+    stations = reader.stations
+
+    if not stations:
+        logger.warning("No stations found in CRD file", path=str(crd_path))
+        return 0
+
+    # Write OTL format
+    otl_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(otl_path, "w", encoding="utf-8") as f:
+        for station in stations:
+            # Format: STATION_NAME (23 chars)  X (14.3f)  Y (14.3f)  Z (14.3f)
+            f.write(
+                f"{station.station_name:23s} {station.x:14.3f}  {station.y:14.3f} {station.z:14.3f}\n"
+            )
+
+    logger.info(
+        "Converted CRD to OTL format",
+        input=str(crd_path),
+        output=str(otl_path),
+        stations=len(stations),
+    )
+
+    return len(stations)
+
+
+@dataclass
+class StationXMLEntry:
+    """Station entry for XML station configuration file."""
+
+    four_char_name: str
+    two_char_name: str = "XX"
+    full_name: str = ""
+    approximate_x: float = 0.0
+    approximate_y: float = 0.0
+    approximate_z: float = 0.0
+    country: str = "XX"
+    primary_net: str = "EUREF"
+    provider: str = "EUREF"
+    use_nrt: bool = True
+    station_type: str = "EUREF"
+    gmt_justify: str = "MC"
+    gmt_dopt: str = "D0/0.2"
+
+    def to_xml(self, indent: int = 8) -> str:
+        """Convert to XML string.
+
+        Args:
+            indent: Number of spaces for indentation
+
+        Returns:
+            XML string representation
+        """
+        sp = " " * indent
+        sp2 = " " * (indent + 8)
+
+        use_nrt_str = "yes" if self.use_nrt else "no"
+
+        xml = f"""{sp}<station>
+{sp2}<fourCharName>{self.four_char_name}</fourCharName>
+{sp2}<twoCharName>{self.two_char_name}</twoCharName>
+{sp2}<approximate_X>{self.approximate_x}</approximate_X>
+{sp2}<approximate_Y>{self.approximate_y}</approximate_Y>
+{sp2}<approximate_Z>{self.approximate_z}</approximate_Z>
+{sp2}<country>{self.country}</country>
+{sp2}<primaryNet>{self.primary_net}</primaryNet>
+{sp2}<provider>{self.provider}</provider>
+{sp2}<use_nrt>{use_nrt_str}</use_nrt>
+{sp2}<type>{self.station_type}</type>
+{sp2}<GMT_opt>
+{sp2}  <justify>{self.gmt_justify}</justify>
+{sp2}  <Dopt>{self.gmt_dopt}</Dopt>
+{sp2}</GMT_opt>
+{sp}</station>"""
+
+        return xml
+
+
+class StationXMLWriter:
+    """Writer for i-GNSS station XML configuration files.
+
+    Creates XML configuration blocks for stations to be used in
+    the i-GNSS processing system.
+    """
+
+    def __init__(
+        self,
+        primary_net: str = "EUREF",
+        provider: str = "EUREF",
+        station_type: str = "EUREF",
+        country: str = "XX",
+    ):
+        """Initialize station XML writer.
+
+        Args:
+            primary_net: Default primary network
+            provider: Default provider
+            station_type: Default station type
+            country: Default country code
+        """
+        self.primary_net = primary_net
+        self.provider = provider
+        self.station_type = station_type
+        self.country = country
+        self._entries: list[StationXMLEntry] = []
+
+    def add_station(self, entry: StationXMLEntry) -> None:
+        """Add a station entry."""
+        self._entries.append(entry)
+
+    def add_from_coordinate(self, station: StationCoordinate) -> None:
+        """Add station from coordinate data.
+
+        Args:
+            station: StationCoordinate object
+        """
+        entry = StationXMLEntry(
+            four_char_name=station.station_name,
+            approximate_x=station.x,
+            approximate_y=station.y,
+            approximate_z=station.z,
+            primary_net=self.primary_net,
+            provider=self.provider,
+            station_type=self.station_type,
+            country=self.country,
+        )
+        self._entries.append(entry)
+
+    def clear(self) -> None:
+        """Clear all entries."""
+        self._entries.clear()
+
+    def write(self, output_path: Path | str) -> int:
+        """Write station XML file.
+
+        Args:
+            output_path: Output file path
+
+        Returns:
+            Number of stations written
+        """
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+            f.write("<stations>\n")
+
+            for entry in self._entries:
+                f.write(entry.to_xml())
+                f.write("\n")
+
+            f.write("</stations>\n")
+
+        logger.info(
+            "Wrote station XML file",
+            path=str(output_path),
+            stations=len(self._entries),
+        )
+
+        return len(self._entries)
+
+    def to_xml_string(self) -> str:
+        """Generate XML string without file I/O.
+
+        Returns:
+            Complete XML string
+        """
+        lines = ['<?xml version="1.0" encoding="UTF-8"?>', "<stations>"]
+
+        for entry in self._entries:
+            lines.append(entry.to_xml())
+
+        lines.append("</stations>")
+
+        return "\n".join(lines)
+
+
+def crd_to_station_xml(
+    crd_path: Path | str,
+    xml_path: Path | str | None = None,
+    primary_net: str = "EUREF",
+    provider: str = "EUREF",
+    station_type: str = "EUREF",
+    country: str = "XX",
+) -> int:
+    """Convert CRD file to station XML configuration.
+
+    Replaces Perl crd2staXml.pl utility.
+
+    Reads stations from a Bernese CRD file and creates XML configuration
+    blocks for the i-GNSS system.
+
+    Args:
+        crd_path: Path to input CRD file
+        xml_path: Path to output XML file (defaults to .xml extension)
+        primary_net: Network name
+        provider: Provider name
+        station_type: Station type
+        country: Country code
+
+    Returns:
+        Number of stations converted
+    """
+    crd_path = Path(crd_path)
+
+    if xml_path is None:
+        xml_path = crd_path.with_suffix(".xml")
+    else:
+        xml_path = Path(xml_path)
+
+    # Read CRD file
+    reader = CRDFileReader.from_file(crd_path)
+    stations = reader.stations
+
+    if not stations:
+        logger.warning("No stations found in CRD file", path=str(crd_path))
+        return 0
+
+    # Create XML writer
+    writer = StationXMLWriter(
+        primary_net=primary_net,
+        provider=provider,
+        station_type=station_type,
+        country=country,
+    )
+
+    for station in stations:
+        writer.add_from_coordinate(station)
+
+    # Write XML file
+    return writer.write(xml_path)
+
+
+def print_station_xml_blocks(
+    crd_path: Path | str,
+    primary_net: str = "EUREF",
+    provider: str = "EUREF",
+    station_type: str = "EUREF",
+) -> str:
+    """Generate station XML blocks for console output.
+
+    Useful for copy-pasting into existing XML configuration files.
+
+    Args:
+        crd_path: Path to input CRD file
+        primary_net: Network name
+        provider: Provider name
+        station_type: Station type
+
+    Returns:
+        XML string with station blocks
+    """
+    crd_path = Path(crd_path)
+
+    # Read CRD file
+    reader = CRDFileReader.from_file(crd_path)
+    stations = reader.stations
+
+    if not stations:
+        return ""
+
+    # Generate XML blocks
+    blocks = []
+    for station in stations:
+        entry = StationXMLEntry(
+            four_char_name=station.station_name,
+            approximate_x=station.x,
+            approximate_y=station.y,
+            approximate_z=station.z,
+            primary_net=primary_net,
+            provider=provider,
+            station_type=station_type,
+        )
+        blocks.append(entry.to_xml())
+
+    return "\n".join(blocks)
