@@ -25,6 +25,11 @@ from pygnss_rt.processing.networks import (
     NetworkProfile,
     get_network_profile,
 )
+from pygnss_rt.processing.bsw_options import (
+    BSWOptionsParser,
+    BSWOptionsConfig,
+    get_option_dirs,
+)
 from pygnss_rt.utils.dates import GNSSDate
 
 
@@ -515,13 +520,156 @@ class DailyPPPProcessor:
         Returns:
             True if processing succeeded
         """
-        # This would invoke the BPE runner
-        # For now, placeholder that would call:
-        # - LOADGPS environment
-        # - BPE with PCF file
         print(f"  PCF: {profile.pcf_file}")
         print(f"  Options: {profile.bsw_options_xml}")
+
+        # Load and parse BSW options XML
+        bsw_options = self._load_bsw_options(profile, date)
+        if bsw_options is None:
+            print("  Warning: Could not load BSW options XML")
+            return False
+
+        if args.verbose:
+            print(f"  Processing steps: {bsw_options.list_steps()}")
+
+        # Build processing arguments for BSW
+        bsw_args = self._build_bsw_args(profile, date, session_name, bsw_options, args)
+
+        if args.verbose:
+            print(f"  BSW args prepared: {len(bsw_args)} parameters")
+
+        # TODO: Invoke BPE runner with options
+        # For now, placeholder that would call:
+        # - LOADGPS environment
+        # - BPE with PCF file and options
         return True
+
+    def _load_bsw_options(
+        self,
+        profile: NetworkProfile,
+        date: GNSSDate,
+    ) -> BSWOptionsConfig | None:
+        """Load BSW options from XML file.
+
+        Args:
+            profile: Network profile containing XML path
+            date: Processing date for variable substitution
+
+        Returns:
+            Parsed BSW options config or None if error
+        """
+        xml_path = Path(profile.bsw_options_xml)
+        if not xml_path.exists():
+            return None
+
+        try:
+            parser = BSWOptionsParser()
+            config = parser.load(xml_path)
+            return config
+        except Exception as e:
+            print(f"  Error loading BSW options: {e}")
+            return None
+
+    def _build_bsw_args(
+        self,
+        profile: NetworkProfile,
+        date: GNSSDate,
+        session_name: str,
+        bsw_options: BSWOptionsConfig,
+        args: DailyPPPArgs,
+    ) -> dict[str, Any]:
+        """Build BSW processing arguments.
+
+        Corresponds to the Perl %args hash that gets passed to IGNSS->new().
+
+        Args:
+            profile: Network profile
+            date: Processing date
+            session_name: Session name
+            bsw_options: Parsed BSW options
+            args: Processing arguments
+
+        Returns:
+            Dictionary of BSW arguments
+        """
+        y4c = str(date.year)
+        y2c = f"{date.year % 100:02d}"
+        doy = f"{date.doy:03d}"
+
+        # Build session string (for daily: DOY + "0")
+        session_str = f"{doy}0"
+
+        bsw_args = {
+            # Processing type
+            "procType": "daily",
+            # Date components
+            "y4c": y4c,
+            "y2c": y2c,
+            "doy": doy,
+            "ha": "0",  # Hour character (0 for daily)
+            # Session info
+            "session": session_name,
+            "sessID2char": profile.session_id,
+            "TASKID": profile.task_id,
+            # PCF and options
+            "PCF_FILE": profile.pcf_file,
+            "bswOpt": profile.bsw_options_xml,
+            # Option directories mapping
+            "optDirs": get_option_dirs("ppp"),
+            # Datum and reference frame
+            "datum": profile.datum,
+            "ABS_REL": profile.antenna_phase_center,
+            # Minimum elevation
+            "opt_MINEL": profile.min_elevation,
+            # Information files
+            "infoSES": profile.info_files.get("sessions", ""),
+            "infoSTA": profile.info_files.get("station", ""),
+            "infoOTL": profile.info_files.get("ocean_loading", ""),
+            "infoABB": profile.info_files.get("abbreviations", ""),
+            "infoSEL": profile.info_files.get("obs_selection", ""),
+            "infoSNX": profile.info_files.get("sinex_skeleton", ""),
+            "infoPCV": profile.info_files.get("phase_center", ""),
+            "infoCRD": profile.coord_file,
+            # Satellite/phase options (derived from ABS_REL)
+            "opt_SATELL": "SATELLIT_I20" if profile.antenna_phase_center == "ABSOLUTE" else "SATELLIT_I01",
+            "opt_PHASECC": "ANTENNA_I20.I20" if profile.antenna_phase_center == "ABSOLUTE" else "ANTENNA_I01.I01",
+            # CRX option
+            "opt_CRX": f"SAT_{y4c}",
+            # OBSFIL pattern
+            "opt_OBSFIL": f"????{doy}0",
+            # Campaign directory pattern
+            "CAMP_DRV": "${P}/",
+            # DCM settings
+            "DCM": {
+                "yesORno": "yes" if profile.dcm_enabled else "no",
+                "dir2del": profile.dcm_dirs_to_delete,
+                "compUtil": "gzip",
+                "mv2dir": profile.dcm_archive_dir,
+                "org": profile.dcm_organization,
+            },
+            # Control
+            "controlArgs": {
+                "yesORno": "yes",
+                "type": "NRT",
+            },
+        }
+
+        # Add archive file specifications if needed
+        if profile.requires_igs_alignment:
+            bsw_args["archFiles"] = {}
+            for arch_name, arch_spec in profile.archive_files.items():
+                bsw_args["archFiles"][arch_name] = {
+                    "root": arch_spec.root,
+                    "org": arch_spec.organization,
+                    "campPat": arch_spec.campaign_pattern,
+                    "prefix": arch_spec.prefix,
+                    "body": arch_spec.body_pattern,
+                    "srcDir": arch_spec.source_dir,
+                    "ext": arch_spec.extensions,
+                    "dstDir": arch_spec.dest_dir,
+                }
+
+        return bsw_args
 
     def _run_dcm(
         self,
