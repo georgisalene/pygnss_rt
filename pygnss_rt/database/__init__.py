@@ -30,6 +30,20 @@ from pygnss_rt.database.subhourly_met import (
     SMStatus,
     SMStatistics,
 )
+from pygnss_rt.database.maintenance import (
+    # Maintenance callers (replaces call_*_maintain.pl)
+    HDMaintenanceCaller,
+    SDMaintenanceCaller,
+    SMMaintenanceCaller,
+    MaintenanceConfig,
+    MaintenanceStats,
+    MaintenanceType,
+    # Convenience functions
+    run_hd_maintenance,
+    run_sd_maintenance,
+    run_sm_maintenance,
+    run_all_maintenance,
+)
 
 __all__ = [
     "DatabaseManager",
@@ -58,4 +72,15 @@ __all__ = [
     "SMEntry",
     "SMStatus",
     "SMStatistics",
+    # Maintenance callers (replaces call_*_maintain.pl)
+    "HDMaintenanceCaller",
+    "SDMaintenanceCaller",
+    "SMMaintenanceCaller",
+    "MaintenanceConfig",
+    "MaintenanceStats",
+    "MaintenanceType",
+    "run_hd_maintenance",
+    "run_sd_maintenance",
+    "run_sm_maintenance",
+    "run_all_maintenance",
 ]
