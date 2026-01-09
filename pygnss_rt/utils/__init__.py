@@ -1,4 +1,4 @@
-"""Utility modules for date/time handling and logging."""
+"""Utility modules for date/time handling, logging, and monitoring."""
 
 from pygnss_rt.utils.dates import (
     GNSSDate,
@@ -24,6 +24,23 @@ from pygnss_rt.utils.wmo_format import (
     WMOStation,
     format_wmo_file,
 )
+from pygnss_rt.utils.monitoring import (
+    # TIVOLI2.pm replacement - Alert management
+    AlertManager,
+    AlertLevel,
+    AlertType,
+    ProcessingAlert,
+    EmailConfig,
+    AlertStats,
+    ALERT_CODES,
+    # Convenience functions
+    get_alert_manager,
+    configure_alerts,
+    alert,
+    alert_error,
+    alert_warning,
+    alert_success,
+)
 
 __all__ = [
     # Date/time utilities
@@ -47,4 +64,18 @@ __all__ = [
     "WMOParser",
     "WMOStation",
     "format_wmo_file",
+    # TIVOLI2.pm replacement - Alert management
+    "AlertManager",
+    "AlertLevel",
+    "AlertType",
+    "ProcessingAlert",
+    "EmailConfig",
+    "AlertStats",
+    "ALERT_CODES",
+    "get_alert_manager",
+    "configure_alerts",
+    "alert",
+    "alert_error",
+    "alert_warning",
+    "alert_success",
 ]

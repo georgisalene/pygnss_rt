@@ -1112,6 +1112,801 @@ def nrddp_tro(
         click.echo(f"\nIWV records generated: {total_iwv}")
 
 
+# =============================================================================
+# Database Maintenance Commands
+# =============================================================================
+
+@cli.command("db-maintain")
+@click.option(
+    "--table",
+    type=click.Choice(["hourly", "daily", "orbit", "met", "all"]),
+    default="all",
+    help="Table to maintain (default: all)",
+)
+@click.option(
+    "--fill-gaps/--no-fill-gaps",
+    default=True,
+    help="Fill gaps in tracking tables",
+)
+@click.option(
+    "--mark-late/--no-mark-late",
+    default=True,
+    help="Mark old waiting files as 'Too Late'",
+)
+@click.option(
+    "--late-days",
+    type=int,
+    default=30,
+    help="Days threshold for marking as too late",
+)
+@click.option(
+    "--cleanup/--no-cleanup",
+    default=False,
+    help="Remove old entries (default: off)",
+)
+@click.option(
+    "--cleanup-days",
+    type=int,
+    default=180,
+    help="Days of data to keep during cleanup",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be done without executing",
+)
+@click.pass_context
+def db_maintain(
+    ctx: click.Context,
+    table: str,
+    fill_gaps: bool,
+    mark_late: bool,
+    late_days: int,
+    cleanup: bool,
+    cleanup_days: int,
+    dry_run: bool,
+) -> None:
+    """Maintain database tracking tables.
+
+    Performs maintenance operations on the data tracking tables:
+    - Add entries for the current day/hour
+    - Fill gaps from interrupted processing
+    - Mark old waiting files as 'Too Late'
+    - Clean up old entries (optional)
+
+    This replaces the Perl call_*_maintain.pl scripts.
+
+    Examples:
+
+    \b
+        # Maintain all tables with defaults
+        pygnss-rt db-maintain
+
+        # Maintain only hourly data table
+        pygnss-rt db-maintain --table hourly
+
+        # Cleanup old entries (180 days)
+        pygnss-rt db-maintain --cleanup --cleanup-days 180
+
+        # Dry run to see what would happen
+        pygnss-rt db-maintain --dry-run
+    """
+    from pygnss_rt.core.config import load_config
+    from pygnss_rt.database.connection import init_db
+    from pygnss_rt.utils.dates import GNSSDate
+
+    config_path = ctx.obj.get("config")
+    verbose = ctx.obj.get("verbose", False)
+
+    config = load_config(config_path) if config_path else {}
+    db_path = Path(config.get("database", {}).get("path", "data/pygnss_rt.duckdb"))
+
+    click.echo("Database Maintenance")
+    click.echo("=" * 50)
+    click.echo(f"Database: {db_path}")
+    click.echo(f"Tables: {table}")
+    click.echo()
+
+    if dry_run:
+        click.echo("[DRY RUN MODE]")
+        click.echo()
+
+    db = init_db(db_path, create_schema=True)
+    now = GNSSDate.now()
+
+    tables_to_maintain = []
+    if table == "all":
+        tables_to_maintain = ["hourly", "daily", "orbit", "met"]
+    else:
+        tables_to_maintain = [table]
+
+    for tbl in tables_to_maintain:
+        click.echo(f"\n--- Maintaining {tbl} table ---")
+
+        if tbl == "hourly":
+            from pygnss_rt.database.hourly_data import HourlyDataManager
+            mgr = HourlyDataManager(db)
+        elif tbl == "daily":
+            from pygnss_rt.database.daily_data import DailyDataManager
+            mgr = DailyDataManager(db)
+        elif tbl == "orbit":
+            from pygnss_rt.products.orbit import OrbitDataManager
+            mgr = OrbitDataManager(db)
+        elif tbl == "met":
+            from pygnss_rt.database.met import MetManager
+            mgr = MetManager(db)
+        else:
+            continue
+
+        mgr.ensure_table()
+
+        if not dry_run:
+            # Add current entry
+            added = mgr.maintain(now)
+            if added:
+                click.echo(f"  Added {added} new entries")
+
+            # Fill gaps
+            if fill_gaps:
+                filled = mgr.fill_gap(late_day=late_days, reference_date=now)
+                if filled:
+                    click.echo(f"  Filled {filled} gap entries")
+
+            # Mark too late
+            if mark_late:
+                marked = mgr.set_too_late_files(late_day=late_days, reference_date=now)
+                if marked:
+                    click.echo(f"  Marked {marked} entries as 'Too Late'")
+
+            # Cleanup
+            if cleanup and hasattr(mgr, 'cleanup_old_entries'):
+                removed = mgr.cleanup_old_entries(days_to_keep=cleanup_days)
+                if removed:
+                    click.echo(f"  Removed {removed} old entries")
+        else:
+            click.echo("  Would add entries, fill gaps, mark late files")
+            if cleanup:
+                click.echo(f"  Would remove entries older than {cleanup_days} days")
+
+    db.close()
+    click.echo("\nMaintenance complete")
+
+
+@cli.command("db-status")
+@click.option(
+    "--table",
+    type=click.Choice(["hourly", "daily", "orbit", "met", "all"]),
+    default="all",
+    help="Table to show status for",
+)
+@click.option(
+    "--format", "-f",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    help="Output format",
+)
+@click.pass_context
+def db_status(
+    ctx: click.Context,
+    table: str,
+    format: str,
+) -> None:
+    """Show database tracking status.
+
+    Displays statistics about the data tracking tables:
+    - Total entries by status (Waiting, Downloaded, Too Late)
+    - Date range covered
+    - Recent activity
+
+    Examples:
+
+    \b
+        # Show status for all tables
+        pygnss-rt db-status
+
+        # Show status for hourly table only
+        pygnss-rt db-status --table hourly
+
+        # Output as JSON
+        pygnss-rt db-status -f json
+    """
+    from pygnss_rt.core.config import load_config
+    from pygnss_rt.database.connection import init_db
+
+    config_path = ctx.obj.get("config")
+    config = load_config(config_path) if config_path else {}
+    db_path = Path(config.get("database", {}).get("path", "data/pygnss_rt.duckdb"))
+
+    if not db_path.exists():
+        click.echo(f"Database not found: {db_path}")
+        click.echo("Run 'pygnss-rt init' to create the database")
+        sys.exit(1)
+
+    db = init_db(db_path)
+
+    tables_to_check = []
+    if table == "all":
+        tables_to_check = ["hourly", "daily", "orbit", "met"]
+    else:
+        tables_to_check = [table]
+
+    results = {}
+
+    for tbl in tables_to_check:
+        try:
+            if tbl == "hourly":
+                from pygnss_rt.database.hourly_data import HourlyDataManager
+                mgr = HourlyDataManager(db)
+            elif tbl == "daily":
+                from pygnss_rt.database.daily_data import DailyDataManager
+                mgr = DailyDataManager(db)
+            elif tbl == "orbit":
+                from pygnss_rt.products.orbit import OrbitDataManager
+                mgr = OrbitDataManager(db)
+            elif tbl == "met":
+                from pygnss_rt.database.met import MetManager
+                mgr = MetManager(db)
+            else:
+                continue
+
+            if not mgr.table_exists():
+                results[tbl] = {"exists": False}
+                continue
+
+            summary = mgr.get_status_summary() if hasattr(mgr, 'get_status_summary') else {}
+            waiting = len(mgr.get_waiting_list()) if hasattr(mgr, 'get_waiting_list') else 0
+
+            results[tbl] = {
+                "exists": True,
+                "summary": summary,
+                "waiting": waiting,
+            }
+
+        except Exception as e:
+            results[tbl] = {"exists": False, "error": str(e)}
+
+    db.close()
+
+    if format == "json":
+        import json
+        click.echo(json.dumps(results, indent=2))
+    else:
+        click.echo("Database Status")
+        click.echo("=" * 60)
+        click.echo(f"Database: {db_path}")
+        click.echo()
+
+        for tbl, info in results.items():
+            click.echo(f"\n--- {tbl.upper()} ---")
+            if not info.get("exists"):
+                if "error" in info:
+                    click.echo(f"  Error: {info['error']}")
+                else:
+                    click.echo("  Table does not exist")
+                continue
+
+            if info.get("summary"):
+                for status, count in sorted(info["summary"].items()):
+                    click.echo(f"  {status}: {count}")
+            click.echo(f"  Waiting: {info.get('waiting', 0)}")
+
+
+# =============================================================================
+# Product Download Commands
+# =============================================================================
+
+@cli.command("download-products")
+@click.option(
+    "--date", "-d",
+    type=str,
+    required=True,
+    help="Date to download products for (YYYY-MM-DD or YYYY/DOY)",
+)
+@click.option(
+    "--products", "-p",
+    type=str,
+    default="orbit,erp,clock",
+    help="Comma-separated products: orbit,erp,clock,dcb,ion (default: orbit,erp,clock)",
+)
+@click.option(
+    "--provider",
+    type=str,
+    default="IGS",
+    help="Product provider (IGS, CODE, etc.)",
+)
+@click.option(
+    "--tier",
+    type=click.Choice(["final", "rapid", "ultra"]),
+    default="final",
+    help="Product tier",
+)
+@click.option(
+    "--output-dir", "-o",
+    type=click.Path(path_type=Path),
+    help="Output directory (default: from config)",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be downloaded",
+)
+@click.pass_context
+def download_products(
+    ctx: click.Context,
+    date: str,
+    products: str,
+    provider: str,
+    tier: str,
+    output_dir: Path | None,
+    dry_run: bool,
+) -> None:
+    """Download GNSS products for processing.
+
+    Downloads orbit, ERP, clock, and other products from IGS/CODE data centers.
+
+    Examples:
+
+    \b
+        # Download default products (orbit, erp, clock)
+        pygnss-rt download-products -d 2024-07-01
+
+        # Download specific products
+        pygnss-rt download-products -d 2024-07-01 -p orbit,clock
+
+        # Download from CODE with rapid tier
+        pygnss-rt download-products -d 2024-07-01 --provider CODE --tier rapid
+    """
+    from pygnss_rt.data_access import download_products_for_date
+    from pygnss_rt.core.config import load_config
+    from pygnss_rt.utils.dates import GNSSDate
+
+    config_path = ctx.obj.get("config")
+    config = load_config(config_path) if config_path else {}
+
+    gnss_date = _parse_date(date)
+    product_list = [p.strip() for p in products.split(",")]
+
+    if output_dir is None:
+        output_dir = Path(config.get("data", {}).get("products_dir", "data/products"))
+
+    click.echo("Product Download")
+    click.echo("=" * 50)
+    click.echo(f"Date: {gnss_date}")
+    click.echo(f"Products: {', '.join(product_list)}")
+    click.echo(f"Provider: {provider}")
+    click.echo(f"Tier: {tier}")
+    click.echo(f"Output: {output_dir}")
+    click.echo()
+
+    if dry_run:
+        click.echo("[DRY RUN MODE]")
+        click.echo("Would download the following products:")
+        for prod in product_list:
+            click.echo(f"  - {prod} from {provider} ({tier})")
+        return
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    results = download_products_for_date(
+        date=gnss_date,
+        provider=provider,
+        products=product_list,
+        destination=output_dir,
+    )
+
+    success = 0
+    for prod, result in results.items():
+        if result.success:
+            click.echo(f"  {prod}: Downloaded to {result.local_path}")
+            success += 1
+        else:
+            click.echo(f"  {prod}: FAILED - {result.error_message}")
+
+    click.echo(f"\nDownloaded {success}/{len(product_list)} products")
+
+
+@cli.command("download-gen")
+@click.option(
+    "--bsw-version",
+    type=click.Choice(["52", "54"]),
+    default="54",
+    help="Bernese version (default: 54)",
+)
+@click.option(
+    "--output-dir", "-o",
+    type=click.Path(path_type=Path),
+    help="Output directory",
+)
+@click.option(
+    "--config-files/--no-config-files",
+    default=True,
+    help="Download configuration files",
+)
+@click.option(
+    "--ref-files/--no-ref-files",
+    default=True,
+    help="Download reference files",
+)
+@click.option(
+    "--antenna/--no-antenna",
+    default=True,
+    help="Download antenna files",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be downloaded",
+)
+@click.pass_context
+def download_gen(
+    ctx: click.Context,
+    bsw_version: str,
+    output_dir: Path | None,
+    config_files: bool,
+    ref_files: bool,
+    antenna: bool,
+    dry_run: bool,
+) -> None:
+    """Download BSW GEN configuration files.
+
+    Downloads Bernese GEN files (configuration, reference, antenna) from CODE FTP.
+
+    This replaces the Perl genFilesDownloader*.pm scripts.
+
+    Examples:
+
+    \b
+        # Download all GEN files for BSW54
+        pygnss-rt download-gen
+
+        # Download only antenna files
+        pygnss-rt download-gen --no-config-files --no-ref-files --antenna
+
+        # Download to specific directory
+        pygnss-rt download-gen -o /path/to/gen
+    """
+    from pygnss_rt.data_access import (
+        GENFilesDownloader,
+        GENDownloaderConfig,
+        download_gen_files,
+    )
+
+    click.echo("GEN Files Download")
+    click.echo("=" * 50)
+    click.echo(f"BSW Version: {bsw_version}")
+    click.echo(f"Output: {output_dir or 'default'}")
+    click.echo()
+
+    if dry_run:
+        click.echo("[DRY RUN MODE]")
+        if config_files:
+            click.echo("Would download configuration files")
+        if ref_files:
+            click.echo("Would download reference files")
+        if antenna:
+            click.echo("Would download antenna files")
+        return
+
+    result = download_gen_files(
+        bsw_version=bsw_version,
+        destination=output_dir,
+        download_config=config_files,
+        download_ref=ref_files,
+    )
+
+    click.echo(f"Downloaded: {result.downloaded_count} files")
+    click.echo(f"Skipped: {result.skipped_count} files")
+    if result.failed_count > 0:
+        click.echo(f"Failed: {result.failed_count} files")
+
+    for file_result in result.files:
+        status = "OK" if file_result.success else "FAILED"
+        click.echo(f"  {file_result.filename}: {status}")
+
+
+# =============================================================================
+# Alert Management Commands
+# =============================================================================
+
+@cli.command("alerts")
+@click.option(
+    "--level", "-l",
+    type=click.Choice(["FATAL", "CRITICAL", "WARNING", "INFO", "all"]),
+    default="all",
+    help="Filter by alert level",
+)
+@click.option(
+    "--campaign", "-c",
+    type=str,
+    help="Filter by campaign",
+)
+@click.option(
+    "--limit", "-n",
+    type=int,
+    default=20,
+    help="Number of recent alerts to show",
+)
+@click.option(
+    "--log-file",
+    type=click.Path(path_type=Path),
+    help="Alert log file to read",
+)
+@click.pass_context
+def alerts(
+    ctx: click.Context,
+    level: str,
+    campaign: str | None,
+    limit: int,
+    log_file: Path | None,
+) -> None:
+    """Show recent processing alerts.
+
+    Displays alerts from the monitoring system, useful for troubleshooting
+    processing failures.
+
+    Examples:
+
+    \b
+        # Show recent alerts
+        pygnss-rt alerts
+
+        # Show only fatal/critical alerts
+        pygnss-rt alerts -l FATAL
+
+        # Show alerts for specific campaign
+        pygnss-rt alerts -c IG2024189
+    """
+    from pygnss_rt.utils.monitoring import AlertLevel as AL, ALERT_CODES
+
+    if log_file and log_file.exists():
+        # Read from log file
+        click.echo(f"Reading alerts from: {log_file}")
+        click.echo()
+
+        with open(log_file, "r") as f:
+            lines = f.readlines()[-limit:]
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Filter by level if specified
+            if level != "all" and level not in line:
+                continue
+
+            # Filter by campaign if specified
+            if campaign and campaign not in line:
+                continue
+
+            click.echo(line)
+
+    else:
+        # Show available alert codes
+        click.echo("Alert Codes Reference")
+        click.echo("=" * 70)
+        click.echo()
+        click.echo(f"{'Code':<6} {'Type':<12} {'Level':<10} Description")
+        click.echo("-" * 70)
+
+        for code, info in sorted(ALERT_CODES.items()):
+            if level != "all" and info["level"].value != level:
+                continue
+            click.echo(
+                f"{code:<6} {info['type'].value:<12} {info['level'].value:<10} "
+                f"{info['description']}"
+            )
+
+        click.echo()
+        click.echo("Tip: Use --log-file to read alerts from an alert log")
+
+
+@cli.command("test-email")
+@click.option(
+    "--to", "-t",
+    type=str,
+    required=True,
+    help="Recipient email address",
+)
+@click.option(
+    "--smtp-server",
+    type=str,
+    help="SMTP server (default: from config)",
+)
+@click.option(
+    "--from-addr",
+    type=str,
+    default="pygnss-rt@localhost",
+    help="From address",
+)
+@click.pass_context
+def test_email(
+    ctx: click.Context,
+    to: str,
+    smtp_server: str | None,
+    from_addr: str,
+) -> None:
+    """Test email notification configuration.
+
+    Sends a test email to verify the email alerting system is working.
+
+    Examples:
+
+    \b
+        # Send test email
+        pygnss-rt test-email -t admin@example.com
+
+        # Specify SMTP server
+        pygnss-rt test-email -t admin@example.com --smtp-server smtp.example.com
+    """
+    from pygnss_rt.utils.monitoring import AlertManager, EmailConfig
+
+    if smtp_server is None:
+        from pygnss_rt.core.config import load_config
+        config_path = ctx.obj.get("config")
+        config = load_config(config_path) if config_path else {}
+        smtp_server = config.get("email", {}).get("smtp_server", "localhost")
+
+    email_config = EmailConfig(
+        smtp_server=smtp_server,
+        from_address=from_addr,
+        default_recipients=[to],
+    )
+
+    alerts = AlertManager(email_config=email_config)
+
+    click.echo(f"Sending test email to {to} via {smtp_server}...")
+
+    success = alerts.send_email_alert(
+        subject="Test Alert from PyGNSS-RT",
+        body="""
+This is a test email from PyGNSS-RT.
+
+If you received this message, your email alerting configuration is working correctly.
+
+---
+PyGNSS-RT Monitoring System
+""",
+        recipients=[to],
+    )
+
+    if success:
+        click.echo("Test email sent successfully!")
+    else:
+        click.echo("Failed to send test email. Check SMTP configuration.")
+        sys.exit(1)
+
+
+# =============================================================================
+# System Information Commands
+# =============================================================================
+
+@cli.command("info")
+@click.pass_context
+def info(ctx: click.Context) -> None:
+    """Show PyGNSS-RT system information.
+
+    Displays version, configuration, and environment information.
+    """
+    import platform
+    from pygnss_rt import __version__
+    from pygnss_rt.utils.dates import GNSSDate
+
+    now = GNSSDate.now()
+
+    click.echo("PyGNSS-RT System Information")
+    click.echo("=" * 50)
+    click.echo()
+    click.echo(f"Version: {__version__}")
+    click.echo(f"Python: {platform.python_version()}")
+    click.echo(f"Platform: {platform.platform()}")
+    click.echo()
+    click.echo("Current Time:")
+    click.echo(f"  UTC: {now.datetime.strftime('%Y-%m-%d %H:%M:%S')}")
+    click.echo(f"  Year/DOY: {now.year}/{now.doy:03d}")
+    click.echo(f"  GPS Week: {now.gps_week}")
+    click.echo(f"  MJD: {now.mjd:.3f}")
+    click.echo()
+
+    # Check for Bernese installation
+    import os
+    bsw_path = os.environ.get("C", "")
+    if bsw_path:
+        click.echo(f"Bernese Installation: {bsw_path}")
+    else:
+        click.echo("Bernese Installation: Not detected ($C not set)")
+
+    # Check database
+    from pygnss_rt.core.config import load_config
+    config_path = ctx.obj.get("config")
+    config = load_config(config_path) if config_path else {}
+    db_path = Path(config.get("database", {}).get("path", "data/pygnss_rt.duckdb"))
+    click.echo()
+    click.echo(f"Database: {db_path}")
+    click.echo(f"  Exists: {db_path.exists()}")
+    if db_path.exists():
+        size_mb = db_path.stat().st_size / (1024 * 1024)
+        click.echo(f"  Size: {size_mb:.1f} MB")
+
+
+@cli.command("convert-date")
+@click.argument("date_input")
+@click.pass_context
+def convert_date(ctx: click.Context, date_input: str) -> None:
+    """Convert between date formats.
+
+    Accepts various date formats and shows conversions:
+    - YYYY-MM-DD (calendar date)
+    - YYYY/DOY (year and day of year)
+    - MJD (Modified Julian Date)
+    - GPS week and day (WWWWD)
+
+    Examples:
+
+    \b
+        # From calendar date
+        pygnss-rt convert-date 2024-07-01
+
+        # From year/DOY
+        pygnss-rt convert-date 2024/183
+
+        # From MJD
+        pygnss-rt convert-date 60491.5
+
+        # From GPS week/day
+        pygnss-rt convert-date 23221
+    """
+    from pygnss_rt.utils.dates import GNSSDate
+
+    try:
+        # Try different formats
+        gnss_date = None
+
+        # Try YYYY-MM-DD
+        if "-" in date_input:
+            gnss_date = _parse_date(date_input)
+
+        # Try YYYY/DOY
+        elif "/" in date_input:
+            gnss_date = _parse_date(date_input)
+
+        # Try MJD (decimal number)
+        elif "." in date_input:
+            mjd = float(date_input)
+            gnss_date = GNSSDate.from_mjd(mjd)
+
+        # Try GPS week/day (5 digits) or YYYYDOY (7 digits)
+        elif date_input.isdigit():
+            if len(date_input) == 5:
+                # GPS week/day
+                gps_week = int(date_input[:4])
+                day_of_week = int(date_input[4])
+                gnss_date = GNSSDate.from_gps_week(gps_week, day_of_week)
+            elif len(date_input) == 7:
+                # YYYYDOY
+                gnss_date = _parse_date(date_input)
+            else:
+                raise ValueError(f"Unknown format: {date_input}")
+
+        if gnss_date is None:
+            raise ValueError(f"Could not parse: {date_input}")
+
+        click.echo("Date Conversions")
+        click.echo("=" * 40)
+        click.echo(f"Input: {date_input}")
+        click.echo()
+        click.echo(f"Calendar: {gnss_date.year}-{gnss_date.month:02d}-{gnss_date.day:02d}")
+        click.echo(f"Year/DOY: {gnss_date.year}/{gnss_date.doy:03d}")
+        click.echo(f"MJD: {gnss_date.mjd:.6f}")
+        click.echo(f"GPS Week: {gnss_date.gps_week}")
+        click.echo(f"Day of Week: {gnss_date.day_of_week}")
+        click.echo(f"GPS Week/Day: {gnss_date.gps_week:04d}{gnss_date.day_of_week}")
+
+    except Exception as e:
+        click.echo(f"Error: {e}")
+        sys.exit(1)
+
+
 def _parse_date(date_str: str) -> "GNSSDate":
     """Parse date string to GNSSDate.
 
