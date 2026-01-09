@@ -49,6 +49,18 @@ from pygnss_rt.data_access.gen_files_downloader import (
     download_gen_files,
     download_antenna_files,
 )
+from pygnss_rt.data_access.product_downloader import (
+    # Main classes (replaces FTP::OE, FTP::DD from FTP.pm)
+    ProductDownloader,
+    ProductDownloadConfig,
+    ProductDownloadResult,
+    HourlyDataDownloader,
+    # Enums
+    CompressionType,
+    DownloadStatus,
+    # Convenience functions
+    download_products_for_date,
+)
 
 __all__ = [
     "FTPClient",
@@ -95,4 +107,12 @@ __all__ = [
     "DEFAULT_REF_FILES",
     "download_gen_files",
     "download_antenna_files",
+    # Product downloader (replaces FTP::OE, FTP::DD from FTP.pm)
+    "ProductDownloader",
+    "ProductDownloadConfig",
+    "ProductDownloadResult",
+    "HourlyDataDownloader",
+    "CompressionType",
+    "DownloadStatus",
+    "download_products_for_date",
 ]
