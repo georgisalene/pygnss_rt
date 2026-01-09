@@ -14,6 +14,10 @@ Replaces hardcoded configurations in Perl caller scripts:
 - iGNSS_D_PPP_AR_GB_IGS54_direct_NRT.pl
 - iGNSS_D_PPP_AR_RG_IGS54_direct_NRT.pl
 - iGNSS_D_PPP_AR_SS_IGS54_direct_NRT.pl
+
+PCF Files:
+- PPP-AR processing: /home/ahunegnaw/GPSUSER54_LANT/PCF/PPP54IGS.PCF
+- Network DD (NRDDP): /home/ahunegnaw/GPSUSER54_LANT/PCF/SMHI_TGX_OCT2025_MGX.PCF
 """
 
 from __future__ import annotations
@@ -22,6 +26,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+
+# PCF file paths for different processing modes
+PCF_PPP_AR = "PPP54IGS.PCF"  # PPP with Ambiguity Resolution
+PCF_NETWORK_DD = "SMHI_TGX_OCT2025_MGX.PCF"  # Network Double Difference (NRDDP)
 
 
 class NetworkID(str, Enum):
@@ -178,7 +187,7 @@ def get_igs_archive_specs(data_root: str) -> dict[str, ArchiveFileSpec]:
 def create_network_profiles(
     ignss_dir: str = "/home/ahunegnaw/Python_IGNSS/i-GNSS",
     data_root: str = "/home/ahunegnaw/data54",
-    gpsuser_dir: str = "/home/ahunegnaw/GPSUSER",
+    gpsuser_dir: str = "/home/ahunegnaw/GPSUSER54_LANT",
 ) -> dict[NetworkID, NetworkProfile]:
     """Create all network profiles.
 
@@ -233,7 +242,7 @@ def create_network_profiles(
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/D_PPPAR_IGS54.PCF",
+        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
         bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_IG_IGS54_direct.xml",
         info_files={**default_info},
         coord_file=f"{ignss_dir}/info/IGS20_54.CRD",
@@ -262,7 +271,7 @@ def create_network_profiles(
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/D_PPPAR_EU_IGS54.PCF",
+        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
         bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_EU_IGS54_direct.xml",
         info_files={**default_info},
         coord_file=f"{ignss_dir}/info/NEWNRT54.CRD",
@@ -289,7 +298,7 @@ def create_network_profiles(
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/D_PPPAR_EU_IGS54.PCF",
+        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
         bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_GB_IGS54_direct.xml",
         info_files={**default_info},
         coord_file=f"{ignss_dir}/info/NEWNRT54.CRD",
@@ -315,7 +324,7 @@ def create_network_profiles(
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/D_PPPAR_EU_IGS54.PCF",
+        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
         bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_RG_IGS54_direct.xml",
         info_files={**default_info},
         coord_file=f"{ignss_dir}/info/NEWNRT54.CRD",
@@ -342,7 +351,7 @@ def create_network_profiles(
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/D_PPPAR_EU_IGS54.PCF",
+        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
         bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_SS_IGS54_direct.xml",
         info_files={**default_info},
         coord_file=f"{ignss_dir}/info/NEWNRT54.CRD",

@@ -134,7 +134,7 @@ class DailyPPPProcessor:
         )
         self.data_root = data_root or "/home/ahunegnaw/data54"
         self.gpsuser_dir = gpsuser_dir or os.environ.get(
-            "GPSUSER", "/home/ahunegnaw/GPSUSER"
+            "GPSUSER", "/home/ahunegnaw/GPSUSER54_LANT"
         )
 
         self._config: dict[str, Any] = {}
