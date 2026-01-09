@@ -62,6 +62,29 @@ from pygnss_rt.processing.nrddp_tro import (
     NRDDPTROConfig,
     create_nrddp_tro_config,
 )
+from pygnss_rt.processing.orchestrator import (
+    # Main orchestrator (replaces IGNSS.pm)
+    IGNSSOrchestrator,
+    ProcessingConfig,
+    ProcessingResult,
+    ProcessingType,
+    # Product handling
+    ProductChecker,
+    ProductConfig,
+    ProductCategory,
+    # Data handling
+    DataManager,
+    DataSourceConfig,
+    # BSW execution
+    BSWExecutor,
+    # Database config
+    DatabaseConfig,
+    # Convenience functions
+    create_daily_config,
+    create_hourly_config,
+    run_daily_processing,
+    run_hourly_processing,
+)
 
 __all__ = [
     # Network configuration
@@ -119,4 +142,20 @@ __all__ = [
     "NRDDPTROResult",
     "NRDDPTROConfig",
     "create_nrddp_tro_config",
+    # Main orchestrator (replaces IGNSS.pm)
+    "IGNSSOrchestrator",
+    "ProcessingConfig",
+    "ProcessingResult",
+    "ProcessingType",
+    "ProductChecker",
+    "ProductConfig",
+    "ProductCategory",
+    "DataManager",
+    "DataSourceConfig",
+    "BSWExecutor",
+    "DatabaseConfig",
+    "create_daily_config",
+    "create_hourly_config",
+    "run_daily_processing",
+    "run_hourly_processing",
 ]
