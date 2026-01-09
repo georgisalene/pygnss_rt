@@ -12,6 +12,18 @@ from pygnss_rt.database.models import (
 )
 from pygnss_rt.database.products import ProductManager
 from pygnss_rt.database.met import MetManager
+from pygnss_rt.database.hourly_data import (
+    HourlyDataManager,
+    HDEntry,
+    HDStatus,
+    HDStatistics,
+)
+from pygnss_rt.database.daily_data import (
+    DailyDataManager,
+    SDEntry,
+    SDStatus,
+    SDStatistics,
+)
 
 __all__ = [
     "DatabaseManager",
@@ -25,4 +37,14 @@ __all__ = [
     "ZTDResult",
     "ProductManager",
     "MetManager",
+    # Hourly data (HD) management
+    "HourlyDataManager",
+    "HDEntry",
+    "HDStatus",
+    "HDStatistics",
+    # Daily data (SD) management
+    "DailyDataManager",
+    "SDEntry",
+    "SDStatus",
+    "SDStatistics",
 ]
