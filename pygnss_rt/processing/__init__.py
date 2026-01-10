@@ -79,11 +79,41 @@ from pygnss_rt.processing.orchestrator import (
     BSWExecutor,
     # Database config
     DatabaseConfig,
+    # DCM (Data/Campaign Management) config
+    DCMConfig,
     # Convenience functions
     create_daily_config,
     create_hourly_config,
     run_daily_processing,
     run_hourly_processing,
+)
+from pygnss_rt.processing.daily_crd import (
+    # Daily NRT coordinate generation (replaces iGNSS_D_CRD_54.pl)
+    DailyCRDProcessor,
+    DailyCRDConfig,
+    DailyCRDResult,
+    NetworkArchive,
+    StationCoordinate,
+    create_daily_crd_config,
+)
+from pygnss_rt.processing.campaign_archival import (
+    # Campaign archival (replaces IGNSS::dcm)
+    CampaignArchiver,
+    CampaignArchiveConfig,
+    CampaignArchiveResult,
+    CampaignRestoreConfig,
+    CompressionMethod,
+    ArchiveOrganization,
+    ArchiveStatus,
+    # Convenience functions
+    archive_campaign,
+    clean_campaign,
+    compress_campaign,
+    restore_campaign,
+    list_archived_campaigns,
+    # Default cleanup lists
+    DEFAULT_DIRS_TO_CLEAN,
+    DEFAULT_RAW_PATTERNS_TO_CLEAN,
 )
 
 __all__ = [
@@ -154,8 +184,31 @@ __all__ = [
     "DataSourceConfig",
     "BSWExecutor",
     "DatabaseConfig",
+    "DCMConfig",
     "create_daily_config",
     "create_hourly_config",
     "run_daily_processing",
     "run_hourly_processing",
+    # Daily CRD generation (replaces iGNSS_D_CRD_54.pl)
+    "DailyCRDProcessor",
+    "DailyCRDConfig",
+    "DailyCRDResult",
+    "NetworkArchive",
+    "StationCoordinate",
+    "create_daily_crd_config",
+    # Campaign archival (replaces IGNSS::dcm)
+    "CampaignArchiver",
+    "CampaignArchiveConfig",
+    "CampaignArchiveResult",
+    "CampaignRestoreConfig",
+    "CompressionMethod",
+    "ArchiveOrganization",
+    "ArchiveStatus",
+    "archive_campaign",
+    "clean_campaign",
+    "compress_campaign",
+    "restore_campaign",
+    "list_archived_campaigns",
+    "DEFAULT_DIRS_TO_CLEAN",
+    "DEFAULT_RAW_PATTERNS_TO_CLEAN",
 ]

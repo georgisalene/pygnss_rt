@@ -13,10 +13,10 @@ This is the central coordinator for all processing workflows.
 
 from __future__ import annotations
 
+import gzip
 import os
 import shutil
 import subprocess
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -104,6 +104,27 @@ class DatabaseConfig:
 
     path: Path | None = None
     driver: str = "duckdb"
+
+
+@dataclass
+class DCMConfig:
+    """Data/Campaign Management configuration.
+
+    Replaces Perl DCM hash for campaign archival settings.
+
+    Attributes:
+        enabled: Whether DCM is enabled
+        dirs_to_delete: List of subdirectories to delete before archiving
+        compress_util: Compression utility ('gzip' or 'compress')
+        archive_dir: Directory to archive campaigns to
+        organization: Directory organization ('yyyy/doy' or flat)
+    """
+
+    enabled: bool = False
+    dirs_to_delete: list[str] = field(default_factory=lambda: ["RAW", "OBS", "ORX"])
+    compress_util: str = "gzip"
+    archive_dir: Path | None = None
+    organization: str = "yyyy/doy"
 
 
 @dataclass
@@ -196,6 +217,9 @@ class ProcessingConfig:
     validate_args: bool = True
     verbose: bool = False
 
+    # Data/Campaign Management (DCM)
+    dcm: DCMConfig = field(default_factory=DCMConfig)
+
 
 @dataclass
 class ProcessingResult:
@@ -250,21 +274,26 @@ class ProductChecker:
     """Check and download GNSS products.
 
     Handles orbit, ERP, clock, DCB, BIA, and ION products.
+    Replaces Perl check_orbit, check_ERP, check_clock, check_DCB functions.
     """
 
     def __init__(
         self,
         config: ProcessingConfig,
         ftp_configs: list[FTPServerConfig] | None = None,
+        db_manager: DatabaseManager | None = None,
     ):
         """Initialize product checker.
 
         Args:
             config: Processing configuration
             ftp_configs: Optional pre-loaded FTP configurations
+            db_manager: Optional database manager for tracking
         """
         self.config = config
         self._ftp_configs = ftp_configs
+        self._db_manager = db_manager
+        self._product_manager: ProductManager | None = None
 
     def _load_ftp_configs(self) -> list[FTPServerConfig]:
         """Load FTP configurations from XML."""
@@ -283,8 +312,31 @@ class ProductChecker:
                 return cfg
         return None
 
-    def get_orbit_filename(self) -> str | None:
+    def _get_product_manager(self) -> ProductManager | None:
+        """Get or create product manager for DB tracking."""
+        if self._product_manager:
+            return self._product_manager
+
+        if self._db_manager:
+            self._product_manager = ProductManager(self._db_manager)
+            return self._product_manager
+
+        # Try to create from config
+        if self.config.database.path:
+            try:
+                db_mgr = DatabaseManager(self.config.database.path)
+                self._product_manager = ProductManager(db_mgr)
+                return self._product_manager
+            except Exception as e:
+                logger.warning(f"Could not initialize product manager: {e}")
+
+        return None
+
+    def get_orbit_filename(self, body_pattern: str = "wwwwd") -> str | None:
         """Generate orbit filename based on configuration.
+
+        Args:
+            body_pattern: Body pattern from FTP config ('wwwwd', 'wwwwd_hn', 'doy0')
 
         Returns:
             Orbit filename or None if not configured
@@ -294,25 +346,81 @@ class ProductChecker:
 
         gd = self.config.gnss_date
         provider = self.config.orbit.provider_id.lower()
-
-        # IGS product naming convention
         gps_week = gd.gps_week
         dow = gd.dow
 
-        return f"{provider}{gps_week}{dow}.sp3.Z"
+        # Handle different body patterns (from Perl get_orbit_filename)
+        if body_pattern == "wwwwd":
+            body = f"{gps_week}{dow}"
+        elif body_pattern == "wwwwd_hn":
+            # For hourly products, determine 6-hour block
+            hour = getattr(gd, "hour", 0)
+            if 3 <= hour < 9:
+                hh = "00"
+            elif 9 <= hour < 15:
+                hh = "06"
+            elif 15 <= hour < 21:
+                hh = "12"
+            elif 21 <= hour < 24:
+                hh = "18"
+            else:  # hour 0-2, use previous day's 18:00
+                hh = "18"
+                dow = dow - 1
+                if dow < 0:
+                    gps_week = gps_week - 1
+                    dow = 6
+            body = f"{gps_week}{dow}_{hh}"
+        elif body_pattern == "doy0":
+            body = f"{gd.doy:03d}0"
+        else:
+            body = f"{gps_week}{dow}"
 
-    def get_erp_filename(self) -> str | None:
-        """Generate ERP filename based on configuration."""
+        return f"{provider}{body}.sp3.Z"
+
+    def get_erp_filename(self, body_pattern: str = "wwww7") -> str | None:
+        """Generate ERP filename based on configuration.
+
+        Args:
+            body_pattern: Body pattern ('wwww7', 'wwwwd', 'wwwwd_hn')
+
+        Returns:
+            ERP filename or None if not configured
+        """
         if not self.config.erp.enabled or not self.config.gnss_date:
             return None
 
         gd = self.config.gnss_date
         provider = self.config.erp.provider_id.lower()
         gps_week = gd.gps_week
+        dow = gd.dow
 
-        return f"{provider}{gps_week}7.erp.Z"
+        if body_pattern == "wwww7":
+            body = f"{gps_week}7"
+        elif body_pattern == "wwwwd":
+            body = f"{gps_week}{dow}"
+        elif body_pattern == "wwwwd_hn":
+            hour = getattr(gd, "hour", 0)
+            if 3 <= hour < 9:
+                hh = "00"
+            elif 9 <= hour < 15:
+                hh = "06"
+            elif 15 <= hour < 21:
+                hh = "12"
+            elif 21 <= hour < 24:
+                hh = "18"
+            else:
+                hh = "18"
+                dow = dow - 1
+                if dow < 0:
+                    gps_week = gps_week - 1
+                    dow = 6
+            body = f"{gps_week}{dow}_{hh}"
+        else:
+            body = f"{gps_week}7"
 
-    def get_clock_filename(self) -> str | None:
+        return f"{provider}{body}.erp.Z"
+
+    def get_clock_filename(self, body_pattern: str = "wwwwd") -> str | None:
         """Generate clock filename based on configuration."""
         if not self.config.clock.enabled or not self.config.gnss_date:
             return None
@@ -322,25 +430,156 @@ class ProductChecker:
         gps_week = gd.gps_week
         dow = gd.dow
 
-        return f"{provider}{gps_week}{dow}.clk.Z"
+        if body_pattern == "wwwwd":
+            body = f"{gps_week}{dow}"
+        else:
+            body = f"{gps_week}{dow}"
 
-    def get_dcb_filename(self) -> str | None:
-        """Generate DCB filename based on configuration."""
+        return f"{provider}{body}.clk.Z"
+
+    def get_dcb_filename(self, use_actual: bool = False) -> str | None:
+        """Generate DCB filename based on configuration.
+
+        Implements the logic from Perl get_DCB_filename - choosing between
+        monthly and actual P1C1 DCB files based on date.
+
+        Args:
+            use_actual: Force use of actual (current) DCB file
+
+        Returns:
+            DCB filename or None if not configured
+        """
         if not self.config.dcb.enabled or not self.config.gnss_date:
             return None
 
         gd = self.config.gnss_date
-        provider = self.config.dcb.provider_id.upper()
-        month = gd.date.strftime("%m")
-        year = gd.year
+        now = datetime.now(timezone.utc)
 
-        return f"P1C1{year}{month}.DCB.Z"
+        # DCB update day (assumed 5th of each month per Perl logic)
+        update_dom = 5
+
+        if use_actual:
+            return "P1C1.DCB"
+
+        # Determine if we should use monthly or actual file
+        # Based on processing date relative to update schedule
+        proc_mjd = gd.mjd
+        now_year = now.year
+        now_month = now.month
+
+        # Calculate MJD of this month's update and last month's update
+        this_month_update = datetime(now_year, now_month, update_dom, tzinfo=timezone.utc)
+        if now_month == 1:
+            last_month_update = datetime(now_year - 1, 12, update_dom, tzinfo=timezone.utc)
+        else:
+            last_month_update = datetime(now_year, now_month - 1, update_dom, tzinfo=timezone.utc)
+
+        this_update_mjd = mjd_from_date(this_month_update.year, this_month_update.month, this_month_update.day)
+        last_update_mjd = mjd_from_date(last_month_update.year, last_month_update.month, last_month_update.day)
+        now_mjd = mjd_from_date(now.year, now.month, now.day)
+
+        # Logic from Perl: use actual if processing recent data
+        if now_mjd >= this_update_mjd or (now_mjd >= last_update_mjd and now_mjd < this_update_mjd):
+            if proc_mjd >= last_update_mjd:
+                return "P1C1.DCB"
+
+        # Use monthly file
+        proc_year = gd.year
+        proc_month = gd.date.month
+        proc_dom = gd.date.day
+
+        if proc_dom < update_dom:
+            # Use previous month
+            if proc_month == 1:
+                file_year = proc_year - 1
+                file_month = 12
+            else:
+                file_year = proc_year
+                file_month = proc_month - 1
+        else:
+            file_year = proc_year
+            file_month = proc_month
+
+        return f"P1C1{file_year % 100:02d}{file_month:02d}.DCB.Z"
+
+    def get_bia_filename(self) -> str | None:
+        """Generate BIA (bias) filename based on configuration."""
+        if not self.config.bia.enabled or not self.config.gnss_date:
+            return None
+
+        gd = self.config.gnss_date
+        provider = self.config.bia.provider_id.upper()
+        gps_week = gd.gps_week
+        dow = gd.dow
+
+        return f"{provider}{gps_week}{dow}.BIA.Z"
+
+    def get_ion_filename(self) -> str | None:
+        """Generate ION (ionosphere) filename based on configuration."""
+        if not self.config.ion.enabled or not self.config.gnss_date:
+            return None
+
+        gd = self.config.gnss_date
+        provider = self.config.ion.provider_id.lower()
+        gps_week = gd.gps_week
+        dow = gd.dow
+
+        return f"{provider}{gps_week}{dow}i.Z"
+
+    def check_product_in_db(
+        self,
+        category: ProductCategory,
+        provider_id: str,
+        product_type: str,
+    ) -> bool:
+        """Check if product is recorded as available in database.
+
+        Args:
+            category: Product category
+            provider_id: Provider ID
+            product_type: Product type
+
+        Returns:
+            True if product is recorded as available
+        """
+        pm = self._get_product_manager()
+        if not pm or not self.config.gnss_date:
+            return False
+
+        gd = self.config.gnss_date
+
+        try:
+            # Check based on category
+            if category == ProductCategory.DCB:
+                # DCB uses year/month
+                status = pm.get_product_status(
+                    provider_id=provider_id,
+                    product_type=product_type,
+                    category=category.value,
+                    year=gd.year,
+                    month=gd.date.month,
+                )
+            else:
+                # Other products use MJD
+                status = pm.get_product_status(
+                    provider_id=provider_id,
+                    product_type=product_type,
+                    category=category.value,
+                    mjd=gd.mjd,
+                )
+
+            return status == 1  # 1 = available
+        except Exception as e:
+            logger.debug(f"DB check failed: {e}")
+            return False
 
     def check_product(
         self,
         category: ProductCategory,
         filename: str,
         destination: Path,
+        provider_id: str | None = None,
+        product_type: str | None = None,
     ) -> bool:
         """Check if product exists locally or download it.
 
@@ -348,21 +587,266 @@ class ProductChecker:
             category: Product category
             filename: Product filename
             destination: Local destination directory
+            provider_id: Provider ID for DB tracking
+            product_type: Product type for DB tracking
 
         Returns:
             True if product is available
         """
         local_path = destination / filename
 
-        # Check if already exists
+        # Also check in GPS week subdirectory
+        if self.config.gnss_date:
+            gps_week_path = destination / str(self.config.gnss_date.gps_week) / filename
+        else:
+            gps_week_path = None
+
+        # Check if already exists locally
         if local_path.exists():
-            logger.info("Product already available", file=filename)
+            ignss_print(MessageType.INFO, f"Product already available: {filename}")
             return True
 
+        if gps_week_path and gps_week_path.exists():
+            ignss_print(MessageType.INFO, f"Product already available: {filename}")
+            return True
+
+        # Check database for status
+        if provider_id and product_type:
+            if self.check_product_in_db(category, provider_id, product_type):
+                ignss_print(MessageType.INFO, f"Product recorded in DB: {filename}")
+                # File should exist but doesn't - need to download
+                pass
+
         # Try to download
-        # (Implementation depends on specific product source)
-        logger.warning("Product download not implemented", file=filename)
-        return False
+        ignss_print(MessageType.INFO, f"Attempting to download product: {filename}")
+        downloaded = self.download_missing_product(
+            category=category,
+            filename=filename,
+            destination=destination,
+            provider_id=provider_id,
+            product_type=product_type,
+        )
+
+        if downloaded:
+            ignss_print(MessageType.INFO, f"Successfully downloaded: {filename}")
+            return True
+        else:
+            ignss_print(MessageType.WARNING, f"Could not download product: {filename}")
+            return False
+
+    def download_missing_product(
+        self,
+        category: ProductCategory,
+        filename: str,
+        destination: Path,
+        provider_id: str | None = None,
+        product_type: str | None = None,
+    ) -> bool:
+        """Download a missing product from FTP.
+
+        Replaces Perl download_missing_products and download_missing_dcb_products.
+
+        Args:
+            category: Product category
+            filename: Product filename
+            destination: Local destination directory
+            provider_id: Provider ID
+            product_type: Product type
+
+        Returns:
+            True if download successful
+        """
+        if not provider_id:
+            return False
+
+        # Get FTP configuration
+        ftp_config = self._get_ftp_config(provider_id)
+        if not ftp_config:
+            logger.warning(f"No FTP config for provider: {provider_id}")
+            return False
+
+        # Ensure destination exists
+        destination.mkdir(parents=True, exist_ok=True)
+
+        # Determine remote path based on category and organization
+        if self.config.gnss_date:
+            gd = self.config.gnss_date
+            if category == ProductCategory.DCB:
+                # DCB files organized by year
+                remote_subdir = str(gd.year)
+            else:
+                # Other products organized by GPS week
+                remote_subdir = str(gd.gps_week)
+        else:
+            remote_subdir = ""
+
+        try:
+            # Use FTPClient to download
+            ftp_client = FTPClient(
+                host=ftp_config.url,
+                username=ftp_config.username or "anonymous",
+                password=ftp_config.password or "anonymous@",
+            )
+
+            remote_path = f"{ftp_config.root}/{remote_subdir}/{filename}" if remote_subdir else f"{ftp_config.root}/{filename}"
+            local_path = destination / filename
+
+            success = ftp_client.download_file(remote_path, local_path)
+
+            if success:
+                # Update database
+                self._update_product_db(category, provider_id, product_type, filename)
+                return True
+
+            return False
+
+        except Exception as e:
+            logger.error(f"Download failed for {filename}: {e}")
+            return False
+
+    def _update_product_db(
+        self,
+        category: ProductCategory,
+        provider_id: str,
+        product_type: str | None,
+        filename: str,
+    ) -> None:
+        """Update database after successful download.
+
+        Args:
+            category: Product category
+            provider_id: Provider ID
+            product_type: Product type
+            filename: Downloaded filename
+        """
+        pm = self._get_product_manager()
+        if not pm or not self.config.gnss_date:
+            return
+
+        gd = self.config.gnss_date
+
+        try:
+            if category == ProductCategory.DCB:
+                pm.update_product_status(
+                    provider_id=provider_id,
+                    product_type=product_type or "dcb",
+                    category=category.value,
+                    year=gd.year,
+                    month=gd.date.month,
+                    status=1,
+                )
+            else:
+                pm.update_product_status(
+                    provider_id=provider_id,
+                    product_type=product_type or category.value,
+                    category=category.value,
+                    mjd=gd.mjd,
+                    gps_week=gd.gps_week,
+                    dow=gd.dow,
+                    status=1,
+                )
+        except Exception as e:
+            logger.warning(f"Could not update product DB: {e}")
+
+    def check_orbit(self) -> bool:
+        """Check orbit product availability and download if missing.
+
+        Replaces Perl IGNSS::check_orbit.
+
+        Returns:
+            True if orbit is available
+        """
+        if not self.config.orbit.enabled:
+            return True
+
+        filename = self.get_orbit_filename()
+        if not filename:
+            return False
+
+        return self.check_product(
+            category=ProductCategory.ORBIT,
+            filename=filename,
+            destination=self.config.data_dir or Path("."),
+            provider_id=self.config.orbit.provider_id,
+            product_type=self.config.orbit.product_type,
+        )
+
+    def check_erp(self) -> bool:
+        """Check ERP product availability and download if missing.
+
+        Replaces Perl IGNSS::check_ERP.
+
+        Returns:
+            True if ERP is available
+        """
+        if not self.config.erp.enabled:
+            return True
+
+        filename = self.get_erp_filename()
+        if not filename:
+            return False
+
+        return self.check_product(
+            category=ProductCategory.ERP,
+            filename=filename,
+            destination=self.config.data_dir or Path("."),
+            provider_id=self.config.erp.provider_id,
+            product_type=self.config.erp.product_type,
+        )
+
+    def check_clock(self) -> bool:
+        """Check clock product availability and download if missing.
+
+        Replaces Perl IGNSS::check_clock.
+
+        Returns:
+            True if clock is available
+        """
+        if not self.config.clock.enabled:
+            return True
+
+        filename = self.get_clock_filename()
+        if not filename:
+            return False
+
+        return self.check_product(
+            category=ProductCategory.CLOCK,
+            filename=filename,
+            destination=self.config.data_dir or Path("."),
+            provider_id=self.config.clock.provider_id,
+            product_type=self.config.clock.product_type,
+        )
+
+    def check_dcb(self) -> bool:
+        """Check DCB product availability and download if missing.
+
+        Replaces Perl IGNSS::check_DCB.
+
+        Returns:
+            True if DCB is available
+        """
+        if not self.config.dcb.enabled:
+            return True
+
+        filename = self.get_dcb_filename()
+        if not filename:
+            return False
+
+        # DCB files may be in a different directory
+        dcb_dir = self.config.data_dir
+        if dcb_dir:
+            dcb_dir = dcb_dir / "dcb"
+            dcb_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            dcb_dir = Path(".")
+
+        return self.check_product(
+            category=ProductCategory.DCB,
+            filename=filename,
+            destination=dcb_dir,
+            provider_id=self.config.dcb.provider_id,
+            product_type=self.config.dcb.product_type,
+        )
 
     def check_all_products(self) -> dict[str, bool]:
         """Check availability of all configured products.
@@ -373,30 +857,37 @@ class ProductChecker:
         results = {}
 
         if self.config.orbit.enabled:
-            filename = self.get_orbit_filename()
-            if filename:
-                results["orbit"] = self.check_product(
-                    ProductCategory.ORBIT,
-                    filename,
-                    self.config.data_dir or Path("."),
-                )
+            results["orbit"] = self.check_orbit()
 
         if self.config.erp.enabled:
-            filename = self.get_erp_filename()
-            if filename:
-                results["erp"] = self.check_product(
-                    ProductCategory.ERP,
-                    filename,
-                    self.config.data_dir or Path("."),
-                )
+            results["erp"] = self.check_erp()
 
         if self.config.clock.enabled:
-            filename = self.get_clock_filename()
+            results["clock"] = self.check_clock()
+
+        if self.config.dcb.enabled:
+            results["dcb"] = self.check_dcb()
+
+        if self.config.bia.enabled:
+            filename = self.get_bia_filename()
             if filename:
-                results["clock"] = self.check_product(
-                    ProductCategory.CLOCK,
+                results["bia"] = self.check_product(
+                    ProductCategory.BIA,
                     filename,
                     self.config.data_dir or Path("."),
+                    self.config.bia.provider_id,
+                    self.config.bia.product_type,
+                )
+
+        if self.config.ion.enabled:
+            filename = self.get_ion_filename()
+            if filename:
+                results["ion"] = self.check_product(
+                    ProductCategory.ION,
+                    filename,
+                    self.config.data_dir or Path("."),
+                    self.config.ion.provider_id,
+                    self.config.ion.product_type,
                 )
 
         return results
@@ -410,21 +901,52 @@ class DataManager:
     """Manage RINEX data files for processing.
 
     Handles hourly, daily, and subhourly data.
+    Replaces Perl get_list_of_hourly_files, get_list_of_daily_files,
+    get_list_of_available_hourly_files, compose_list_from_list_and_comp.
     """
 
-    def __init__(self, config: ProcessingConfig):
+    def __init__(self, config: ProcessingConfig, db_manager: DatabaseManager | None = None):
         """Initialize data manager.
 
         Args:
             config: Processing configuration
+            db_manager: Optional database manager for availability checks
         """
         self.config = config
+        self._db_manager = db_manager
 
-    def get_requested_files(self, stations: list[str]) -> list[str]:
+    @staticmethod
+    def compose_list_with_compression(
+        file_list: list[str],
+        compression: str = ".Z",
+    ) -> list[str]:
+        """Add compression extension to file list.
+
+        Replaces Perl compose_list_from_list_and_comp.
+
+        Args:
+            file_list: List of filenames
+            compression: Compression extension to add
+
+        Returns:
+            List of filenames with compression extension
+        """
+        return [f"{f}{compression}" for f in file_list]
+
+    def get_requested_files(
+        self,
+        stations: list[str],
+        compression: str = ".Z",
+        include_compression: bool = True,
+    ) -> list[str]:
         """Get list of files needed for processing.
+
+        Replaces Perl get_list_of_hourly_files and get_list_of_daily_files.
 
         Args:
             stations: List of station IDs
+            compression: Compression extension
+            include_compression: Whether to include compression in filename
 
         Returns:
             List of required filenames
@@ -436,27 +958,109 @@ class DataManager:
         files = []
 
         if self.config.proc_type == ProcessingType.HOURLY:
-            # Hourly file naming: ssss_R_yyyydddhhmm_01H_30S_MO.crx.gz
-            # Or: ssssdddhh.yyo.Z
-            hour = gd.hour if hasattr(gd, "hour") else 0
+            # Hourly file naming: ssssdddhh.yyd (Hatanaka compressed)
+            hour = getattr(gd, "hour", 0)
+            hour_alpha = self._hour_to_alpha(hour)
             for sta in stations:
-                # Short format
-                filename = f"{sta.lower()}{gd.doy:03d}{hour:d}.{gd.year % 100:02d}o.Z"
+                # Short format with hour letter
+                filename = f"{sta.lower()}{gd.doy:03d}{hour_alpha}.{gd.year % 100:02d}d"
+                if include_compression:
+                    filename = f"{filename}{compression}"
                 files.append(filename)
 
         elif self.config.proc_type == ProcessingType.DAILY:
-            # Daily file naming: ssssdddn.yyo.Z
+            # Daily file naming: ssssdddn.yyo or ssssdddn.yyd
             for sta in stations:
-                filename = f"{sta.lower()}{gd.doy:03d}0.{gd.year % 100:02d}o.Z"
+                # Use session character (0 for daily, or from config)
+                session_char = "0"
+                filename = f"{sta.lower()}{gd.doy:03d}{session_char}.{gd.year % 100:02d}d"
+                if include_compression:
+                    filename = f"{filename}{compression}"
+                files.append(filename)
+
+        elif self.config.proc_type == ProcessingType.SUBHOURLY:
+            # Subhourly file naming (15-minute files)
+            hour = getattr(gd, "hour", 0)
+            minute = getattr(gd, "minute", 0)
+            # Round to nearest 15-minute boundary
+            minute_block = (minute // 15) * 15
+            for sta in stations:
+                filename = f"{sta.lower()}{gd.doy:03d}{hour:02d}{minute_block:02d}.{gd.year % 100:02d}d"
+                if include_compression:
+                    filename = f"{filename}{compression}"
                 files.append(filename)
 
         return files
 
-    def get_available_files(self, requested: list[str]) -> tuple[list[str], list[str]]:
+    def _hour_to_alpha(self, hour: int) -> str:
+        """Convert hour (0-23) to alpha character (a-x).
+
+        Args:
+            hour: Hour of day (0-23)
+
+        Returns:
+            Corresponding alpha character
+        """
+        return chr(ord('a') + hour)
+
+    def get_available_files_from_db(
+        self,
+        stations: list[str],
+        compression: str = ".Z",
+    ) -> list[str]:
+        """Get list of available files by checking database.
+
+        Replaces Perl get_list_of_available_hourly_files.
+
+        Args:
+            stations: List of station IDs
+            compression: Compression extension
+
+        Returns:
+            List of available filenames
+        """
+        if not self._db_manager or not self.config.gnss_date:
+            return []
+
+        available = []
+        gd = self.config.gnss_date
+
+        try:
+            hd_manager = HourlyDataManager(self._db_manager)
+
+            for sta in stations:
+                # Query database for file status
+                status = hd_manager.get_file_status(
+                    station=sta,
+                    mjd=gd.mjd,
+                )
+
+                # Only include if status indicates available (not 'Waiting' or 'Too Late')
+                if status and status not in ("Waiting", "Too Late"):
+                    if self.config.proc_type == ProcessingType.HOURLY:
+                        hour = getattr(gd, "hour", 0)
+                        hour_alpha = self._hour_to_alpha(hour)
+                        filename = f"{sta.lower()}{gd.doy:03d}{hour_alpha}.{gd.year % 100:02d}d{compression}"
+                    else:
+                        filename = f"{sta.lower()}{gd.doy:03d}0.{gd.year % 100:02d}d{compression}"
+
+                    available.append(filename)
+
+        except Exception as e:
+            logger.warning(f"DB check failed: {e}")
+
+        return available
+
+    def get_available_files(
+        self,
+        requested: list[str],
+        check_db: bool = True,
+    ) -> tuple[list[str], list[str]]:
         """Check which files are available.
 
         Args:
             requested: List of requested filenames
+            check_db: Whether to also check database
 
         Returns:
             Tuple of (available files, missing files)
@@ -468,10 +1072,23 @@ class DataManager:
             return [], requested
 
         for filename in requested:
-            # Check various possible locations
             found = False
-            for subdir in ["", self.config.gnss_date.year if self.config.gnss_date else ""]:
-                check_path = self.config.data_dir / str(subdir) / filename
+
+            # Check various possible locations
+            search_paths = [
+                self.config.data_dir / filename,
+            ]
+
+            # Add year/doy organized path
+            if self.config.gnss_date:
+                gd = self.config.gnss_date
+                search_paths.extend([
+                    self.config.data_dir / str(gd.year) / f"{gd.year % 100:02d}{gd.doy:03d}" / filename,
+                    self.config.data_dir / str(gd.year) / str(gd.doy) / filename,
+                    self.config.data_dir / str(gd.year) / filename,
+                ])
+
+            for check_path in search_paths:
                 if check_path.exists():
                     available.append(filename)
                     found = True
@@ -481,6 +1098,24 @@ class DataManager:
                 missing.append(filename)
 
         return available, missing
+
+    def calculate_success_rate(
+        self,
+        available: list[str],
+        requested: list[str],
+    ) -> float:
+        """Calculate download/availability success rate.
+
+        Args:
+            available: List of available files
+            requested: List of requested files
+
+        Returns:
+            Success rate as percentage (0-100)
+        """
+        if not requested:
+            return 0.0
+        return len(available) / len(requested) * 100
 
 
 # =============================================================================
@@ -799,6 +1434,322 @@ class IGNSSOrchestrator:
             logger.exception("Processing failed")
 
         return self._result
+
+    # =========================================================================
+    # Campaign Management Functions
+    # =========================================================================
+
+    def set_now_time(self) -> dict[str, Any]:
+        """Set current GMT time attributes.
+
+        Replaces Perl IGNSS::set_now_time.
+
+        Returns:
+            Dictionary with current time attributes
+        """
+        now = datetime.now(timezone.utc)
+
+        self._now_time = {
+            "now_year": now.year,
+            "now_month": now.month,
+            "now_dom": now.day,
+            "now_dow": now.weekday(),  # 0=Monday, 6=Sunday
+            "now_doy": now.timetuple().tm_yday,
+            "now_mjd": mjd_from_date(now.year, now.month, now.day),
+        }
+
+        return self._now_time
+
+    def get_session_name(self) -> str:
+        """Generate BSW session/campaign name.
+
+        Based on Perl logic in IGNSS::init for creating session names.
+
+        Returns:
+            Session name string (7-8 characters)
+        """
+        if not self.config.gnss_date:
+            return ""
+
+        gd = self.config.gnss_date
+        y2c = f"{gd.year % 100:02d}"
+        doy = f"{gd.doy:03d}"
+
+        if self.config.proc_type == ProcessingType.HOURLY:
+            hour = getattr(gd, "hour", 0)
+            hour_alpha = chr(ord('A') + hour)  # A-X for hours 0-23
+
+            # Session suffix based on config
+            sess_id = self.config.session_id or "NR"
+            if sess_id == "NR":
+                return f"{y2c}{doy}{hour_alpha}H"
+            elif sess_id == "00":
+                return f"{y2c}{doy}{hour_alpha}0"
+            elif sess_id == "15":
+                return f"{y2c}{doy}{hour_alpha}1"
+            elif sess_id == "30":
+                return f"{y2c}{doy}{hour_alpha}3"
+            elif sess_id == "45":
+                return f"{y2c}{doy}{hour_alpha}4"
+            else:
+                return f"{y2c}{doy}{hour_alpha}{sess_id[0] if sess_id else 'H'}"
+
+        elif self.config.proc_type == ProcessingType.DAILY:
+            sess_id = self.config.session_id or "00"
+            return f"{y2c}{doy}{sess_id}"
+
+        else:  # SUBHOURLY or other
+            hour = getattr(gd, "hour", 0)
+            hour_alpha = chr(ord('A') + hour)
+            sess_id = self.config.session_id or "NR"
+            return f"{y2c}{doy}{hour_alpha}{sess_id}"
+
+    def move_campaign(self, destination: Path | str) -> bool:
+        """Move campaign to archive location.
+
+        Replaces Perl IGNSS::move_campaign.
+
+        Args:
+            destination: Destination directory for campaign
+
+        Returns:
+            True if move successful
+        """
+        destination = Path(destination)
+        session = self.get_session_name()
+
+        if not session:
+            ignss_print(MessageType.FATAL, "Cannot determine session name for move")
+            return False
+
+        # Get BSW campaign directory from environment or config
+        bsw_dir = os.environ.get("P", "")
+        if not bsw_dir and self.config.bsw_campaign_dir:
+            bsw_dir = str(self.config.bsw_campaign_dir.parent)
+
+        if not bsw_dir:
+            ignss_print(MessageType.FATAL, "BSW campaign directory (P) not set")
+            return False
+
+        source_campaign = Path(bsw_dir) / session
+
+        if not source_campaign.exists():
+            ignss_print(MessageType.WARNING, f"Source campaign does not exist: {source_campaign}")
+            return False
+
+        # Create destination if needed
+        destination.mkdir(parents=True, exist_ok=True)
+
+        dest_campaign = destination / session
+
+        # Remove existing if present
+        if dest_campaign.exists():
+            ignss_print(MessageType.WARNING, "Campaign will be replaced in archive")
+            shutil.rmtree(dest_campaign)
+
+        # Move campaign
+        try:
+            shutil.move(str(source_campaign), str(dest_campaign))
+            ignss_print(MessageType.INFO, f"Campaign archived at: {dest_campaign}")
+            return True
+        except Exception as e:
+            ignss_print(MessageType.FATAL, f"Failed to move campaign: {e}")
+            return False
+
+    def clean_campaign(self, dirs_to_delete: list[str] | None = None) -> bool:
+        """Remove unnecessary directories from campaign before archiving.
+
+        Replaces Perl IGNSS::clean_campaign.
+
+        Args:
+            dirs_to_delete: List of subdirectory names to remove
+
+        Returns:
+            True if cleanup successful
+        """
+        if dirs_to_delete is None:
+            dirs_to_delete = self.config.dcm.dirs_to_delete
+
+        session = self.get_session_name()
+        if not session:
+            return False
+
+        bsw_dir = os.environ.get("P", "")
+        if not bsw_dir and self.config.bsw_campaign_dir:
+            bsw_dir = str(self.config.bsw_campaign_dir.parent)
+
+        if not bsw_dir:
+            return False
+
+        campaign_dir = Path(bsw_dir) / session
+        success = True
+
+        for subdir in dirs_to_delete:
+            dir_path = campaign_dir / subdir
+            if dir_path.exists():
+                try:
+                    shutil.rmtree(dir_path)
+                    logger.debug(f"Removed: {dir_path}")
+                except Exception as e:
+                    logger.warning(f"Could not remove {dir_path}: {e}")
+                    success = False
+
+        return success
+
+    def compress_campaign(self, method: str | None = None) -> bool:
+        """Compress campaign files.
+
+        Replaces Perl IGNSS::compress_campaign.
+
+        Args:
+            method: Compression method ('gzip' or 'compress')
+
+        Returns:
+            True if compression successful
+        """
+        if method is None:
+            method = self.config.dcm.compress_util
+
+        if method not in ("gzip", "compress"):
+            ignss_print(MessageType.WARNING, f"Invalid compression method: {method}")
+            return False
+
+        session = self.get_session_name()
+        if not session:
+            return False
+
+        bsw_dir = os.environ.get("P", "")
+        if not bsw_dir and self.config.bsw_campaign_dir:
+            bsw_dir = str(self.config.bsw_campaign_dir.parent)
+
+        if not bsw_dir:
+            return False
+
+        campaign_dir = Path(bsw_dir) / session
+
+        if not campaign_dir.exists():
+            return False
+
+        # Compress all files recursively
+        compressed_count = 0
+
+        for file_path in campaign_dir.rglob("*"):
+            if file_path.is_file() and not file_path.suffix in (".gz", ".Z"):
+                try:
+                    if method == "gzip":
+                        # Use Python gzip
+                        with open(file_path, "rb") as f_in:
+                            with gzip.open(f"{file_path}.gz", "wb") as f_out:
+                                f_out.writelines(f_in)
+                        file_path.unlink()
+                        compressed_count += 1
+                    else:  # compress
+                        # Use system compress command
+                        result = subprocess.run(
+                            ["compress", str(file_path)],
+                            capture_output=True,
+                        )
+                        if result.returncode == 0:
+                            compressed_count += 1
+                except Exception as e:
+                    logger.warning(f"Could not compress {file_path}: {e}")
+
+        ignss_print(MessageType.INFO, f"Compressed {compressed_count} files")
+        return True
+
+    def dcm(self) -> bool:
+        """Data/Campaign Management - clean, compress, and archive campaign.
+
+        Replaces Perl IGNSS::dcm.
+        Performs cleanup, compression, and archival of processed campaign.
+
+        Returns:
+            True if DCM successful
+        """
+        if not self.config.dcm.enabled:
+            ignss_print(MessageType.INFO, "DCM not enabled, skipping")
+            return True
+
+        ignss_print(MessageType.INFO, "Starting Data/Campaign Management (DCM)")
+
+        # Step 1: Clean campaign (remove unnecessary directories)
+        if not self.clean_campaign():
+            ignss_print(MessageType.WARNING, "Campaign cleanup had issues")
+
+        # Step 2: Compress campaign files
+        if not self.compress_campaign():
+            ignss_print(MessageType.WARNING, "Campaign compression had issues")
+
+        # Step 3: Determine archive destination
+        archive_dir = self.config.dcm.archive_dir
+        if not archive_dir:
+            ignss_print(MessageType.WARNING, "No archive directory configured")
+            return False
+
+        # Apply organization pattern
+        if self.config.gnss_date and self.config.dcm.organization == "yyyy/doy":
+            gd = self.config.gnss_date
+            archive_dir = archive_dir / str(gd.year) / f"{gd.doy:03d}"
+        elif self.config.gnss_date and self.config.dcm.organization == "yyyy":
+            gd = self.config.gnss_date
+            archive_dir = archive_dir / str(gd.year)
+
+        # Step 4: Move campaign to archive
+        session = self.get_session_name()
+        ignss_print(MessageType.INFO, f"Campaign {session} to be archived at: {archive_dir}")
+
+        if not self.move_campaign(archive_dir):
+            ignss_print(MessageType.FATAL, "Campaign archival failed")
+            return False
+
+        ignss_print(MessageType.INFO, "DCM completed successfully")
+        return True
+
+    def print_outcome(self) -> None:
+        """Print processing outcome banner.
+
+        Replaces Perl IGNSS::print_outcome.
+        """
+        if self._result.success:
+            banner = """
+                           #
+                        =======
+               =========================
+===========================================================
+                        SUCCESS
+===========================================================
+               =========================
+                        =======
+                           #
+"""
+        else:
+            banner = """
+                        =======
+               =========================
+===========================================================
+                        FAILURE
+===========================================================
+               =========================
+                        =======
+"""
+        print(banner)
+
+    def print_processing_time(self) -> None:
+        """Print processing time summary.
+
+        Replaces Perl IGNSS::print_processing_time.
+        """
+        duration = self._result.duration_seconds
+
+        days = int(duration // 86400)
+        hours = int((duration % 86400) // 3600)
+        minutes = int((duration % 3600) // 60)
+        seconds = int(duration % 60)
+
+        ignss_print(
+            MessageType.INFO,
+            f"TIME FOR THE RUN: {days} {hours} {minutes} {seconds} (day/hour/min/sec)",
+        )
 
 
 # =============================================================================

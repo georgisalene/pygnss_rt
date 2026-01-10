@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -57,6 +58,9 @@ from pygnss_rt.processing.station_merger import (
     NRDDP_STATION_SOURCES,
 )
 from pygnss_rt.utils.dates import GNSSDate
+from pygnss_rt.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -515,6 +519,9 @@ class NRDDPTROProcessor:
     ) -> bool:
         """Check if required products are available.
 
+        Port of Perl PROD.pm check_orbit and check_ERP functionality.
+        For NRT processing, uses IGS ultra-rapid products (updated 4x daily).
+
         Args:
             date: Processing date
             hour: Hour
@@ -523,9 +530,173 @@ class NRDDPTROProcessor:
         Returns:
             True if products available
         """
-        # Check for ultra-rapid products (updated 4x daily)
-        # For NRDDP, we typically use IGS ultra-rapid products
-        return True
+        from pygnss_rt.data_access.ftp_client import FTPClient
+
+        gps_week = date.gps_week
+        dow = date.dow
+
+        # Determine which ultra-rapid product to use based on hour
+        # Ultra-rapid products are released at 03, 09, 15, 21 UTC
+        # and are named wwwwd_hh for prediction start hour
+        if hour < 3:
+            # Use previous day's 18:00 product
+            ur_hour = 18
+            if dow == 0:
+                ur_gps_week = gps_week - 1
+                ur_dow = 6
+            else:
+                ur_gps_week = gps_week
+                ur_dow = dow - 1
+        elif hour < 9:
+            ur_hour = 0
+            ur_gps_week = gps_week
+            ur_dow = dow
+        elif hour < 15:
+            ur_hour = 6
+            ur_gps_week = gps_week
+            ur_dow = dow
+        elif hour < 21:
+            ur_hour = 12
+            ur_gps_week = gps_week
+            ur_dow = dow
+        else:
+            ur_hour = 18
+            ur_gps_week = gps_week
+            ur_dow = dow
+
+        # Product filenames (IGS ultra-rapid)
+        orbit_file = f"igu{ur_gps_week}{ur_dow}_{ur_hour:02d}.sp3.Z"
+        erp_file = f"igu{ur_gps_week}{ur_dow}_{ur_hour:02d}.erp.Z"
+
+        # Product directory
+        prod_dir = self.config.data_root / "oedc" / str(ur_gps_week)
+        prod_dir.mkdir(parents=True, exist_ok=True)
+
+        orbit_path = prod_dir / orbit_file
+        erp_path = prod_dir / erp_file
+
+        products_ok = True
+
+        # Check orbit
+        if not orbit_path.exists():
+            logger.info(f"Downloading orbit: {orbit_file}")
+            downloaded = self._download_product(
+                "IGS_ULTRA",
+                f"/IGS/products/{ur_gps_week}/{orbit_file}",
+                orbit_path,
+            )
+            if not downloaded:
+                logger.warning(f"Could not download orbit: {orbit_file}")
+                products_ok = False
+        else:
+            logger.debug(f"Orbit available: {orbit_file}")
+
+        # Check ERP
+        if not erp_path.exists():
+            logger.info(f"Downloading ERP: {erp_file}")
+            downloaded = self._download_product(
+                "IGS_ULTRA",
+                f"/IGS/products/{ur_gps_week}/{erp_file}",
+                erp_path,
+            )
+            if not downloaded:
+                logger.warning(f"Could not download ERP: {erp_file}")
+                # ERP is less critical - don't fail processing
+        else:
+            logger.debug(f"ERP available: {erp_file}")
+
+        # For NRT processing, also check for clock products if needed
+        # (optional - some processing chains don't need them)
+
+        return products_ok
+
+    def _download_product(
+        self,
+        source_name: str,
+        remote_path: str,
+        local_path: Path,
+    ) -> bool:
+        """Download a GNSS product file.
+
+        Args:
+            source_name: Source identifier
+            remote_path: Remote file path
+            local_path: Local destination path
+
+        Returns:
+            True if download successful
+        """
+        from pygnss_rt.data_access.ftp_client import FTPClient
+
+        # Product sources (from PROD.pm)
+        product_sources = {
+            "IGS_ULTRA": {
+                "host": "igs-ftp.bkg.bund.de",
+                "user": "anonymous",
+                "passwd": "anonymous@",
+            },
+            "IGS_RAPID": {
+                "host": "igs-ftp.bkg.bund.de",
+                "user": "anonymous",
+                "passwd": "anonymous@",
+            },
+            "CODE": {
+                "host": "ftp.aiub.unibe.ch",
+                "user": "anonymous",
+                "passwd": "anonymous@",
+            },
+            "CDDIS": {
+                "host": "gdc.cddis.eosdis.nasa.gov",
+                "user": "anonymous",
+                "passwd": "anonymous@",
+            },
+        }
+
+        source = product_sources.get(source_name, product_sources["IGS_ULTRA"])
+
+        try:
+            client = FTPClient(
+                host=source["host"],
+                username=source["user"],
+                password=source["passwd"],
+            )
+
+            success = client.download_file(remote_path, local_path)
+            client.close()
+
+            if success:
+                # Verify file is not empty
+                if local_path.exists() and local_path.stat().st_size > 0:
+                    return True
+                else:
+                    local_path.unlink(missing_ok=True)
+                    return False
+
+            return False
+
+        except Exception as e:
+            logger.warning(f"Product download failed: {source_name} {remote_path}: {e}")
+            return False
+
+    def _check_product_availability_db(
+        self,
+        date: GNSSDate,
+        product_type: str,
+    ) -> bool:
+        """Check product availability in database.
+
+        Port of Perl PROD.pm database tracking functionality.
+
+        Args:
+            date: Processing date
+            product_type: Product type (eph, erp, clk)
+
+        Returns:
+            True if product is recorded as available
+        """
+        # This would connect to the database to check status
+        # For now, we rely on file system checks
+        return False
 
     def _download_hourly_data(
         self,
@@ -534,7 +705,10 @@ class NRDDPTROProcessor:
         stations: list[str],
         args: NRDDPTROArgs,
     ) -> bool:
-        """Download hourly RINEX data.
+        """Download hourly RINEX data from multiple FTP sources.
+
+        Port of Perl FTP.pm package HD (Hourly Data) functionality.
+        Downloads from OSGB, CDDIS, BKGE, and other configured sources.
 
         Args:
             date: Processing date
@@ -543,11 +717,162 @@ class NRDDPTROProcessor:
             args: Processing arguments
 
         Returns:
-            True if data downloaded
+            True if sufficient data downloaded
         """
-        # Would use FTP module to download from configured sources
-        # OSGB, CDDIS, BKGE, TUDELFT, etc.
-        return True
+        from pygnss_rt.data_access.ftp_client import FTPClient
+        from pygnss_rt.data_access.ftp_config import load_ftp_config
+
+        # Load FTP configuration
+        ftp_config_path = self.config.ignss_dir / "cfg" / "ftp_config.xml"
+        if not ftp_config_path.exists():
+            ftp_config_path = self.config.ignss_dir / "callers" / "ftp_config.xml"
+
+        ftp_configs = []
+        if ftp_config_path.exists():
+            try:
+                ftp_configs = load_ftp_config(ftp_config_path)
+            except Exception as e:
+                logger.warning(f"Failed to load FTP config: {e}")
+
+        # Hourly data directory organization
+        y4c = str(date.year)
+        doy = f"{date.doy:03d}"
+        hour_char = chr(ord('a') + hour)
+
+        # Destination directory
+        dest_dir = (
+            self.config.data_root
+            / self.config.data_organization["hd"]["name"]
+            / y4c
+            / doy
+        )
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate expected filenames for stations
+        # Hourly format: ssssdddhh.yyd.Z (e.g., abcd001a.24d.Z)
+        expected_files = {}
+        for sta in stations:
+            filename = f"{sta.lower()}{doy}{hour_char}.{date.year % 100:02d}d.Z"
+            expected_files[sta.lower()] = filename
+
+        downloaded_count = 0
+        already_have = 0
+
+        # Check what we already have
+        for sta, filename in expected_files.items():
+            local_path = dest_dir / filename
+            if local_path.exists():
+                already_have += 1
+
+        logger.info(
+            "Hourly data status",
+            date=f"{y4c}/{doy}",
+            hour=hour,
+            stations=len(stations),
+            already_have=already_have,
+        )
+
+        # Skip download if we have enough data (>80%)
+        if already_have >= len(stations) * 0.8:
+            logger.info("Sufficient data already available, skipping download")
+            return True
+
+        # Define hourly data sources (from FTP.pm package HD)
+        hourly_sources = [
+            {
+                "name": "OSGB",
+                "host": "ftp.osgb.org.uk",
+                "path": f"/gps/hourly/{y4c}/{doy}",
+                "user": "anonymous",
+                "passwd": "anonymous@",
+            },
+            {
+                "name": "CDDIS",
+                "host": "gdc.cddis.eosdis.nasa.gov",
+                "path": f"/gps/data/hourly/{y4c}/{doy}/{hour:02d}",
+                "user": "anonymous",
+                "passwd": "anonymous@",
+            },
+            {
+                "name": "BKGE",
+                "host": "igs-ftp.bkg.bund.de",
+                "path": f"/IGS/obs/{y4c}/{doy}",
+                "user": "anonymous",
+                "passwd": "anonymous@",
+            },
+            {
+                "name": "TUDELFT",
+                "host": "gnss1.tudelft.nl",
+                "path": f"/rinex/{y4c}/{doy}",
+                "user": "anonymous",
+                "passwd": "anonymous@",
+            },
+        ]
+
+        # Override with FTP config if available
+        for cfg in ftp_configs:
+            if cfg.id in ["OSGB_HD", "CDDIS_HD", "BKGE_HD"]:
+                for source in hourly_sources:
+                    if source["name"] == cfg.id.replace("_HD", ""):
+                        source["host"] = cfg.url
+                        if cfg.username:
+                            source["user"] = cfg.username
+                        if cfg.password:
+                            source["passwd"] = cfg.password
+
+        # Try each source
+        for source in hourly_sources:
+            if downloaded_count + already_have >= len(stations) * 0.9:
+                break  # Have enough data
+
+            try:
+                client = FTPClient(
+                    host=source["host"],
+                    username=source["user"],
+                    password=source["passwd"],
+                )
+
+                # Get list of available files
+                available_files = client.list_files(source["path"])
+                available_set = set(f.lower() for f in available_files)
+
+                # Download missing files
+                for sta, filename in expected_files.items():
+                    local_path = dest_dir / filename
+                    if local_path.exists():
+                        continue
+
+                    if filename.lower() in available_set:
+                        remote_path = f"{source['path']}/{filename}"
+                        try:
+                            success = client.download_file(remote_path, local_path)
+                            if success:
+                                downloaded_count += 1
+                                logger.debug(
+                                    f"Downloaded {filename} from {source['name']}"
+                                )
+                        except Exception as e:
+                            logger.debug(
+                                f"Failed to download {filename} from {source['name']}: {e}"
+                            )
+
+                client.close()
+
+            except Exception as e:
+                logger.warning(f"Failed to connect to {source['name']}: {e}")
+                continue
+
+        total_available = downloaded_count + already_have
+        logger.info(
+            "Hourly download complete",
+            downloaded=downloaded_count,
+            already_have=already_have,
+            total=total_available,
+            required=len(stations),
+        )
+
+        # Return True if we have at least 50% of stations
+        return total_available >= len(stations) * 0.5
 
     def _setup_campaign(
         self,
@@ -591,6 +916,9 @@ class NRDDPTROProcessor:
     ) -> bool:
         """Run Bernese GNSS Software processing.
 
+        Executes the Bernese Processing Engine (BPE) for hourly processing.
+        Port of the BSW execution from Perl IGNSS.pm.
+
         Args:
             date: Processing date
             hour: Hour
@@ -613,8 +941,221 @@ class NRDDPTROProcessor:
             print(f"    Options: {self.config.bsw_options_xml}")
             print(f"    Coordinate: {coord_file}")
 
-        # TODO: Invoke BPE runner
-        return True
+        # Get BSW environment variables
+        bpe_dir = os.environ.get("BPE", "")
+        u_dir = os.environ.get("U", "")
+        p_dir = os.environ.get("P", "")
+
+        if not bpe_dir:
+            logger.error("BPE environment variable not set")
+            return False
+
+        # Prepare session file naming
+        y2c = f"{date.year % 100:02d}"
+        doy = f"{date.doy:03d}"
+        hour_char = chr(ord('A') + hour)
+
+        # Copy PCF file to campaign
+        pcf_source = self.config.gpsuser_dir / "PCF" / self.config.pcf_file
+        pcf_dest = campaign_dir / "BPE" / self.config.pcf_file
+
+        if pcf_source.exists():
+            shutil.copy2(pcf_source, pcf_dest)
+
+        # Prepare station list file
+        sta_list_file = campaign_dir / "STA" / "STATION.LST"
+        self._write_station_list(sta_list_file, stations)
+
+        # Copy coordinate file to campaign
+        coord_dest = campaign_dir / "STA" / coord_file.name
+        if coord_file.exists():
+            shutil.copy2(coord_file, coord_dest)
+
+        # Copy info files to campaign
+        self._copy_info_files(campaign_dir)
+
+        # Build BPE command
+        # Format: startBPE -c CAMPAIGN -s SESSION -pcf PCF_FILE [options]
+        bpe_cmd = [
+            f"{bpe_dir}/startBPE",
+            "-c", str(campaign_dir),
+            "-s", f"{doy}{hour_char}",
+            "-pcf", self.config.pcf_file,
+        ]
+
+        # Add processing options from XML configuration
+        if bsw_args.get("optDirs"):
+            for key, value in bsw_args["optDirs"].items():
+                if value:
+                    bpe_cmd.extend([f"-{key}", str(value)])
+
+        logger.info(
+            "Starting BPE",
+            session=session_name,
+            campaign=str(campaign_dir),
+        )
+
+        try:
+            # Set up environment for BSW
+            env = os.environ.copy()
+            env["CAMPAIGN"] = str(campaign_dir)
+            env["SESSION"] = f"{doy}{hour_char}"
+            env["SESS_ID"] = self.config.session_suffix
+
+            # Run BPE with timeout (45 minutes for hourly processing)
+            result = subprocess.run(
+                bpe_cmd,
+                capture_output=True,
+                text=True,
+                timeout=2700,  # 45 minutes
+                env=env,
+                cwd=str(campaign_dir),
+            )
+
+            if result.returncode == 0:
+                logger.info("BPE completed successfully", session=session_name)
+
+                # Check for output files
+                tro_file = self._find_tro_output(campaign_dir, date, hour)
+                if tro_file:
+                    logger.info("TRO output found", file=str(tro_file))
+                    return True
+                else:
+                    logger.warning("BPE completed but no TRO output found")
+                    return True  # Still consider success if BPE completed
+
+            else:
+                logger.error(
+                    "BPE failed",
+                    session=session_name,
+                    returncode=result.returncode,
+                    stderr=result.stderr[:500] if result.stderr else "No stderr",
+                )
+
+                # Check for error summary in OUT directory
+                self._log_bpe_errors(campaign_dir, session_name)
+
+                return False
+
+        except subprocess.TimeoutExpired:
+            logger.error("BPE timed out", session=session_name, timeout=2700)
+            return False
+        except FileNotFoundError:
+            logger.error("BPE executable not found", path=f"{bpe_dir}/startBPE")
+            return False
+        except Exception as e:
+            logger.exception("BPE execution failed", error=str(e))
+            return False
+
+    def _write_station_list(self, list_file: Path, stations: list[str]) -> None:
+        """Write station list file for BSW.
+
+        Args:
+            list_file: Output file path
+            stations: List of station IDs
+        """
+        list_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(list_file, "w") as f:
+            for sta in sorted(stations):
+                f.write(f"{sta.upper():4s}\n")
+
+    def _copy_info_files(self, campaign_dir: Path) -> None:
+        """Copy required info files to campaign directory.
+
+        Args:
+            campaign_dir: Campaign directory
+        """
+        sta_dir = campaign_dir / "STA"
+        sta_dir.mkdir(parents=True, exist_ok=True)
+
+        gpsuser_sta = self.config.gpsuser_dir / "STA"
+
+        for key, filename in self.config.info_files.items():
+            source = gpsuser_sta / filename
+            if source.exists():
+                shutil.copy2(source, sta_dir / filename)
+            else:
+                logger.debug(f"Info file not found: {source}")
+
+    def _find_tro_output(
+        self,
+        campaign_dir: Path,
+        date: GNSSDate,
+        hour: int,
+    ) -> Path | None:
+        """Find TRO output file in campaign.
+
+        Args:
+            campaign_dir: Campaign directory
+            date: Processing date
+            hour: Hour
+
+        Returns:
+            Path to TRO file if found
+        """
+        atm_dir = campaign_dir / "ATM"
+        if not atm_dir.exists():
+            return None
+
+        y2c = f"{date.year % 100:02d}"
+        doy = f"{date.doy:03d}"
+        hour_char = chr(ord('A') + hour)
+
+        # Common TRO filename patterns
+        patterns = [
+            f"*{y2c}{doy}{hour_char}*.TRO",
+            f"*{doy}{hour_char}*.TRO",
+            "*.TRO",
+        ]
+
+        for pattern in patterns:
+            matches = list(atm_dir.glob(pattern))
+            if matches:
+                # Return most recent
+                return max(matches, key=lambda p: p.stat().st_mtime)
+
+        return None
+
+    def _log_bpe_errors(self, campaign_dir: Path, session_name: str) -> None:
+        """Log BPE error information from output files.
+
+        Args:
+            campaign_dir: Campaign directory
+            session_name: Session name for logging
+        """
+        out_dir = campaign_dir / "OUT"
+        if not out_dir.exists():
+            return
+
+        # Check for error/warning files
+        for error_file in out_dir.glob("*.ERR"):
+            try:
+                content = error_file.read_text(errors="ignore")[:1000]
+                logger.error(
+                    "BPE error file",
+                    file=error_file.name,
+                    content=content,
+                )
+            except Exception:
+                pass
+
+        # Check protocol file
+        for prt_file in out_dir.glob("*.PRT"):
+            try:
+                content = prt_file.read_text(errors="ignore")
+                # Look for error lines
+                error_lines = [
+                    line for line in content.split("\n")
+                    if "ERROR" in line.upper() or "FATAL" in line.upper()
+                ]
+                if error_lines:
+                    logger.error(
+                        "BPE protocol errors",
+                        session=session_name,
+                        errors=error_lines[:10],
+                    )
+            except Exception:
+                pass
 
     def _build_bsw_args(
         self,
@@ -715,6 +1256,9 @@ class NRDDPTROProcessor:
     ) -> int:
         """Convert ZTD to IWV.
 
+        Port of Perl ZTD2IWV.pm functionality. Uses meteorological
+        data from nearby WMO stations for pressure/temperature extrapolation.
+
         Args:
             campaign_dir: Campaign directory
             date: Processing date
@@ -724,9 +1268,131 @@ class NRDDPTROProcessor:
         Returns:
             Number of IWV records generated
         """
-        # Would use ZTD2IWV converter
-        # from pygnss_rt.atmosphere.ztd2iwv import ZTD2IWV
-        return 0
+        from pygnss_rt.atmosphere.ztd2iwv import (
+            ZTD2IWV,
+            MeteoStationDatabase,
+            read_tro_file,
+        )
+        from pygnss_rt.stations.coordinates import ecef_to_geodetic
+
+        # Find TRO file in campaign
+        tro_file = self._find_tro_output(campaign_dir, date, hour)
+        if not tro_file:
+            logger.warning("No TRO file found for IWV conversion")
+            return 0
+
+        # Load meteorological station database
+        wmo_file = self.config.ignss_dir / "info" / "wmo_stations.dat"
+        met_db = None
+        if wmo_file.exists():
+            met_db = MeteoStationDatabase()
+            met_db.load_wmo_file(wmo_file)
+            logger.debug(f"Loaded {len(met_db)} WMO stations")
+
+        # Initialize converter
+        converter = ZTD2IWV(
+            tm_method="bevis",  # Use Bevis (1992) relation for mean temperature
+            met_database=met_db,
+        )
+
+        # Load meteorological observations for this hour
+        # Met data file naming: synop_YYDOYHH.dat
+        y2c = f"{date.year % 100:02d}"
+        doy = f"{date.doy:03d}"
+        met_file = self.config.data_root / "met" / f"synop_{y2c}{doy}{hour:02d}.dat"
+        if met_file.exists():
+            converter.load_met_data(met_file)
+            logger.debug(f"Loaded met data from {met_file}")
+
+        # Read TRO file
+        try:
+            coordinates, ztd_records = read_tro_file(tro_file)
+        except Exception as e:
+            logger.error(f"Failed to read TRO file: {e}")
+            return 0
+
+        logger.info(
+            f"Processing {len(ztd_records)} ZTD records from {len(coordinates)} stations"
+        )
+
+        # Process each ZTD record
+        iwv_count = 0
+        for record in ztd_records:
+            station = record["station"].upper()
+
+            # Get coordinates for this station
+            if station not in coordinates:
+                logger.debug(f"No coordinates for station {station}")
+                continue
+
+            coord = coordinates[station]
+            x, y, z = coord["X"], coord["Y"], coord["Z"]
+
+            # Convert ECEF to geodetic
+            lat, lon, height = ecef_to_geodetic(x, y, z)
+
+            # Build timestamp
+            from datetime import datetime
+            timestamp = datetime(
+                record["year"],
+                1,  # Will be overridden by doy
+                1,
+                record["hour"],
+                record["minute"],
+                record["second"],
+            )
+            # Adjust for day of year
+            from datetime import timedelta
+            timestamp = datetime(record["year"], 1, 1) + timedelta(
+                days=record["doy"] - 1,
+                hours=record["hour"],
+                minutes=record["minute"],
+                seconds=record["second"],
+            )
+
+            try:
+                result = converter.process(
+                    station_id=station.lower(),
+                    ztd=record["ztd"],
+                    ztd_sigma=record["ztd_sigma"],
+                    timestamp=timestamp,
+                    latitude=lat,
+                    longitude=lon,
+                    height=height,
+                )
+                iwv_count += 1
+            except Exception as e:
+                logger.debug(f"Failed to convert ZTD for {station}: {e}")
+                continue
+
+        # Write output files
+        if iwv_count > 0:
+            session_name = f"{y2c}{doy}{chr(ord('A') + hour)}{self.config.session_suffix}"
+
+            # COST-716 format output
+            cost_file = campaign_dir / "ATM" / f"{session_name}.COST716"
+            converter.write_cost716_file(
+                cost_file,
+                project="NRDDP-TRO",
+                processing_center="PYGNSS",
+                status="TEST",
+            )
+
+            # CSV output for easy processing
+            csv_file = campaign_dir / "ATM" / f"{session_name}_IWV.csv"
+            converter.write_csv(csv_file)
+
+            # Detailed log file
+            log_file = campaign_dir / "OUT" / f"IWV_CONV_{session_name}.log"
+            converter.write_iwv_log(log_file)
+
+            logger.info(
+                f"IWV conversion complete",
+                records=iwv_count,
+                cost_file=str(cost_file),
+            )
+
+        return iwv_count
 
     def _run_dcm(
         self,

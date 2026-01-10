@@ -61,6 +61,20 @@ from pygnss_rt.data_access.product_downloader import (
     # Convenience functions
     download_products_for_date,
 )
+from pygnss_rt.data_access.met_downloader import (
+    # Main class (replaces FTP::MET, FTP::SM from FTP.pm)
+    MeteorologicalDataDownloader,
+    MetProviderConfig,
+    MetDownloadResult,
+    # Enums
+    MetDataType,
+    TreeStructure,
+    # Default providers
+    DEFAULT_MET_PROVIDERS,
+    # Convenience functions
+    download_met_for_processing,
+    download_met_for_day,
+)
 
 __all__ = [
     "FTPClient",
@@ -115,4 +129,13 @@ __all__ = [
     "CompressionType",
     "DownloadStatus",
     "download_products_for_date",
+    # Meteorological downloader (replaces FTP::MET, FTP::SM from FTP.pm)
+    "MeteorologicalDataDownloader",
+    "MetProviderConfig",
+    "MetDownloadResult",
+    "MetDataType",
+    "TreeStructure",
+    "DEFAULT_MET_PROVIDERS",
+    "download_met_for_processing",
+    "download_met_for_day",
 ]

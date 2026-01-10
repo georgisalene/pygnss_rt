@@ -1829,6 +1829,467 @@ def info(ctx: click.Context) -> None:
         click.echo(f"  Size: {size_mb:.1f} MB")
 
 
+# =============================================================================
+# Station Management Commands (i-BSWSTA Port)
+# =============================================================================
+
+@cli.command("update-sta")
+@click.option(
+    "--source", "-s",
+    type=click.Choice(["IGS", "EUREF", "OSGB", "all"]),
+    default=["IGS"],
+    multiple=True,
+    help="Site log source(s) to download from (can specify multiple)",
+)
+@click.option(
+    "--output", "-o",
+    type=click.Path(path_type=Path),
+    required=True,
+    help="Output STA file path",
+)
+@click.option(
+    "--work-dir", "-w",
+    type=click.Path(path_type=Path),
+    default=Path("/data/station_info"),
+    help="Working directory for site logs",
+)
+@click.option(
+    "--stations",
+    type=str,
+    help="Comma-separated list of stations to include",
+)
+@click.option(
+    "--exclude",
+    type=str,
+    help="Comma-separated list of stations to exclude",
+)
+@click.option(
+    "--use-domes/--no-domes",
+    default=False,
+    help="Include DOMES numbers in station names",
+)
+@click.option(
+    "--overwrite/--no-overwrite",
+    default=False,
+    help="Overwrite existing site log downloads",
+)
+@click.option(
+    "--skip-download",
+    is_flag=True,
+    help="Skip download, use existing site logs",
+)
+@click.option(
+    "--backup/--no-backup",
+    default=True,
+    help="Create backup of existing STA file",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be done without executing",
+)
+@click.pass_context
+def update_sta(
+    ctx: click.Context,
+    source: tuple[str, ...],
+    output: Path,
+    work_dir: Path,
+    stations: str | None,
+    exclude: str | None,
+    use_domes: bool,
+    overwrite: bool,
+    skip_download: bool,
+    backup: bool,
+    dry_run: bool,
+) -> None:
+    """Update Bernese STA file from IGS site logs.
+
+    Downloads site logs from IGS/EUREF/OSGB, parses them, and generates
+    a Bernese .STA station information file containing receiver/antenna
+    history and eccentricities.
+
+    This replaces the Perl scripts:
+    - call_autoSta_NEWNRT52_IGS.pl
+    - call_autoSta_OSGB_sftp_with_IGS20_54_name.pl
+
+    Examples:
+
+    \b
+        # Update STA file from IGS site logs
+        pygnss-rt update-sta -s IGS -o /path/to/STATIONS.STA
+
+        # Download from multiple sources
+        pygnss-rt update-sta -s IGS -s EUREF -o STATIONS.STA
+
+        # Filter specific stations
+        pygnss-rt update-sta -s IGS -o STATIONS.STA --stations algo,nrc1,dubo
+
+        # Use existing downloads (skip FTP)
+        pygnss-rt update-sta -s IGS -o STATIONS.STA --skip-download
+
+        # Include DOMES numbers in station names
+        pygnss-rt update-sta -s IGS -o STATIONS.STA --use-domes
+    """
+    from pygnss_rt.stations import (
+        AutoStationProcessor,
+        AutoStationConfig,
+    )
+
+    verbose = ctx.obj.get("verbose", False)
+
+    # Parse station lists
+    station_filter = [s.strip() for s in stations.split(",")] if stations else None
+    exclude_list = [s.strip() for s in exclude.split(",")] if exclude else None
+
+    # Expand "all" to include all sources
+    sources = list(source)
+    if "all" in sources:
+        sources = ["IGS", "EUREF", "OSGB"]
+
+    click.echo("Station Information Update (i-BSWSTA)")
+    click.echo("=" * 60)
+    click.echo(f"Sources: {', '.join(sources)}")
+    click.echo(f"Output: {output}")
+    click.echo(f"Work Dir: {work_dir}")
+    click.echo(f"DOMES: {'Yes' if use_domes else 'No'}")
+    if station_filter:
+        click.echo(f"Stations: {', '.join(station_filter)}")
+    if exclude_list:
+        click.echo(f"Excluded: {', '.join(exclude_list)}")
+    click.echo()
+
+    if dry_run:
+        click.echo("[DRY RUN MODE]")
+        if not skip_download:
+            click.echo(f"Would download site logs from: {', '.join(sources)}")
+        click.echo(f"Would parse site logs from: {work_dir}")
+        click.echo(f"Would generate STA file: {output}")
+        if backup and output.exists():
+            click.echo(f"Would create backup of existing file")
+        return
+
+    # Configure processor
+    config = AutoStationConfig(
+        work_dir=work_dir,
+        use_domes=use_domes,
+        sta_title="i-BSWSTA generated",
+        verbose=verbose,
+    )
+
+    # Add bad stations (from original Perl scripts)
+    config.bad_stations = [
+        "dund", "str2", "sey2", "elat", "katz", "ohig",  # IGS bad stations
+    ]
+
+    processor = AutoStationProcessor(config=config)
+
+    # Create backup if file exists
+    if backup and output.exists():
+        import shutil
+        backup_path = output.with_suffix(
+            f".bak.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
+        shutil.copy2(output, backup_path)
+        click.echo(f"Created backup: {backup_path}")
+
+    # Run processing
+    if skip_download:
+        click.echo("Skipping download, using existing site logs...")
+        parsed = processor.parse_site_logs(station_filter=station_filter)
+        click.echo(f"Parsed {parsed} site logs")
+    else:
+        click.echo("Downloading site logs...")
+        download_results = processor.download_site_logs(
+            sources=sources,
+            station_filter=station_filter,
+            exclude_stations=exclude_list,
+            overwrite=overwrite,
+        )
+
+        for result in download_results:
+            click.echo(
+                f"  {result.source}: {result.downloaded} downloaded, "
+                f"{result.skipped} skipped, {result.failed} failed"
+            )
+            if result.errors:
+                for err in result.errors[:5]:  # Show first 5 errors
+                    click.echo(f"    Error: {err}")
+
+        click.echo("\nParsing site logs...")
+        parsed = processor.parse_site_logs(station_filter=station_filter)
+        click.echo(f"Parsed {parsed} site logs")
+
+    # Generate STA file
+    click.echo(f"\nGenerating STA file: {output}")
+    written = processor.generate_sta_file(output, station_filter=station_filter)
+    click.echo(f"Wrote {written} stations to STA file")
+
+    if written > 0:
+        click.echo("\nUpdate complete!")
+    else:
+        click.echo("\nWarning: No stations written to STA file")
+        sys.exit(1)
+
+
+@cli.command("parse-sitelogs")
+@click.argument("directory", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--output", "-o",
+    type=click.Path(path_type=Path),
+    help="Output STA file (optional)",
+)
+@click.option(
+    "--use-domes/--no-domes",
+    default=False,
+    help="Include DOMES numbers in station names",
+)
+@click.option(
+    "--format", "-f",
+    type=click.Choice(["summary", "json", "csv"]),
+    default="summary",
+    help="Output format for parsed data",
+)
+@click.option(
+    "--station",
+    type=str,
+    help="Show details for specific station",
+)
+@click.pass_context
+def parse_sitelogs(
+    ctx: click.Context,
+    directory: Path,
+    output: Path | None,
+    use_domes: bool,
+    format: str,
+    station: str | None,
+) -> None:
+    """Parse site log files from a directory.
+
+    Parses IGS-format ASCII site log files (.log) and optionally generates
+    a Bernese .STA file.
+
+    Examples:
+
+    \b
+        # Parse and show summary
+        pygnss-rt parse-sitelogs /data/sitelogs
+
+        # Parse and generate STA file
+        pygnss-rt parse-sitelogs /data/sitelogs -o STATIONS.STA
+
+        # Show details for specific station
+        pygnss-rt parse-sitelogs /data/sitelogs --station ALGO
+
+        # Export as JSON
+        pygnss-rt parse-sitelogs /data/sitelogs -f json > stations.json
+    """
+    from pygnss_rt.stations import (
+        parse_site_logs_directory,
+        write_sta_file,
+    )
+    import json
+
+    click.echo(f"Parsing site logs from: {directory}")
+
+    # Parse all site logs
+    parsed = parse_site_logs_directory(directory)
+    click.echo(f"Found {len(parsed)} valid site logs")
+
+    if station:
+        # Show details for specific station
+        station_data = parsed.get(station.lower())
+        if not station_data:
+            click.echo(f"Station not found: {station}")
+            sys.exit(1)
+
+        click.echo()
+        click.echo(f"Station: {station_data.station_id}")
+        click.echo("=" * 50)
+        click.echo(f"Site Name: {station_data.site_identification.site_name}")
+        click.echo(f"DOMES: {station_data.domes_number}")
+        click.echo(f"Country: {station_data.site_location.country}")
+        click.echo()
+        click.echo(f"Receivers ({len(station_data.receivers)}):")
+        for i, rec in enumerate(station_data.receivers, 1):
+            click.echo(f"  {i}. {rec.receiver_type}")
+            click.echo(f"     Serial: {rec.serial_number}")
+            click.echo(f"     Installed: {rec.date_installed}")
+            click.echo(f"     Removed: {rec.date_removed or 'Current'}")
+        click.echo()
+        click.echo(f"Antennas ({len(station_data.antennas)}):")
+        for i, ant in enumerate(station_data.antennas, 1):
+            click.echo(f"  {i}. {ant.antenna_type}")
+            click.echo(f"     Radome: {ant.radome_type}")
+            click.echo(f"     Serial: {ant.serial_number}")
+            click.echo(f"     Eccentricities (N/E/U): {ant.marker_arp_north_ecc:.4f} / "
+                      f"{ant.marker_arp_east_ecc:.4f} / {ant.marker_arp_up_ecc:.4f}")
+            click.echo(f"     Installed: {ant.date_installed}")
+            click.echo(f"     Removed: {ant.date_removed or 'Current'}")
+
+    elif format == "summary":
+        click.echo()
+        click.echo(f"{'Station':<6} {'Name':<25} {'DOMES':<12} {'Rx':<3} {'Ant':<3}")
+        click.echo("-" * 55)
+        for sta_id in sorted(parsed.keys()):
+            data = parsed[sta_id]
+            name = (data.site_identification.site_name or "")[:25]
+            domes = data.domes_number[:12] if data.domes_number else ""
+            rx_count = len(data.receivers)
+            ant_count = len(data.antennas)
+            click.echo(f"{sta_id.upper():<6} {name:<25} {domes:<12} {rx_count:<3} {ant_count:<3}")
+
+    elif format == "json":
+        # Export as JSON
+        export_data = {}
+        for sta_id, data in parsed.items():
+            export_data[sta_id] = {
+                "site_name": data.site_identification.site_name,
+                "domes": data.domes_number,
+                "country": data.site_location.country,
+                "receivers": len(data.receivers),
+                "antennas": len(data.antennas),
+                "current_receiver": data.current_receiver.receiver_type if data.current_receiver else None,
+                "current_antenna": data.current_antenna.antenna_type if data.current_antenna else None,
+            }
+        click.echo(json.dumps(export_data, indent=2))
+
+    elif format == "csv":
+        click.echo("station,site_name,domes,country,receivers,antennas,current_receiver,current_antenna")
+        for sta_id in sorted(parsed.keys()):
+            data = parsed[sta_id]
+            name = (data.site_identification.site_name or "").replace(",", ";")
+            domes = data.domes_number or ""
+            country = data.site_location.country or ""
+            curr_rx = data.current_receiver.receiver_type if data.current_receiver else ""
+            curr_ant = data.current_antenna.antenna_type if data.current_antenna else ""
+            click.echo(f"{sta_id},{name},{domes},{country},{len(data.receivers)},"
+                      f"{len(data.antennas)},{curr_rx},{curr_ant}")
+
+    # Generate STA file if requested
+    if output:
+        click.echo()
+        click.echo(f"Generating STA file: {output}")
+        station_list = list(parsed.values())
+        written = write_sta_file(output, station_list, use_domes=use_domes)
+        click.echo(f"Wrote {written} stations")
+
+
+@cli.command("download-sitelogs")
+@click.option(
+    "--source", "-s",
+    type=click.Choice(["IGS", "EUREF", "OSGB", "IGS_HISTORICAL"]),
+    default="IGS",
+    help="Site log source",
+)
+@click.option(
+    "--output-dir", "-o",
+    type=click.Path(path_type=Path),
+    required=True,
+    help="Output directory for downloaded files",
+)
+@click.option(
+    "--stations",
+    type=str,
+    help="Comma-separated list of stations to download",
+)
+@click.option(
+    "--exclude",
+    type=str,
+    help="Comma-separated list of stations to exclude",
+)
+@click.option(
+    "--overwrite/--no-overwrite",
+    default=False,
+    help="Overwrite existing files",
+)
+@click.option(
+    "--list-only",
+    is_flag=True,
+    help="List available files without downloading",
+)
+@click.pass_context
+def download_sitelogs(
+    ctx: click.Context,
+    source: str,
+    output_dir: Path,
+    stations: str | None,
+    exclude: str | None,
+    overwrite: bool,
+    list_only: bool,
+) -> None:
+    """Download site log files from IGS/EUREF.
+
+    Downloads IGS-format site log files from FTP servers for station
+    metadata maintenance.
+
+    Examples:
+
+    \b
+        # Download all IGS site logs
+        pygnss-rt download-sitelogs -s IGS -o /data/sitelogs
+
+        # Download specific stations
+        pygnss-rt download-sitelogs -s IGS -o /data/sitelogs \\
+            --stations algo,nrc1,dubo
+
+        # List available files without downloading
+        pygnss-rt download-sitelogs -s EUREF -o /data/sitelogs --list-only
+    """
+    from pygnss_rt.stations import (
+        SiteLogDownloader,
+        DEFAULT_SITE_LOG_SOURCES,
+    )
+
+    verbose = ctx.obj.get("verbose", False)
+
+    # Parse station lists
+    station_filter = [s.strip() for s in stations.split(",")] if stations else None
+    exclude_list = [s.strip() for s in exclude.split(",")] if exclude else None
+
+    click.echo(f"Site Log Download from {source}")
+    click.echo("=" * 50)
+
+    downloader = SiteLogDownloader(verbose=verbose)
+
+    if list_only:
+        click.echo(f"Listing files on {source}...")
+        try:
+            files = downloader.list_remote_files(source)
+            click.echo(f"Found {len(files)} site log files")
+            for f in sorted(files)[:50]:  # Show first 50
+                click.echo(f"  {f}")
+            if len(files) > 50:
+                click.echo(f"  ... and {len(files) - 50} more")
+        except Exception as e:
+            click.echo(f"Error: {e}")
+            sys.exit(1)
+        return
+
+    # Download
+    click.echo(f"Downloading to: {output_dir}")
+    result = downloader.download(
+        source=source,
+        destination=output_dir,
+        station_filter=station_filter,
+        exclude_stations=exclude_list,
+        overwrite=overwrite,
+    )
+
+    click.echo()
+    click.echo(f"Total files: {result.total_files}")
+    click.echo(f"Downloaded: {result.downloaded}")
+    click.echo(f"Skipped: {result.skipped}")
+    click.echo(f"Failed: {result.failed}")
+    click.echo(f"Filtered out: {result.filtered_out}")
+    click.echo(f"Duration: {result.duration_seconds:.1f}s")
+
+    if result.errors:
+        click.echo()
+        click.echo("Errors:")
+        for err in result.errors[:10]:
+            click.echo(f"  - {err}")
+
+
 @cli.command("convert-date")
 @click.argument("date_input")
 @click.pass_context

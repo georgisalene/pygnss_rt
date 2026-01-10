@@ -486,3 +486,323 @@ def build_orbit_filename(
         filename += f".{compression}"
 
     return filename
+
+
+# =============================================================================
+# Additional Filename Parsers (from UTIL.pm)
+# =============================================================================
+
+@dataclass
+class IONFileInfo:
+    """Information extracted from ionosphere product filename."""
+
+    provider: str
+    gps_week: int
+    day_of_week: int
+    doy: Optional[int] = None
+    hour: int = 0
+
+
+@dataclass
+class MetFileInfo:
+    """Information extracted from meteorological filename."""
+
+    year: int
+    year_2c: int
+    doy: int
+    month: int
+    day: int
+    hour: int  # or minute for subhourly
+    compression: Optional[str] = None
+    is_subhourly: bool = False
+
+
+def parse_ion_filename(filename: str) -> IONFileInfo:
+    """Parse ionosphere product filename.
+
+    Supports formats:
+    - Legacy: igsWWWWD.ion.Z
+    - IGS long: IGS0OPSFIN_YYYYDDD0000_01D_02H_ION.ION.gz
+
+    Args:
+        filename: Ionosphere filename
+
+    Returns:
+        IONFileInfo with extracted data
+    """
+    base = Path(filename).name
+
+    # Remove extensions
+    for ext in ['.Z', '.gz', '.ion', '.ION', '.inx', '.INX']:
+        if base.endswith(ext):
+            base = base[:-len(ext)]
+
+    # Check for IGS long format
+    if '_' in base and len(base) > 20:
+        parts = base.split('_')
+        provider = parts[0][:11] if len(parts[0]) >= 11 else parts[0]
+
+        datetime_part = parts[1]
+        year = int(datetime_part[0:4])
+        doy = int(datetime_part[4:7])
+        hour = int(datetime_part[7:9]) if len(datetime_part) > 9 else 0
+
+        from pygnss_rt.utils.dates import GNSSDate
+        gd = GNSSDate.from_doy(year, doy, hour)
+
+        return IONFileInfo(
+            provider=provider,
+            gps_week=gd.gps_week,
+            day_of_week=gd.day_of_week,
+            doy=doy,
+            hour=hour,
+        )
+    else:
+        # Legacy format: igsWWWWD or codWWWWD
+        provider = base[0:3]
+        gps_week = int(base[3:7])
+        day_of_week = int(base[7:8])
+
+        return IONFileInfo(
+            provider=provider,
+            gps_week=gps_week,
+            day_of_week=day_of_week,
+        )
+
+
+def parse_met_filename(filename: str, subhourly: bool = False) -> MetFileInfo:
+    """Parse meteorological data filename.
+
+    Format: metYYYYMMDDHH.gz (hourly)
+            metYYYYMMDDHHMM.gz (subhourly)
+
+    Args:
+        filename: Meteorological filename
+        subhourly: Whether to parse subhourly format
+
+    Returns:
+        MetFileInfo with extracted data
+    """
+    base = Path(filename).name
+
+    # Remove 'met' prefix
+    if base.lower().startswith('met'):
+        base = base[3:]
+
+    # Remove compression extension
+    compression = None
+    for ext in ['.gz', '.Z', '.zip']:
+        if base.endswith(ext):
+            compression = ext[1:]
+            base = base[:-len(ext)]
+            break
+
+    # Parse date/time
+    year = int(base[0:4])
+    month = int(base[4:6])
+    day = int(base[6:8])
+
+    if subhourly:
+        # HHMM format
+        time_str = base[8:12]
+        hour = int(time_str) if len(time_str) == 4 else int(time_str[:2])
+    else:
+        # HH format
+        hour = int(base[8:10]) if len(base) >= 10 else 0
+
+    # Calculate DOY
+    from pygnss_rt.utils.dates import doy_from_date
+    doy = doy_from_date(year, month, day)
+
+    return MetFileInfo(
+        year=year,
+        year_2c=year % 100,
+        doy=doy,
+        month=month,
+        day=day,
+        hour=hour,
+        compression=compression,
+        is_subhourly=subhourly,
+    )
+
+
+def build_rinex3_filename(
+    station: str,
+    year: int,
+    doy: int,
+    hour: int = 0,
+    minute: int = 0,
+    duration: str = "01D",
+    interval: str = "30S",
+    data_type: str = "MO",
+    country: str = "XXX",
+    source: str = "R",
+    monument: int = 0,
+    receiver: int = 0,
+    file_ext: str = "rnx",
+    compression: Optional[str] = "gz",
+) -> str:
+    """Build RINEX 3.x long filename.
+
+    Format: XXXXMRCCC_K_YYYYDDDHHMM_DUR_INT_TYP.ext[.gz]
+
+    Args:
+        station: 4-char station code
+        year: Year
+        doy: Day of year
+        hour: Hour
+        minute: Minute
+        duration: Duration code (01D, 01H, 15M)
+        interval: Sample interval (30S, 01S, 15M)
+        data_type: Data type (MO=obs, MN=nav, MM=met)
+        country: 3-char country code
+        source: Data source (R=receiver, S=stream, U=unknown)
+        monument: Monument number
+        receiver: Receiver number
+        file_ext: File extension (rnx, crx)
+        compression: Compression extension
+
+    Returns:
+        Formatted filename
+    """
+    station = station.upper()[:4]
+
+    filename = (
+        f"{station}{monument}{receiver}{country}_"
+        f"{source}_"
+        f"{year:04d}{doy:03d}{hour:02d}{minute:02d}_"
+        f"{duration}_{interval}_{data_type}.{file_ext}"
+    )
+
+    if compression:
+        filename += f".{compression}"
+
+    return filename
+
+
+def build_met_filename(
+    year: int,
+    month: int,
+    day: int,
+    hour: int,
+    minute: Optional[int] = None,
+    compression: Optional[str] = "gz",
+) -> str:
+    """Build meteorological data filename.
+
+    Args:
+        year: Year
+        month: Month
+        day: Day
+        hour: Hour
+        minute: Minute (for subhourly)
+        compression: Compression extension
+
+    Returns:
+        Formatted filename
+    """
+    if minute is not None:
+        # Subhourly format
+        filename = f"met{year:04d}{month:02d}{day:02d}{hour:02d}{minute:02d}"
+    else:
+        # Hourly format
+        filename = f"met{year:04d}{month:02d}{day:02d}{hour:02d}"
+
+    if compression:
+        filename += f".{compression}"
+
+    return filename
+
+
+def detect_rinex_version(filename: str) -> int:
+    """Detect RINEX version from filename.
+
+    Args:
+        filename: RINEX filename
+
+    Returns:
+        RINEX version (2, 3, or 4)
+    """
+    base = Path(filename).name
+
+    # RINEX 3/4 long format
+    if '_' in base and len(base) > 30:
+        # Check for RINEX 4 indicators
+        if base.lower().endswith('.rnx') or base.lower().endswith('.crx'):
+            return 3  # Could be 4, but format is same
+        return 3
+
+    # RINEX 2 short format
+    return 2
+
+
+def get_file_type(filename: str) -> str:
+    """Get RINEX file type from filename.
+
+    Args:
+        filename: RINEX filename
+
+    Returns:
+        File type code (O=obs, N=nav, M=met, etc.)
+    """
+    base = Path(filename).name.lower()
+
+    # Remove compression
+    for ext in ['.gz', '.z', '.zip', '.bz2']:
+        if base.endswith(ext):
+            base = base[:-len(ext)]
+
+    # Check RINEX 3 style
+    if '_mo.' in base or base.endswith('_mo'):
+        return 'O'
+    elif '_mn.' in base or base.endswith('_mn'):
+        return 'N'
+    elif '_mm.' in base or base.endswith('_mm'):
+        return 'M'
+
+    # Check RINEX 2 style extension
+    parts = base.split('.')
+    if len(parts) >= 2:
+        ext = parts[-1]
+        if len(ext) >= 3:
+            type_char = ext[2].upper()
+            if type_char in 'ONMG':
+                return type_char
+
+    return 'O'  # Default to observation
+
+
+def is_observation_file(filename: str) -> bool:
+    """Check if filename is an observation file.
+
+    Args:
+        filename: RINEX filename
+
+    Returns:
+        True if observation file
+    """
+    return get_file_type(filename) == 'O'
+
+
+def is_navigation_file(filename: str) -> bool:
+    """Check if filename is a navigation file.
+
+    Args:
+        filename: RINEX filename
+
+    Returns:
+        True if navigation file
+    """
+    return get_file_type(filename) in ('N', 'G')
+
+
+def is_meteorological_file(filename: str) -> bool:
+    """Check if filename is a meteorological file.
+
+    Args:
+        filename: RINEX filename
+
+    Returns:
+        True if meteorological file
+    """
+    return get_file_type(filename) == 'M'
