@@ -316,6 +316,44 @@ DEFAULT_PROVIDERS: dict[str, ProviderConfig] = {
         priority=7,
         supports_hourly=False,
     ),
+    # BKGE_IGS - BKG's IGS mirror for global IGS stations
+    "BKGE_IGS": ProviderConfig(
+        name="BKGE_IGS",
+        server="igs-ftp.bkg.bund.de",
+        protocol="ftp",
+        username="anonymous",
+        base_path="/IGS/obs",
+        # Path: /IGS/obs/{year}/{doy}/ - RINEX 2 compressed (.Z)
+        path_template="/{year}/{doy:03d}",
+        filename_template="{station}{doy:03d}0.{yy}o.Z",
+        priority=3,  # After CDDIS but before regional providers
+        supports_hourly=False,
+    ),
+    "BKGE_IGS_HOURLY": ProviderConfig(
+        name="BKGE_IGS_HOURLY",
+        server="igs-ftp.bkg.bund.de",
+        protocol="ftp",
+        username="anonymous",
+        base_path="/IGS/nrt",
+        # Path: /IGS/nrt/{doy}/{hour}/
+        path_template="/{doy:03d}/{hour:02d}",
+        filename_template="{station}{doy:03d}{hour_char}.{yy}o.gz",
+        priority=3,
+        supports_daily=False,
+    ),
+    # IGN - IGS mirror at IGN France
+    "IGN_IGS": ProviderConfig(
+        name="IGN_IGS",
+        server="igs.ign.fr",
+        protocol="ftp",
+        username="anonymous",
+        base_path="/pub/igs/data/daily",
+        # Path: /pub/igs/data/daily/{year}/{doy}/{yy}d/
+        path_template="/{year}/{doy:03d}/{yy}d",
+        filename_template="{station}{doy:03d}0.{yy}d.Z",
+        priority=4,
+        supports_hourly=False,
+    ),
 }
 
 
@@ -517,7 +555,7 @@ class StationDownloader:
         try:
             current_file = compressed_path
 
-            # Step 1: Handle gzip compression
+            # Step 1: Handle gzip compression (.gz)
             if str(current_file).endswith('.gz'):
                 decompressed = current_file.with_suffix('')
                 with gzip.open(current_file, 'rb') as f_in:
@@ -525,6 +563,25 @@ class StationDownloader:
                         shutil.copyfileobj(f_in, f_out)
                 current_file.unlink()  # Remove .gz file
                 current_file = decompressed
+
+            # Step 1b: Handle Unix compress (.Z) - common on FTP servers
+            if str(current_file).endswith('.Z'):
+                decompressed = Path(str(current_file)[:-2])  # Remove .Z suffix
+                # Use system uncompress or gzip -d
+                try:
+                    result = subprocess.run(
+                        ['gzip', '-d', '-f', str(current_file)],
+                        capture_output=True,
+                        timeout=60,
+                    )
+                    if result.returncode == 0 and decompressed.exists():
+                        current_file = decompressed
+                    else:
+                        if self.verbose:
+                            print(f"  WARNING: Failed to decompress .Z file: {result.stderr.decode()}")
+                except Exception as e:
+                    if self.verbose:
+                        print(f"  WARNING: .Z decompression error: {e}")
 
             # Step 2: Handle Hatanaka compression (.crx)
             if str(current_file).endswith('.crx'):
@@ -894,24 +951,32 @@ class StationDownloader:
                             success = False
 
                     if success and local_path.exists():
-                        # For CDDIS downloads, decompress Hatanaka/gzip to RINEX
-                        if provider_name.startswith("CDDIS"):
-                            # Downloaded file is .crx.gz, need to decompress
-                            downloaded_file = local_path
-                            # Build target Bernese 5.4 long format filename for BSW
-                            target_rinex = self._build_local_path(
-                                task.station_id, task.year, task.doy,
-                                task.hour, task.rinex_type, country_code
-                            )
+                        # Decompress and convert to Bernese format
+                        downloaded_file = local_path
+                        # Build target Bernese 5.4 long format filename for BSW
+                        target_rinex = self._build_local_path(
+                            task.station_id, task.year, task.doy,
+                            task.hour, task.rinex_type, country_code
+                        )
 
+                        # Check if file needs decompression (ends in .gz, .Z, .crx)
+                        needs_decompress = any(
+                            str(downloaded_file).endswith(ext)
+                            for ext in ['.gz', '.Z', '.crx']
+                        )
+
+                        if needs_decompress or downloaded_file != target_rinex:
                             if self.verbose:
-                                print(f"  Decompressing: {local_path.name} -> {target_rinex.name}")
+                                print(f"  Processing: {local_path.name} -> {target_rinex.name}")
 
                             if self._decompress_rinex(downloaded_file, target_rinex):
                                 local_path = target_rinex
                             else:
                                 if self.verbose:
-                                    print(f"  WARNING: Decompression failed for {task.station_id}")
+                                    print(f"  WARNING: Processing failed for {task.station_id}")
+                                # Still mark as success if file exists
+                                if not target_rinex.exists() and downloaded_file.exists():
+                                    local_path = downloaded_file
 
                         result.success = True
                         result.local_path = local_path

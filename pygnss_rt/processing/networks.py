@@ -129,7 +129,7 @@ class NetworkProfile:
     # DCM (Delete/Compress/Move) settings
     dcm_enabled: bool = True
     dcm_dirs_to_delete: list[str] = field(
-        default_factory=lambda: ["OBS", "RAW", "ORX", "INP"]
+        default_factory=lambda: ["RAW", "BPE", "OBS", "ORX", "INP", "ORB", "GRD", "GEN"]
     )
     dcm_archive_dir: str = ""
     dcm_organization: str = "yyyy/doy"
@@ -238,6 +238,8 @@ def create_network_profiles(
         ),
         data_ftp_sources=[
             FTPDataSource(server_id="CDDIS", category="daily"),
+            FTPDataSource(server_id="BKGE_IGS", category="daily"),
+            FTPDataSource(server_id="IGN_IGS", category="daily"),
         ],
         orbit_source=default_orbit,
         erp_source=default_erp,
