@@ -26,7 +26,11 @@ from pygnss_rt.processing.bsw_options import (
     BSWStepOptions,
     load_bsw_options,
     get_option_dirs,
+    xml_step_to_opt_dir,
     PPP_OPTION_DIRS,
+    PPP_XML_STEPS,
+    PPP_LEGACY_OPTION_DIRS,
+    XML_TO_OPT_DIR,
     NRDDP_OPTION_DIRS,
 )
 from pygnss_rt.processing.neq_stacking import (
@@ -72,6 +76,10 @@ from pygnss_rt.processing.orchestrator import (
     ProductChecker,
     ProductConfig,
     ProductCategory,
+    # PPP product downloader (replaces FTP.pm product download)
+    PPPProductDownloader,
+    ProcProductConfig,
+    PPPProductArgs,
     # Data handling
     DataManager,
     DataSourceConfig,
@@ -142,6 +150,10 @@ __all__ = [
     "load_bsw_options",
     "get_option_dirs",
     "PPP_OPTION_DIRS",
+    "PPP_XML_STEPS",
+    "PPP_LEGACY_OPTION_DIRS",
+    "XML_TO_OPT_DIR",
+    "xml_step_to_opt_dir",
     "NRDDP_OPTION_DIRS",
     # NEQ stacking
     "NEQStacker",
@@ -180,6 +192,9 @@ __all__ = [
     "ProductChecker",
     "ProductConfig",
     "ProductCategory",
+    "PPPProductDownloader",
+    "ProcProductConfig",
+    "PPPProductArgs",
     "DataManager",
     "DataSourceConfig",
     "BSWExecutor",

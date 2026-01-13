@@ -57,25 +57,53 @@ class Station:
 
     @classmethod
     def from_xml_element(cls, element: ElementTree.Element) -> Station:
-        """Create station from XML element."""
-        station_id = element.get("id", "").lower()
+        """Create station from XML element.
+
+        Supports both formats:
+        - i-GNSS format: <fourCharName>, <approximate_X>, <use_nrt>yes/no</use_nrt>
+        - Simple format: <id>, <x>, <use_nrt>1/0</use_nrt>
+        """
+        # Try i-GNSS format first (fourCharName), then simple format (id)
+        station_id = element.findtext("fourCharName", "").lower()
+        if not station_id:
+            station_id = element.get("id", "").lower()
         if not station_id:
             station_id = element.findtext("id", "").lower()
 
+        # Parse use_nrt - supports "yes"/"no" and "1"/"0"
+        use_nrt_text = element.findtext("use_nrt", "yes").lower()
+        use_nrt = use_nrt_text in ("yes", "1", "true")
+
+        # Parse active - supports "yes"/"no" and "1"/"0"
+        active_text = element.findtext("active", "yes").lower()
+        active = active_text in ("yes", "1", "true")
+
+        # Get coordinates - try i-GNSS format (approximate_X) then simple (x)
+        x = _parse_float(element.findtext("approximate_X")) or _parse_float(element.findtext("x"))
+        y = _parse_float(element.findtext("approximate_Y")) or _parse_float(element.findtext("y"))
+        z = _parse_float(element.findtext("approximate_Z")) or _parse_float(element.findtext("z"))
+
         return cls(
             station_id=station_id,
-            name=element.findtext("name"),
-            network=element.findtext("network"),
+            name=element.findtext("fullName") or element.findtext("name"),
+            network=element.findtext("primaryNet") or element.findtext("network"),
             latitude=_parse_float(element.findtext("latitude")),
             longitude=_parse_float(element.findtext("longitude")),
             height=_parse_float(element.findtext("height")),
-            x=_parse_float(element.findtext("x")),
-            y=_parse_float(element.findtext("y")),
-            z=_parse_float(element.findtext("z")),
+            x=x,
+            y=y,
+            z=z,
             receiver_type=element.findtext("receiver"),
             antenna_type=element.findtext("antenna"),
-            use_nrt=element.findtext("use_nrt", "1") == "1",
-            active=element.findtext("active", "1") == "1",
+            use_nrt=use_nrt,
+            active=active,
+            metadata={
+                "domes": element.findtext("DOMES", ""),
+                "country": element.findtext("country", ""),
+                "iso": element.findtext("ISO", ""),
+                "provider": element.findtext("provider", ""),
+                "type": element.findtext("type", ""),
+            },
         )
 
 

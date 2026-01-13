@@ -459,6 +459,172 @@ class StationListWriter:
         return len(unique_stations)
 
 
+@dataclass
+class ProcStationEntry:
+    """Station entry for PROCSTNS.LST file.
+
+    Format: station_code network start_mjd end_mjd
+    Example: adis      igs    40000   99999
+    """
+
+    station_id: str  # 4-char station code (lowercase)
+    network: str = "igs"  # Network identifier
+    start_mjd: float = 40000.0  # Start validity MJD
+    end_mjd: float = 99999.0  # End validity MJD
+
+
+class ProcStationListWriter:
+    """Writer for PROCSTNS.LST files (for BSW BPE processing).
+
+    Creates station list files in the format expected by BSW scripts like ORB_IGS:
+    station_code  network  start_mjd  end_mjd
+
+    Example file content:
+    adis      igs    40000   99999
+    aira      igs    40000   99999
+    """
+
+    def __init__(self, network: str = "igs"):
+        """Initialize PROCSTNS.LST writer.
+
+        Args:
+            network: Default network identifier for stations
+        """
+        self._stations: list[ProcStationEntry] = []
+        self._default_network = network
+
+    def add_station(
+        self,
+        station_id: str,
+        network: str | None = None,
+        start_mjd: float = 40000.0,
+        end_mjd: float = 99999.0,
+    ) -> None:
+        """Add a station entry.
+
+        Args:
+            station_id: 4-char station code
+            network: Network identifier (uses default if None)
+            start_mjd: Start validity MJD
+            end_mjd: End validity MJD
+        """
+        entry = ProcStationEntry(
+            station_id=station_id.lower()[:4],
+            network=network or self._default_network,
+            start_mjd=start_mjd,
+            end_mjd=end_mjd,
+        )
+        self._stations.append(entry)
+
+    def add_stations(
+        self,
+        station_ids: list[str],
+        network: str | None = None,
+        start_mjd: float = 40000.0,
+        end_mjd: float = 99999.0,
+    ) -> None:
+        """Add multiple station entries with same validity range.
+
+        Args:
+            station_ids: List of station codes
+            network: Network identifier (uses default if None)
+            start_mjd: Start validity MJD
+            end_mjd: End validity MJD
+        """
+        for sid in station_ids:
+            self.add_station(sid, network, start_mjd, end_mjd)
+
+    def add_stations_for_mjd(
+        self,
+        station_ids: list[str],
+        mjd: float,
+        network: str | None = None,
+    ) -> None:
+        """Add stations with validity range covering the given MJD.
+
+        Sets start_mjd to mjd-1 and end_mjd to mjd+1 to ensure the station
+        is valid for the processing day.
+
+        Args:
+            station_ids: List of station codes
+            mjd: Target MJD for processing
+            network: Network identifier (uses default if None)
+        """
+        for sid in station_ids:
+            self.add_station(
+                sid,
+                network,
+                start_mjd=mjd - 1,
+                end_mjd=mjd + 1,
+            )
+
+    def clear(self) -> None:
+        """Clear all stations."""
+        self._stations.clear()
+
+    def write(self, output_path: Path | str) -> int:
+        """Write the PROCSTNS.LST file.
+
+        Args:
+            output_path: Output file path
+
+        Returns:
+            Number of stations written
+        """
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Remove duplicates (by station_id) while preserving order
+        seen = set()
+        unique_stations = []
+        for entry in self._stations:
+            if entry.station_id not in seen:
+                seen.add(entry.station_id)
+                unique_stations.append(entry)
+
+        with open(output_path, "w", encoding="utf-8") as f:
+            for entry in unique_stations:
+                # Format: station  network  start_mjd  end_mjd
+                # Use consistent spacing like original files
+                f.write(
+                    f"{entry.station_id:<10s}{entry.network:<7s}"
+                    f"{int(entry.start_mjd):>5d}   {int(entry.end_mjd):>5d}\n"
+                )
+
+        logger.info(
+            "Wrote PROCSTNS.LST file",
+            path=str(output_path),
+            stations=len(unique_stations),
+        )
+
+        return len(unique_stations)
+
+
+def write_procstns_list(
+    station_ids: list[str],
+    output_path: Path | str,
+    network: str = "igs",
+    mjd: float | None = None,
+) -> int:
+    """Convenience function to write a PROCSTNS.LST file.
+
+    Args:
+        station_ids: List of station codes
+        output_path: Output file path
+        network: Network identifier
+        mjd: If provided, sets validity range around this MJD
+
+    Returns:
+        Number of stations written
+    """
+    writer = ProcStationListWriter(network=network)
+    if mjd is not None:
+        writer.add_stations_for_mjd(station_ids, mjd, network)
+    else:
+        writer.add_stations(station_ids, network)
+    return writer.write(output_path)
+
+
 class VELFileWriter:
     """Writer for Bernese .VEL (velocity) files.
 

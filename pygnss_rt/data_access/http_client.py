@@ -149,6 +149,18 @@ class HTTPClient:
         except requests.exceptions.HTTPError:
             return None
 
+    def download_file(self, url: str, local_path: Path) -> bool:
+        """Download a file from full URL.
+
+        Args:
+            url: Full URL to download
+            local_path: Local destination path
+
+        Returns:
+            True if successful
+        """
+        return self.download(url, local_path)
+
     def close(self) -> None:
         """Close the session."""
         self.session.close()
@@ -238,4 +250,16 @@ class CDDISClient(HTTPClient):
             True if successful
         """
         url = self.get_product_url(product_type, year, doy, gps_week, filename)
+        return self.download(url, local_path)
+
+    def download_file(self, url: str, local_path: Path) -> bool:
+        """Download a file from full URL.
+
+        Args:
+            url: Full URL to download
+            local_path: Local destination path
+
+        Returns:
+            True if successful
+        """
         return self.download(url, local_path)

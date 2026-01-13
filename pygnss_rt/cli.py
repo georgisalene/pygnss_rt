@@ -2290,6 +2290,163 @@ def download_sitelogs(
             click.echo(f"  - {err}")
 
 
+@cli.command("daily-crd")
+@click.option(
+    "--year", "-y",
+    type=int,
+    help="Processing year",
+)
+@click.option(
+    "--doy", "-d",
+    type=int,
+    help="Day of year",
+)
+@click.option(
+    "--cron",
+    is_flag=True,
+    help="Run in CRON mode (auto-detect date with latency)",
+)
+@click.option(
+    "--latency",
+    type=int,
+    default=12,
+    help="Latency in hours for CRON mode (default: 12)",
+)
+@click.option(
+    "--output-dir", "-o",
+    type=click.Path(path_type=Path),
+    default=Path("/home/nrt105/data54/nrtCoord"),
+    help="Output directory for CRD files",
+)
+@click.option(
+    "--ppp-root",
+    type=click.Path(path_type=Path),
+    default=Path("/home/nrt105/data54/campaigns/ppp"),
+    help="Root directory for archived PPP solutions",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be done without executing",
+)
+@click.pass_context
+def daily_crd(
+    ctx: click.Context,
+    year: int | None,
+    doy: int | None,
+    cron: bool,
+    latency: int,
+    output_dir: Path,
+    ppp_root: Path,
+    dry_run: bool,
+) -> None:
+    """Generate daily NRT coordinates for NRDDP processing.
+
+    Computes a-priori coordinates based on aligned solutions from daily PPP
+    runs over a 21-50 day window. Uses iterative outlier rejection to produce
+    robust mean coordinates.
+
+    This replaces the Perl script: iGNSS_D_CRD_54.pl
+
+    Output files:
+    - DNR{YY}{DOY}0.CRD: Single-day coordinate solution
+    - ANR{YY}{DOY}0.CRD: Combined solution for NRDDP (current + previous day)
+
+    Examples:
+
+    \b
+        # Run in CRON mode (auto-detect date)
+        pygnss-rt daily-crd --cron
+
+        # Process specific date
+        pygnss-rt daily-crd --year 2024 --doy 260
+
+        # Custom output directory
+        pygnss-rt daily-crd --cron -o /path/to/nrtCoord
+    """
+    from pygnss_rt.processing.daily_crd import (
+        DailyCRDProcessor,
+        DailyCRDConfig,
+        NetworkArchive,
+    )
+
+    verbose = ctx.obj.get("verbose", False)
+
+    click.echo("Daily NRT Coordinate Generation")
+    click.echo("=" * 60)
+
+    if dry_run:
+        click.echo("[DRY RUN MODE]")
+        click.echo()
+
+    # Create configuration
+    networks = [
+        NetworkArchive(network_id="IG", root=ppp_root, campaign_pattern="YYDOYIG", prefix="AIG"),
+        NetworkArchive(network_id="EU", root=ppp_root, campaign_pattern="YYDOYEU", prefix="AEU"),
+        NetworkArchive(network_id="GB", root=ppp_root, campaign_pattern="YYDOYGB", prefix="AGB"),
+        NetworkArchive(network_id="IR", root=ppp_root, campaign_pattern="YYDOYIR", prefix="AIR"),
+        NetworkArchive(network_id="IS", root=ppp_root, campaign_pattern="YYDOYIS", prefix="AIS"),
+        NetworkArchive(network_id="RG", root=ppp_root, campaign_pattern="YYDOYRG", prefix="ARG"),
+        NetworkArchive(network_id="SS", root=ppp_root, campaign_pattern="YYDOYSS", prefix="ASS"),
+        NetworkArchive(network_id="CA", root=ppp_root, campaign_pattern="YYDOYCA", prefix="ACA"),
+    ]
+
+    config = DailyCRDConfig(
+        output_dir=output_dir,
+        ppp_root=ppp_root,
+        networks=networks,
+        latency_hours=latency,
+    )
+
+    click.echo(f"Output directory: {output_dir}")
+    click.echo(f"PPP archive root: {ppp_root}")
+
+    if cron:
+        click.echo(f"Mode: CRON (latency: {latency} hours)")
+    else:
+        if year and doy:
+            click.echo(f"Date: {year}/{doy:03d}")
+        else:
+            click.echo("Error: Either --cron or both --year and --doy are required")
+            sys.exit(1)
+
+    click.echo()
+
+    if dry_run:
+        if cron:
+            from datetime import datetime, timedelta, timezone
+            now = datetime.now(timezone.utc)
+            proc_time = now - timedelta(hours=latency)
+            click.echo(f"Would process: {proc_time.year}/{proc_time.timetuple().tm_yday:03d}")
+        else:
+            click.echo(f"Would process: {year}/{doy:03d}")
+        click.echo(f"Would collect coordinates from {len(networks)} networks")
+        click.echo("Would generate DNR and ANR CRD files")
+        return
+
+    # Create processor and run
+    processor = DailyCRDProcessor(config=config, verbose=verbose)
+
+    if cron:
+        result = processor.process_cron()
+    else:
+        result = processor.process(year=year, doy=doy)
+
+    # Report result
+    click.echo()
+    if result.success:
+        click.echo("SUCCESS")
+        click.echo(f"  Stations: {result.n_stations}")
+        click.echo(f"  Rejected: {result.n_rejected}")
+        click.echo(f"  DNR file: {result.dnr_file}")
+        click.echo(f"  ANR file: {result.anr_file}")
+        click.echo(f"  Processing time: {result.processing_time:.1f}s")
+    else:
+        click.echo("FAILED")
+        click.echo(f"  Error: {result.error_message}")
+        sys.exit(1)
+
+
 @cli.command("convert-date")
 @click.argument("date_input")
 @click.pass_context

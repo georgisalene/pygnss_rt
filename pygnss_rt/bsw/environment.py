@@ -108,41 +108,71 @@ def load_bsw_environment(setvar_file: Path | str) -> BSWEnvironment:
         for line in f:
             line = line.strip()
 
-            # Skip comments and empty lines
+            # Skip comments, empty lines, and function definitions
             if not line or line.startswith("#"):
                 continue
+            if line.startswith("addtopath") or line.startswith("if ") or line.startswith("then"):
+                continue
+            if line.startswith("fi") or line == "}":
+                continue
 
-            # Parse export VAR=value or setenv VAR value
+            # Parse export VAR=value or export VAR="value"
             if line.startswith("export "):
-                match = re.match(r'export\s+(\w+)=["\'"]?(.+?)["\'"]?\s*$', line)
+                # Handle: export VAR="value" or export VAR='value' or export VAR=value
+                match = re.match(r'export\s+(\w+)=["\']?([^"\']*)["\']?\s*$', line)
                 if match:
                     vars_dict[match.group(1)] = match.group(2)
+                else:
+                    # Try with embedded quotes: export VAR="${OTHER}/path"
+                    match = re.match(r'export\s+(\w+)="([^"]*)"', line)
+                    if match:
+                        vars_dict[match.group(1)] = match.group(2)
             elif line.startswith("setenv "):
-                match = re.match(r'setenv\s+(\w+)\s+["\'"]?(.+?)["\'"]?\s*$', line)
+                match = re.match(r'setenv\s+(\w+)\s+["\']?([^"\']*)["\']?\s*$', line)
                 if match:
                     vars_dict[match.group(1)] = match.group(2)
 
-    # Expand variable references
-    def expand(value: str) -> str:
+    # Multiple passes to expand variable references
+    def expand(value: str, vars_dict: dict[str, str]) -> str:
         """Expand $VAR and ${VAR} references."""
+        # First expand ${VAR} format
+        for var, val in vars_dict.items():
+            value = value.replace(f"${{{var}}}", val)
+        # Then expand $VAR format (needs to be done after ${VAR})
         for var, val in vars_dict.items():
             value = value.replace(f"${var}", val)
-            value = value.replace(f"${{{var}}}", val)
-        # Also expand from environment
+        # Also expand from environment (like $HOME)
         return os.path.expandvars(value)
 
-    for key, value in vars_dict.items():
-        vars_dict[key] = expand(value)
+    # Multiple passes to resolve dependencies
+    for _ in range(5):  # Max 5 passes
+        changed = False
+        for key, value in list(vars_dict.items()):
+            new_value = expand(value, vars_dict)
+            if new_value != value:
+                vars_dict[key] = new_value
+                changed = True
+        if not changed:
+            break
 
-    # Create environment
+    # Create environment with all parsed variables
     bsw_root = Path(vars_dict.get("C", "/opt/BERN54"))
     user_dir = Path(vars_dict.get("U", bsw_root / "GPS"))
 
-    return BSWEnvironment(
+    # XG is the executable directory, XQ is the menu/queue directory
+    exec_dir = vars_dict.get("XG", vars_dict.get("X", str(user_dir / "EXE")))
+    queue_dir = vars_dict.get("XQ", vars_dict.get("Q", str(user_dir / "BPE")))
+
+    env = BSWEnvironment(
         bsw_root=bsw_root,
         user_dir=user_dir,
-        exec_dir=Path(vars_dict.get("X", user_dir / "EXE")),
-        queue_dir=Path(vars_dict.get("Q", user_dir / "BPE")),
-        temp_dir=Path(vars_dict.get("T", Path("/tmp/bsw"))),
-        campaign_root=Path(vars_dict.get("P", Path("campaigns"))),
+        exec_dir=Path(exec_dir),
+        queue_dir=Path(queue_dir),
+        temp_dir=Path(vars_dict.get("T", "/tmp/bsw")),
+        campaign_root=Path(vars_dict.get("P", "campaigns")),
     )
+
+    # Store all parsed variables for later use
+    env.env_vars.update(vars_dict)
+
+    return env

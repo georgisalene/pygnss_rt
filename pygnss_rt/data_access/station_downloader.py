@@ -26,9 +26,11 @@ Usage:
 from __future__ import annotations
 
 import gzip
+import netrc
 import os
 import shutil
 import subprocess
+import tempfile
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -37,8 +39,125 @@ from pathlib import Path
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
 from pygnss_rt.data_access.ftp_client import FTPClient, SFTPClient, BaseClient
 from pygnss_rt.data_access.ftp_config import FTPServerConfig
+
+
+class CDDISSession:
+    """Manages authenticated session to CDDIS via NASA Earthdata Login.
+
+    CDDIS requires authentication via NASA Earthdata Login (URS).
+    This class handles the OAuth flow by:
+    1. Reading credentials from ~/.netrc (machine urs.earthdata.nasa.gov)
+    2. Creating a session with proper cookies for authentication
+    3. Following redirects through the Earthdata Login portal
+
+    Replicates the behavior of the old Perl FTP.pm edl_preauth_cddis() function.
+    """
+
+    _instance: "CDDISSession | None" = None
+
+    def __init__(self):
+        self.session: requests.Session | None = None
+        self._authenticated = False
+        self._auth_url = "https://urs.earthdata.nasa.gov"
+        self._cddis_url = "https://cddis.nasa.gov"
+
+    @classmethod
+    def get_session(cls) -> requests.Session:
+        """Get or create authenticated CDDIS session (singleton)."""
+        if cls._instance is None:
+            cls._instance = cls()
+        if not cls._instance._authenticated:
+            cls._instance._authenticate()
+        return cls._instance.session
+
+    def _get_credentials(self) -> tuple[str, str]:
+        """Get credentials from ~/.netrc file."""
+        netrc_path = Path.home() / ".netrc"
+        if not netrc_path.exists():
+            raise FileNotFoundError(
+                "~/.netrc file not found. Required for CDDIS authentication."
+            )
+
+        try:
+            nrc = netrc.netrc(str(netrc_path))
+            # Try Earthdata URS first
+            auth = nrc.authenticators("urs.earthdata.nasa.gov")
+            if not auth:
+                # Fall back to cddis.nasa.gov
+                auth = nrc.authenticators("cddis.nasa.gov")
+            if not auth:
+                raise ValueError(
+                    "No credentials found for urs.earthdata.nasa.gov or cddis.nasa.gov in ~/.netrc"
+                )
+            return auth[0], auth[2]  # login, password
+        except Exception as e:
+            raise ValueError(f"Failed to parse ~/.netrc: {e}")
+
+    def _authenticate(self) -> None:
+        """Authenticate to CDDIS via Earthdata Login."""
+        username, password = self._get_credentials()
+
+        # Create session with retry logic
+        self.session = requests.Session()
+
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
+
+        # Set headers like the old Perl implementation
+        self.session.headers.update({
+            "User-Agent": "Mozilla/5.0 (i-GNSS Python downloader)",
+        })
+
+        # Pre-authenticate by accessing CDDIS archive (triggers EDL redirect)
+        # The session will follow redirects and authenticate automatically
+        self.session.auth = (username, password)
+
+        try:
+            # Hit the CDDIS archive to trigger Earthdata Login
+            # This is the same approach as edl_preauth_cddis() in FTP.pm
+            response = self.session.get(
+                f"{self._cddis_url}/archive/",
+                timeout=60,
+                allow_redirects=True,
+            )
+
+            # Check if we got redirected to login page (auth failed)
+            if "urs.earthdata.nasa.gov" in response.url and response.status_code == 200:
+                # We're stuck at login page - try explicit auth
+                response = self.session.get(
+                    f"{self._cddis_url}/archive/",
+                    timeout=60,
+                    allow_redirects=True,
+                )
+
+            if response.status_code == 200 and "Earthdata Login" not in response.text:
+                self._authenticated = True
+            else:
+                raise RuntimeError("CDDIS authentication failed - received login page")
+
+        except requests.RequestException as e:
+            raise RuntimeError(f"Failed to authenticate to CDDIS: {e}")
+
+    @classmethod
+    def reset(cls) -> None:
+        """Reset the session (force re-authentication)."""
+        if cls._instance:
+            if cls._instance.session:
+                cls._instance.session.close()
+            cls._instance = None
 
 
 class RINEXType(str, Enum):
@@ -114,9 +233,26 @@ DEFAULT_PROVIDERS: dict[str, ProviderConfig] = {
         server="cddis.nasa.gov",
         protocol="https",
         base_path="/archive/gnss/data",
+        # CDDIS uses RINEX3 naming: SSSS00CCC_R_YYYYDDDHHMM_01H_30S_MO.crx.gz
+        # For hourly: /archive/gnss/data/hourly/YYYY/DDD/HH/
         path_template="/hourly/{year}/{doy:03d}/{hour:02d}",
-        filename_template="{station}{doy:03d}{hour_char}.{yy}o.gz",
+        # Use pattern matching for RINEX3 (station + wildcard for country code)
+        filename_template="{STATION}00*_R_{year}{doy:03d}{hour:02d}00_01H_30S_MO.crx.gz",
         priority=1,
+        timeout=120,  # CDDIS can be slow
+    ),
+    "CDDIS_DAILY": ProviderConfig(
+        name="CDDIS_DAILY",
+        server="cddis.nasa.gov",
+        protocol="https",
+        base_path="/archive/gnss/data",
+        # Daily: /archive/gnss/data/daily/YYYY/DDD/YYd/
+        path_template="/daily/{year}/{doy:03d}/{yy}d",
+        # Pattern for daily RINEX3
+        filename_template="{STATION}00*_R_{year}{doy:03d}0000_01D_30S_MO.crx.gz",
+        priority=2,
+        supports_hourly=False,
+        timeout=120,
     ),
     "BKGE": ProviderConfig(
         name="BKGE",
@@ -198,6 +334,7 @@ class StationDownloader:
         retry_delay: float = 5.0,
         parallel_downloads: int = 4,
         verbose: bool = False,
+        flat_structure: bool = False,
     ):
         """Initialize station downloader.
 
@@ -208,6 +345,8 @@ class StationDownloader:
             retry_delay: Delay between retries in seconds
             parallel_downloads: Number of parallel download threads
             verbose: Enable verbose output
+            flat_structure: If True, save files directly to download_dir
+                            without subdirectories. Use for BSW campaigns.
         """
         self.download_dir = Path(download_dir)
         self.providers = providers or DEFAULT_PROVIDERS.copy()
@@ -215,6 +354,7 @@ class StationDownloader:
         self.retry_delay = retry_delay
         self.parallel_downloads = parallel_downloads
         self.verbose = verbose
+        self.flat_structure = flat_structure
 
         self._clients: dict[str, BaseClient] = {}
 
@@ -300,21 +440,51 @@ class StationDownloader:
         doy: int,
         hour: int | None = None,
         rinex_type: RINEXType = RINEXType.HOURLY,
+        country_code: str = "",
     ) -> Path:
         """Build local file path.
 
+        For BSW 5.4 with flat_structure=True, uses Bernese long format:
+            SSSS00CCC_YYYYDDDS.RXO (e.g., WTZR00DEU_20252710.RXO)
+
+        For non-BSW (flat_structure=False), uses traditional RINEX 2 format:
+            ssssddds.yyo (e.g., wtzr2710.25o)
+
         Args:
-            station: Station ID
+            station: Station ID (4-char)
             year: Year
             doy: Day of year
             hour: Hour or None for daily
             rinex_type: RINEX type
+            country_code: 3-char country code (for Bernese long format)
 
         Returns:
             Local file path
         """
         yy = year % 100
 
+        # Bernese 5.4 long format for BSW campaigns
+        if self.flat_structure:
+            # Format: SSSS00CCC_YYYYDDDS.RXO
+            # Where: SSSS = 4-char station code (uppercase)
+            #        00 = monument/receiver markers
+            #        CCC = 3-char country code (or 'XXX' if unknown)
+            #        YYYY = 4-digit year
+            #        DDD = day of year
+            #        S = session character (0 for daily, a-x for hourly)
+            station_upper = station.upper()[:4]
+            ccode = country_code.upper()[:3] if country_code else "XXX"
+
+            if rinex_type == RINEXType.DAILY:
+                session_char = "0"
+            else:
+                session_char = chr(ord('a') + (hour or 0))
+
+            # Bernese 5.4 format: WTZR00DEU_20252710.RXO (underscore before date)
+            filename = f"{station_upper}00{ccode}_{year}{doy:03d}{session_char}.RXO"
+            return self.download_dir / filename
+
+        # Traditional RINEX 2 short format for non-BSW usage
         if rinex_type == RINEXType.DAILY:
             filename = f"{station.lower()}{doy:03d}0.{yy:02d}o"
             subdir = "daily"
@@ -325,13 +495,253 @@ class StationDownloader:
 
         return self.download_dir / subdir / str(year) / f"{doy:03d}" / filename
 
+    def _decompress_rinex(
+        self,
+        compressed_path: Path,
+        target_path: Path,
+    ) -> bool:
+        """Decompress and convert RINEX file to standard format.
+
+        Handles:
+        - .gz compression (gzip)
+        - .Z compression (Unix compress)
+        - .crx files (Hatanaka compressed RINEX)
+
+        Args:
+            compressed_path: Path to compressed file
+            target_path: Desired output path
+
+        Returns:
+            True if successful
+        """
+        try:
+            current_file = compressed_path
+
+            # Step 1: Handle gzip compression
+            if str(current_file).endswith('.gz'):
+                decompressed = current_file.with_suffix('')
+                with gzip.open(current_file, 'rb') as f_in:
+                    with open(decompressed, 'wb') as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                current_file.unlink()  # Remove .gz file
+                current_file = decompressed
+
+            # Step 2: Handle Hatanaka compression (.crx)
+            if str(current_file).endswith('.crx'):
+                # Use crx2rnx to convert Hatanaka to RINEX
+                crx2rnx_paths = [
+                    Path.home() / ".local/bin/crx2rnx",
+                    Path("/usr/local/bin/crx2rnx"),
+                    Path("/usr/bin/crx2rnx"),
+                ]
+                crx2rnx = None
+                for path in crx2rnx_paths:
+                    if path.exists():
+                        crx2rnx = str(path)
+                        break
+
+                if not crx2rnx:
+                    if self.verbose:
+                        print(f"  WARNING: crx2rnx not found, keeping Hatanaka format")
+                    # Move to target without conversion
+                    shutil.move(str(current_file), str(target_path))
+                    return target_path.exists()
+
+                # Run crx2rnx
+                result = subprocess.run(
+                    [crx2rnx, str(current_file)],
+                    capture_output=True,
+                    timeout=60,
+                )
+
+                if result.returncode == 0:
+                    # crx2rnx creates .rnx file
+                    rnx_file = current_file.with_suffix('.rnx')
+                    if rnx_file.exists():
+                        current_file.unlink()  # Remove .crx
+                        current_file = rnx_file
+                    else:
+                        if self.verbose:
+                            print(f"  WARNING: crx2rnx didn't create .rnx file")
+
+            # Step 3: Move/rename to target path
+            if current_file != target_path:
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(current_file), str(target_path))
+
+            return target_path.exists()
+
+        except Exception as e:
+            if self.verbose:
+                print(f"  Decompression error: {e}")
+            return False
+
+    def _search_cddis_directory(
+        self,
+        station: str,
+        year: int,
+        doy: int,
+        hour: int | None,
+        rinex_type: RINEXType,
+    ) -> tuple[str | None, str]:
+        """Search CDDIS directory for matching station file.
+
+        CDDIS uses RINEX 3 naming with country codes that vary per station.
+        This method searches the directory listing for a matching file.
+
+        Args:
+            station: 4-char station ID
+            year: Year
+            doy: Day of year
+            hour: Hour (None for daily)
+            rinex_type: RINEX type
+
+        Returns:
+            Tuple of (Full URL to the matching file, 3-char country code)
+            Returns (None, "") if not found
+        """
+        import re
+
+        try:
+            session = CDDISSession.get_session()
+
+            # Build directory URL
+            if rinex_type == RINEXType.DAILY:
+                yy = year % 100
+                dir_url = f"https://cddis.nasa.gov/archive/gnss/data/daily/{year}/{doy:03d}/{yy:02d}d/"
+            else:
+                dir_url = f"https://cddis.nasa.gov/archive/gnss/data/hourly/{year}/{doy:03d}/{hour:02d}/"
+
+            # Get directory listing
+            response = session.get(dir_url, timeout=60)
+            if response.status_code != 200:
+                return None, ""
+
+            # Find matching files (station name is case-insensitive in RINEX3)
+            station_upper = station.upper()
+
+            # Pattern: SSSS00CCC_R_... where SSSS is station, CCC is country code
+            # Match both .crx.gz and .rnx.gz variants
+            # Capture the country code (3 chars after 00)
+            pattern = rf'href="({station_upper}00(\w{{3}})_R_[^"]+\.(?:crx|rnx)\.gz)\s*"'
+            matches = re.findall(pattern, response.text, re.IGNORECASE)
+
+            if matches:
+                # Prefer 30S sampling rate, then any
+                for filename, country_code in matches:
+                    if "_30S_" in filename:
+                        return f"{dir_url}{filename.strip()}", country_code.upper()
+                # Fall back to first match
+                return f"{dir_url}{matches[0][0].strip()}", matches[0][1].upper()
+
+            if self.verbose:
+                print(f"  No match found for {station} in {dir_url}")
+            return None, ""
+
+        except Exception as e:
+            if self.verbose:
+                print(f"  Directory search error: {e}")
+            return None, ""
+
+    def _download_with_https(
+        self,
+        url: str,
+        local_path: Path,
+        timeout: int = 60,
+        provider_name: str = "",
+    ) -> bool:
+        """Download file using HTTPS with proper authentication.
+
+        For CDDIS, uses the authenticated CDDISSession.
+        For other providers, uses simple requests.
+
+        Args:
+            url: Full URL to download
+            local_path: Local destination path
+            timeout: Timeout in seconds
+            provider_name: Provider name (for special handling)
+
+        Returns:
+            True if successful
+        """
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            # Use CDDISSession for CDDIS downloads (requires Earthdata auth)
+            if provider_name == "CDDIS" or "cddis" in url.lower():
+                session = CDDISSession.get_session()
+            else:
+                # Create a simple session for other providers
+                session = requests.Session()
+                session.headers.update({
+                    "User-Agent": "Mozilla/5.0 (i-GNSS Python downloader)",
+                })
+
+            # Download the file
+            response = session.get(
+                url,
+                timeout=timeout,
+                allow_redirects=True,
+                stream=True,
+            )
+
+            # Check if we got redirected to login page (auth failed for CDDIS)
+            if response.status_code == 200:
+                # Verify it's not an HTML login page
+                content_type = response.headers.get("Content-Type", "")
+                if "text/html" in content_type.lower():
+                    # Check first few bytes for HTML
+                    first_chunk = next(response.iter_content(chunk_size=512), b"")
+                    if b"<!DOCTYPE" in first_chunk or b"<html" in first_chunk:
+                        if self.verbose:
+                            print(f"  WARNING: Got HTML instead of data for {url}")
+                        return False
+                    # Not HTML, write the chunk and continue
+                    with open(local_path, "wb") as f:
+                        f.write(first_chunk)
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                else:
+                    # Not HTML content type, stream directly
+                    with open(local_path, "wb") as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+
+                # Verify file size (should be > 1KB for RINEX)
+                if local_path.exists():
+                    size = local_path.stat().st_size
+                    if size > 1000:  # RINEX files should be > 1KB
+                        return True
+                    else:
+                        # Too small, likely an error page
+                        local_path.unlink(missing_ok=True)
+                        return False
+            else:
+                if self.verbose:
+                    print(f"  HTTP {response.status_code} for {url}")
+                return False
+
+        except requests.RequestException as e:
+            if self.verbose:
+                print(f"  Download error: {e}")
+            return False
+        except Exception as e:
+            if self.verbose:
+                print(f"  Unexpected error: {e}")
+            return False
+
+        return False
+
     def _download_with_curl(
         self,
         url: str,
         local_path: Path,
         timeout: int = 60,
     ) -> bool:
-        """Download file using curl (for HTTPS with authentication).
+        """Download file using curl with .netrc authentication.
+
+        Uses curl with --netrc flag to read credentials from ~/.netrc.
+        This is the fallback method if requests doesn't work.
 
         Args:
             url: Full URL to download
@@ -347,6 +757,9 @@ class StationDownloader:
             result = subprocess.run(
                 [
                     "curl", "-s", "-f", "-L",
+                    "--netrc",  # Use ~/.netrc for authentication
+                    "-b", "",   # Enable cookie engine
+                    "-c", "",   # Cookie jar
                     "--connect-timeout", str(timeout),
                     "-o", str(local_path),
                     url,
@@ -354,7 +767,20 @@ class StationDownloader:
                 capture_output=True,
                 timeout=timeout + 30,
             )
-            return result.returncode == 0 and local_path.exists()
+
+            if result.returncode == 0 and local_path.exists():
+                # Verify it's not an HTML error page
+                size = local_path.stat().st_size
+                if size > 1000:
+                    return True
+                # Check content for HTML
+                with open(local_path, "rb") as f:
+                    header = f.read(256)
+                    if b"<!DOCTYPE" in header or b"<html" in header:
+                        local_path.unlink(missing_ok=True)
+                        return False
+                return True
+            return False
         except subprocess.TimeoutExpired:
             return False
         except Exception:
@@ -391,15 +817,27 @@ class StationDownloader:
             task.station_id, task.year, task.doy, task.hour, task.rinex_type
         )
 
-        # Check if already exists
+        # Check if already exists and is valid (>100KB for daily RINEX)
         if local_path.exists():
-            result.success = True
-            result.local_path = local_path
-            result.file_size = local_path.stat().st_size
-            result.provider_used = "cached"
-            return result
+            file_size = local_path.stat().st_size
+            # Daily RINEX files should be at least 100KB
+            # Hourly files at least 50KB
+            min_size = 100000 if task.rinex_type == RINEXType.DAILY else 50000
+            if file_size >= min_size:
+                result.success = True
+                result.local_path = local_path
+                result.file_size = file_size
+                result.provider_used = "cached"
+                return result
+            else:
+                # File too small - likely corrupted or HTML error page
+                # Delete and re-download
+                if self.verbose:
+                    print(f"  {task.station_id}: cached file too small ({file_size} bytes), re-downloading")
+                local_path.unlink(missing_ok=True)
 
         start_time = time.time()
+        country_code = ""  # Will be populated from CDDIS search
 
         for provider_name in provider_order:
             provider = self.providers.get(provider_name)
@@ -422,9 +860,31 @@ class StationDownloader:
 
                 try:
                     if provider.protocol in ("http", "https"):
-                        # Use curl for HTTP/HTTPS
-                        url = f"{provider.protocol}://{provider.server}{remote_path}"
-                        success = self._download_with_curl(url, local_path, provider.timeout)
+                        # For CDDIS, search directory for matching RINEX3 files
+                        if provider_name.startswith("CDDIS"):
+                            url, country_code = self._search_cddis_directory(
+                                task.station_id, task.year, task.doy,
+                                task.hour, task.rinex_type
+                            )
+                            if not url:
+                                if self.verbose:
+                                    print(f"  {task.station_id}: not found on {provider_name}")
+                                break  # Skip remaining retries for this provider
+
+                            # For CDDIS, download to temp file (compressed RINEX3)
+                            # Extract original filename from URL
+                            download_filename = url.split("/")[-1]
+                            download_path = local_path.parent / download_filename
+                        else:
+                            url = f"{provider.protocol}://{provider.server}{remote_path}"
+                            download_path = local_path
+
+                        success = self._download_with_https(
+                            url, download_path, provider.timeout, provider_name
+                        )
+                        # Update local_path for decompression step
+                        if success and provider_name.startswith("CDDIS"):
+                            local_path = download_path
                     else:
                         # Use FTP/SFTP client
                         client = self._get_client(provider)
@@ -434,6 +894,25 @@ class StationDownloader:
                             success = False
 
                     if success and local_path.exists():
+                        # For CDDIS downloads, decompress Hatanaka/gzip to RINEX
+                        if provider_name.startswith("CDDIS"):
+                            # Downloaded file is .crx.gz, need to decompress
+                            downloaded_file = local_path
+                            # Build target Bernese 5.4 long format filename for BSW
+                            target_rinex = self._build_local_path(
+                                task.station_id, task.year, task.doy,
+                                task.hour, task.rinex_type, country_code
+                            )
+
+                            if self.verbose:
+                                print(f"  Decompressing: {local_path.name} -> {target_rinex.name}")
+
+                            if self._decompress_rinex(downloaded_file, target_rinex):
+                                local_path = target_rinex
+                            else:
+                                if self.verbose:
+                                    print(f"  WARNING: Decompression failed for {task.station_id}")
+
                         result.success = True
                         result.local_path = local_path
                         result.file_size = local_path.stat().st_size

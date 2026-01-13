@@ -412,14 +412,56 @@ class BSWOptionsParser:
 
 
 # Option directory mappings for different processing types
-PPP_OPTION_DIRS = {
-    "i1": "D_PPPGEN",
-    "i2": "D_PPPPH1",
-    "i3": "D_PPPPH2",
-    "i4": "D_PPPEDT",
-    "i5": "D_PPPFIN",
-    "i6": "D_PPPCMB",
+#
+# IMPORTANT: There are TWO naming conventions:
+#
+# 1. XML Step Names (used in iGNSS_D_PPP_AR_*.xml for parsing program options):
+#    D_PPPGEN, D_PPPGE2, D_PPPVEL, D_PPPIAR, D_PPPAUX, D_PPPSNX, D_PPPFIN
+#    These are the <D_PPPGEN>...</D_PPPGEN> sections in the XML configuration.
+#
+# 2. BSW OPT Directories (actual directories in $GPSUSER/OPT/):
+#    PPP_GEN, PPP_GE2, PPP_VEL, PPP_IAR, PPP_AUX, PPP_SNX, PPP_FIN
+#    These are referenced in the PCF file's OPT_DIR column.
+#
+# The mapping: i1, i2, ... -> step/directory names
+
+# XML Step Names (for parsing iGNSS XML configuration files)
+# These match the XML element names like <D_PPPGEN>, <D_PPPGE2>, etc.
+PPP_XML_STEPS = {
+    "i1": "D_PPPGEN",  # General preparation (POLUPD, ORBGEN, RNXSMT, CODSPP, etc.)
+    "i2": "D_PPPGE2",  # Extended general (MAUPRP preprocessing)
+    "i3": "D_PPPVEL",  # Velocity processing (optional)
+    "i4": "D_PPPIAR",  # Integer ambiguity resolution
+    "i5": "D_PPPAUX",  # Auxiliary processing (CRDMERGE, ADDNEQ2, PPP_HLM)
+    "i6": "D_PPPSNX",  # SINEX generation (ADDNEQ2)
+    "i7": "D_PPPFIN",  # Final solution (GPSEST with fixed ambiguities)
 }
+
+# BSW OPT Directories (actual directories in $GPSUSER/OPT/)
+# These match the PCF file's OPT_DIR column (PPP54IGS.PCF)
+PPP_OPTION_DIRS = {
+    "i1": "PPP_GEN",  # General preparation
+    "i2": "PPP_GE2",  # Extended general (MAUPRP)
+    "i3": "PPP_VEL",  # Velocity processing
+    "i4": "PPP_IAR",  # Integer ambiguity resolution
+    "i5": "PPP_AUX",  # Auxiliary processing
+    "i6": "PPP_SNX",  # SINEX generation
+    "i7": "PPP_FIN",  # Final solution
+}
+
+# Mapping from XML step names to OPT directory names
+XML_TO_OPT_DIR = {
+    "D_PPPGEN": "PPP_GEN",
+    "D_PPPGE2": "PPP_GE2",
+    "D_PPPVEL": "PPP_VEL",
+    "D_PPPIAR": "PPP_IAR",
+    "D_PPPAUX": "PPP_AUX",
+    "D_PPPSNX": "PPP_SNX",
+    "D_PPPFIN": "PPP_FIN",
+}
+
+# Legacy alias (for backwards compatibility)
+PPP_LEGACY_OPTION_DIRS = PPP_XML_STEPS
 
 NRDDP_OPTION_DIRS = {
     "i1": "NRDDPGEN",
@@ -448,15 +490,49 @@ def load_bsw_options(xml_path: Path | str) -> BSWOptionsConfig:
     return parser.load(xml_path)
 
 
-def get_option_dirs(processing_type: str = "ppp") -> dict[str, str]:
+def get_option_dirs(processing_type: str = "ppp", for_xml: bool = False) -> dict[str, str]:
     """Get option directory mapping for processing type.
 
     Args:
-        processing_type: "ppp" or "nrddp"
+        processing_type: Processing type string:
+            - "ppp" or "ppp_ar": PPP with ambiguity resolution (7 steps)
+            - "nrddp": NRDDP troposphere processing (10 steps)
+        for_xml: If True, return XML step names (D_PPPGEN, etc.) for parsing
+            iGNSS XML config files. If False (default), return BSW OPT
+            directory names (PPP_GEN, etc.) for PCF file.
 
     Returns:
-        Dictionary mapping i1, i2, etc. to step names
+        Dictionary mapping i1, i2, etc. to step/directory names
+
+    Example:
+        # BSW OPT directory names (for PCF, actual $GPSUSER/OPT/ dirs)
+        opt_dirs = get_option_dirs("ppp")
+        # Returns: {'i1': 'PPP_GEN', 'i2': 'PPP_GE2', ...}
+
+        # XML step names (for parsing iGNSS_D_PPP_AR_*.xml)
+        xml_steps = get_option_dirs("ppp", for_xml=True)
+        # Returns: {'i1': 'D_PPPGEN', 'i2': 'D_PPPGE2', ...}
     """
-    if processing_type.lower() == "nrddp":
+    proc_type = processing_type.lower()
+    if proc_type == "nrddp":
         return NRDDP_OPTION_DIRS.copy()
-    return PPP_OPTION_DIRS.copy()
+    elif for_xml:
+        return PPP_XML_STEPS.copy()
+    else:
+        # Default to BSW OPT directory names
+        return PPP_OPTION_DIRS.copy()
+
+
+def xml_step_to_opt_dir(xml_step: str) -> str:
+    """Convert XML step name to BSW OPT directory name.
+
+    Args:
+        xml_step: XML step name (e.g., "D_PPPGEN")
+
+    Returns:
+        OPT directory name (e.g., "PPP_GEN")
+
+    Example:
+        opt_dir = xml_step_to_opt_dir("D_PPPGEN")  # Returns "PPP_GEN"
+    """
+    return XML_TO_OPT_DIR.get(xml_step, xml_step)
