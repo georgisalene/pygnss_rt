@@ -154,33 +154,26 @@ class ProductDownloader:
         self._active_connections: dict[str, Any] = {}
 
     def _load_ftp_configs(self) -> dict[str, FTPServerConfig]:
-        """Load FTP server configurations."""
+        """Load FTP server configurations.
+
+        Loads configuration from pygnss_rt/config/ftp_servers.yaml by default.
+        Falls back to DEFAULT_SERVERS if YAML not found.
+        """
         if self._ftp_configs:
             return self._ftp_configs
 
-        # Use default server configurations
+        # Try to load from YAML config (new format)
+        try:
+            yaml_configs = load_ftp_config()  # Uses default YAML path
+            if yaml_configs:
+                self._ftp_configs = yaml_configs
+                return self._ftp_configs
+        except Exception as e:
+            logger.warning("Could not load YAML config", error=str(e))
+
+        # Fall back to default server configurations
         from pygnss_rt.data_access.ftp_config import DEFAULT_SERVERS
         self._ftp_configs = DEFAULT_SERVERS.copy()
-
-        # Optionally load from XML if provided
-        if self.config.ftp_config_path and self.config.ftp_config_path.exists():
-            try:
-                from pygnss_rt.data_access.ftp_config import load_ftp_config_xml
-                manager = load_ftp_config_xml(self.config.ftp_config_path)
-                # Merge with defaults (XML overrides defaults)
-                for name in manager.list_servers():
-                    server = manager.get_server(name)
-                    if server:
-                        self._ftp_configs[name] = FTPServerConfig(
-                            name=name,
-                            url=server.url,
-                            protocol=server.protocol,
-                            username=server.username,
-                            password=server.password,
-                            timeout=server.timeout,
-                        )
-            except Exception as e:
-                logger.warning("Could not load FTP config XML", error=str(e))
 
         return self._ftp_configs
 

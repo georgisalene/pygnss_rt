@@ -1,0 +1,276 @@
+# FTP Server Configuration for pygnss_rt
+# Author: Addisu Hunegnaw
+# Date: January 2026
+#
+# This file defines FTP/HTTPS servers for downloading GNSS products and station data.
+# Replaces the Perl ftpConfig.xml with a cleaner YAML format.
+
+# =============================================================================
+# PRODUCT SERVERS - For orbits, clocks, ERP, biases, ionosphere
+# =============================================================================
+
+product_servers:
+
+  CDDIS:
+    description: "NASA CDDIS - Primary IGS data center"
+    protocol: https
+    host: cddis.nasa.gov
+    auth_required: true  # Uses NASA Earthdata Login via ~/.netrc
+
+    products:
+      orbit:
+        final:
+          path: /archive/gnss/products/{gps_week}
+          filename: IGS0OPSFIN_{year}{doy:03d}0000_01D_15M_ORB.SP3.gz
+        rapid:
+          path: /archive/gnss/products/{gps_week}
+          filename: IGS0OPSRAP_{year}{doy:03d}0000_01D_15M_ORB.SP3.gz
+        ultra:
+          path: /archive/gnss/products/{gps_week}
+          filename: IGS0OPSULT_{year}{doy:03d}{hour:02d}00_02D_15M_ORB.SP3.gz
+
+      clock:
+        final:
+          path: /archive/gnss/products/{gps_week}
+          filename: IGS0OPSFIN_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz
+        rapid:
+          path: /archive/gnss/products/{gps_week}
+          filename: IGS0OPSRAP_{year}{doy:03d}0000_01D_05M_CLK.CLK.gz
+
+      erp:
+        final:
+          path: /archive/gnss/products/{gps_week}
+          filename: IGS0OPSFIN_{year}{doy:03d}0000_07D_01D_ERP.ERP.gz
+        rapid:
+          path: /archive/gnss/products/{gps_week}
+          filename: IGS0OPSRAP_{year}{doy:03d}0000_01D_01D_ERP.ERP.gz
+
+  CODE:
+    description: "CODE Analysis Center - Bernese products"
+    protocol: ftp
+    host: ftp.aiub.unibe.ch
+    auth_required: false
+
+    products:
+      orbit:
+        final:
+          path: /CODE/{year}
+          filename: COD0OPSFIN_{year}{doy:03d}0000_01D_05M_ORB.SP3.gz
+        rapid:
+          path: /CODE
+          filename: COD0OPSRAP_{year}{doy:03d}0000_01D_05M_ORB.SP3.gz
+
+      clock:
+        final:
+          path: /CODE/{year}
+          filename: COD0OPSFIN_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz
+        rapid:
+          path: /CODE
+          filename: COD0OPSRAP_{year}{doy:03d}0000_01D_05M_CLK.CLK.gz
+
+      erp:
+        final:
+          path: /CODE/{year}
+          filename: COD0OPSFIN_{year}{doy:03d}0000_03D_01D_ERP.ERP.gz
+
+      bia:
+        final:
+          path: /CODE/{year}
+          filename: COD0OPSFIN_{year}{doy:03d}0000_01D_01D_OSB.BIA.gz
+
+      ion:
+        final:
+          path: /CODE/{year}
+          # Bernese ION format (not IONEX) for Higher-Order Ionosphere corrections
+          filename: COD0OPSFIN_{year}{doy:03d}0000_01D_01H_GIM.ION.gz
+
+  BKGE_IGS:
+    description: "BKG IGS mirror - German Federal Agency"
+    protocol: ftp
+    host: igs-ftp.bkg.bund.de
+    auth_required: false
+
+    products:
+      orbit:
+        final:
+          path: /IGS/products/{gps_week}
+          filename: IGS0OPSFIN_{year}{doy:03d}0000_01D_15M_ORB.SP3.gz
+        rapid:
+          path: /IGS/products/{gps_week}
+          filename: IGS0OPSRAP_{year}{doy:03d}0000_01D_15M_ORB.SP3.gz
+
+      clock:
+        final:
+          path: /IGS/products/{gps_week}
+          filename: IGS0OPSFIN_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz
+
+      erp:
+        final:
+          path: /IGS/products/{gps_week}
+          filename: IGS0OPSFIN_{year}{doy:03d}0000_07D_01D_ERP.ERP.gz
+
+  IGN:
+    description: "IGN France IGS mirror"
+    protocol: ftp
+    host: igs.ign.fr
+    auth_required: false
+
+    products:
+      orbit:
+        final:
+          path: /pub/igs/products/{gps_week}
+          filename: IGS0OPSFIN_{year}{doy:03d}0000_01D_15M_ORB.SP3.gz
+
+# =============================================================================
+# STATION DATA SERVERS - For RINEX observation files
+# =============================================================================
+
+station_servers:
+
+  CDDIS:
+    description: "NASA CDDIS - Global IGS stations"
+    protocol: https
+    host: cddis.nasa.gov
+    auth_required: true
+    rinex_version: 3
+    compression: .crx.gz
+
+    daily:
+      path: /archive/gnss/data/daily/{year}/{doy:03d}/{yy}d
+      # RINEX 3 naming: SSSS00CCC_R_YYYYDDD0000_01D_30S_MO.crx.gz
+      # Station and country code determined by directory listing search
+      filename_pattern: "{STATION}00*_R_{year}{doy:03d}0000_01D_30S_MO.crx.gz"
+
+    hourly:
+      path: /archive/gnss/data/hourly/{year}/{doy:03d}/{hour:02d}
+      filename_pattern: "{STATION}00*_R_{year}{doy:03d}{hour:02d}00_01H_30S_MO.crx.gz"
+
+  BKGE_IGS:
+    description: "BKG IGS mirror - Global IGS stations"
+    protocol: ftp
+    host: igs-ftp.bkg.bund.de
+    auth_required: false
+    rinex_version: 2
+    compression: .Z
+
+    daily:
+      path: /IGS/obs/{year}/{doy:03d}
+      # RINEX 2 naming: ssss{doy}0.{yy}o.Z
+      filename: "{station}{doy:03d}0.{yy}o.Z"
+
+    hourly:
+      path: /IGS/nrt/{doy:03d}/{hour:02d}
+      filename: "{station}{doy:03d}{hour_char}.{yy}o.gz"
+
+  IGN_IGS:
+    description: "IGN France - IGS stations"
+    protocol: ftp
+    host: igs.ign.fr
+    auth_required: false
+    rinex_version: 2
+    compression: .Z
+
+    daily:
+      path: /pub/igs/data/daily/{year}/{doy:03d}/{yy}d
+      filename: "{station}{doy:03d}0.{yy}d.Z"
+
+  BKGE_EUREF:
+    description: "BKG EUREF - European stations"
+    protocol: ftp
+    host: igs.bkg.bund.de
+    auth_required: false
+    rinex_version: 2
+    compression: .Z
+
+    daily:
+      path: /EUREF/obs/{year}/{doy:03d}
+      filename: "{station}{doy:03d}0.{yy}o.Z"
+
+    hourly:
+      path: /EUREF/highrate/{year}/{doy:03d}
+      filename: "{station}{doy:03d}{hour_char}.{yy}o.gz"
+
+  OSGB:
+    description: "Ordnance Survey Great Britain"
+    protocol: ftp
+    host: ftp.ordnancesurvey.co.uk
+    auth_required: false
+    rinex_version: 2
+    compression: .gz
+
+    hourly:
+      path: /gnss/hourly/{year}/{doy:03d}/{hour:02d}
+      filename: "{STATION}{doy:03d}{hour_char}.{yy}o.gz"
+
+  RGP:
+    description: "RGP France - French stations"
+    protocol: ftp
+    host: rgpdata.ign.fr
+    auth_required: false
+    rinex_version: 2
+    compression: .gz
+
+    daily:
+      path: /pub/data/{year}/{doy:03d}
+      filename: "{station}{doy:03d}0.{yy}o.gz"
+
+    hourly:
+      path: /pub/data/{year}/{doy:03d}
+      filename: "{station}{doy:03d}{hour_char}.{yy}o.gz"
+
+  SOPAC:
+    description: "SOPAC/UCSD - Scripps archive"
+    protocol: ftp
+    host: garner.ucsd.edu
+    auth_required: false
+    rinex_version: 2
+    compression: .Z
+
+    daily:
+      path: /pub/rinex/{year}/{doy:03d}
+      filename: "{station}{doy:03d}0.{yy}o.Z"
+
+# =============================================================================
+# AUXILIARY DATA SERVERS - VMF, ATL, etc.
+# =============================================================================
+
+auxiliary_servers:
+
+  VMF:
+    description: "Vienna Mapping Functions"
+    protocol: https
+    host: vmf.geo.tuwien.ac.at
+    auth_required: false
+
+    vmf3:
+      path: /trop_products/GRID/2.5x2/VMF3/VMF3_OP/{year}
+      filename: VMF3_{year}{doy:03d}.H{hour:02d}
+
+  TU_WIEN:
+    description: "TU Wien troposphere products"
+    protocol: https
+    host: vmf.geo.tuwien.ac.at
+    auth_required: false
+
+    grid:
+      path: /trop_products/GRID/2.5x2/VMF3/VMF3_OP/{year}
+      filename: VMFG_{year}{doy:03d}.H{hour:02d}
+
+# =============================================================================
+# DEFAULT PROVIDER PRIORITY
+# =============================================================================
+
+# Order in which servers are tried for each data type
+provider_priority:
+  products:
+    orbit: [CDDIS, BKGE_IGS, CODE, IGN]
+    clock: [CDDIS, CODE, BKGE_IGS]
+    erp: [CDDIS, CODE, BKGE_IGS]
+    bia: [CODE]
+    ion: [CODE]
+
+  stations:
+    igs: [CDDIS, BKGE_IGS, IGN_IGS, SOPAC]
+    euref: [BKGE_EUREF, CDDIS]
+    uk: [OSGB, CDDIS]
+    france: [RGP, IGN_IGS, CDDIS]

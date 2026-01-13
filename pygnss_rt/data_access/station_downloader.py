@@ -46,6 +46,14 @@ from urllib3.util.retry import Retry
 from pygnss_rt.data_access.ftp_client import FTPClient, SFTPClient, BaseClient
 from pygnss_rt.data_access.ftp_config import FTPServerConfig
 
+# Import structured logging
+try:
+    import structlog
+    logger = structlog.get_logger(__name__)
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
+
 
 class CDDISSession:
     """Manages authenticated session to CDDIS via NASA Earthdata Login.
@@ -357,6 +365,90 @@ DEFAULT_PROVIDERS: dict[str, ProviderConfig] = {
 }
 
 
+def load_providers_from_yaml(config_path: str | Path | None = None) -> dict[str, ProviderConfig]:
+    """Load station provider configurations from YAML file.
+
+    Args:
+        config_path: Path to YAML config file. Uses default if None.
+
+    Returns:
+        Dictionary of provider name to ProviderConfig
+    """
+    from pathlib import Path
+    import yaml
+
+    if config_path is None:
+        config_path = Path(__file__).parent.parent / "config" / "ftp_servers.yaml"
+    else:
+        config_path = Path(config_path)
+
+    if not config_path.exists():
+        logger.warning("YAML config not found, using defaults", path=str(config_path))
+        return DEFAULT_PROVIDERS.copy()
+
+    try:
+        with open(config_path) as f:
+            config = yaml.safe_load(f)
+
+        providers: dict[str, ProviderConfig] = {}
+        station_servers = config.get("station_servers", {})
+        priority = 1
+
+        for name, cfg in station_servers.items():
+            host = cfg.get("host", "")
+            protocol = cfg.get("protocol", "ftp")
+            rinex_version = cfg.get("rinex_version", 2)
+
+            # Create provider for daily data
+            daily = cfg.get("daily")
+            if daily:
+                prov_name = name if "daily" not in name.lower() else name
+                providers[prov_name] = ProviderConfig(
+                    name=prov_name,
+                    server=host,
+                    protocol=protocol,
+                    username="anonymous",
+                    base_path="",  # Embedded in path template
+                    path_template=daily.get("path", ""),
+                    filename_template=daily.get("filename", "") or daily.get("filename_pattern", ""),
+                    priority=priority,
+                    supports_hourly=False,
+                    supports_daily=True,
+                    timeout=120 if protocol == "https" else 60,
+                )
+                priority += 1
+
+            # Create provider for hourly data
+            hourly = cfg.get("hourly")
+            if hourly:
+                prov_name = f"{name}_HOURLY" if "hourly" not in name.lower() else name
+                providers[prov_name] = ProviderConfig(
+                    name=prov_name,
+                    server=host,
+                    protocol=protocol,
+                    username="anonymous",
+                    base_path="",
+                    path_template=hourly.get("path", ""),
+                    filename_template=hourly.get("filename", "") or hourly.get("filename_pattern", ""),
+                    priority=priority,
+                    supports_hourly=True,
+                    supports_daily=False,
+                    timeout=120 if protocol == "https" else 60,
+                )
+                priority += 1
+
+        if providers:
+            logger.info("Loaded station providers from YAML", path=str(config_path), count=len(providers))
+            return providers
+
+        logger.warning("No station providers in YAML, using defaults")
+        return DEFAULT_PROVIDERS.copy()
+
+    except Exception as e:
+        logger.warning("Failed to load YAML config", error=str(e))
+        return DEFAULT_PROVIDERS.copy()
+
+
 class StationDownloader:
     """Downloads RINEX observation data for GNSS stations.
 
@@ -373,6 +465,8 @@ class StationDownloader:
         parallel_downloads: int = 4,
         verbose: bool = False,
         flat_structure: bool = False,
+        use_yaml_config: bool = True,
+        config_path: str | Path | None = None,
     ):
         """Initialize station downloader.
 
@@ -385,9 +479,19 @@ class StationDownloader:
             verbose: Enable verbose output
             flat_structure: If True, save files directly to download_dir
                             without subdirectories. Use for BSW campaigns.
+            use_yaml_config: If True and providers is None, load from YAML
+            config_path: Path to YAML config (uses default if None)
         """
         self.download_dir = Path(download_dir)
-        self.providers = providers or DEFAULT_PROVIDERS.copy()
+
+        # Load providers: explicit > YAML > defaults
+        if providers is not None:
+            self.providers = providers
+        elif use_yaml_config:
+            self.providers = load_providers_from_yaml(config_path)
+        else:
+            self.providers = DEFAULT_PROVIDERS.copy()
+
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.parallel_downloads = parallel_downloads

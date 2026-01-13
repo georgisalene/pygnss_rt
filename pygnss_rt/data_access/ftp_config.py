@@ -630,28 +630,84 @@ class FTPConfigManager:
         return server_name in self._servers
 
 
-def load_ftp_config(config_path: Path | str) -> dict[str, FTPServerConfig]:
+def load_ftp_config(config_path: Path | str | None = None) -> dict[str, FTPServerConfig]:
     """Load FTP server configurations from YAML file.
 
     Args:
-        config_path: Path to YAML configuration file
+        config_path: Path to YAML configuration file. If None, uses default
+                     pygnss_rt/config/ftp_servers.yaml
 
     Returns:
         Dictionary mapping server names to configurations
     """
+    if config_path is None:
+        # Use default config from pygnss_rt/config/ftp_servers.yaml
+        config_path = Path(__file__).parent.parent / "config" / "ftp_servers.yaml"
+
     path = Path(config_path)
     if not path.exists():
+        logger.warning("FTP config not found, using defaults", path=str(path))
         return {}
+
+    logger.info("Loading FTP config from YAML", path=str(path))
 
     with open(path) as f:
         data = yaml.safe_load(f)
 
     servers: dict[str, FTPServerConfig] = {}
 
-    for name, server_data in data.get("servers", {}).items():
-        servers[name] = FTPServerConfig.from_dict(name, server_data)
+    # Parse product servers
+    for name, server_data in data.get("product_servers", {}).items():
+        servers[name] = _parse_yaml_server(name, server_data, "product")
 
+    # Parse station servers
+    for name, server_data in data.get("station_servers", {}).items():
+        if name not in servers:  # Don't overwrite product servers
+            servers[name] = _parse_yaml_server(name, server_data, "station")
+        else:
+            # Merge station config into existing product server
+            _merge_station_config(servers[name], server_data)
+
+    # Parse auxiliary servers
+    for name, server_data in data.get("auxiliary_servers", {}).items():
+        if name not in servers:
+            servers[name] = _parse_yaml_server(name, server_data, "auxiliary")
+
+    logger.info("Loaded servers from YAML", count=len(servers))
     return servers
+
+
+def _parse_yaml_server(name: str, data: dict, server_type: str) -> FTPServerConfig:
+    """Parse a server configuration from YAML data."""
+    config = FTPServerConfig(
+        name=name,
+        url=data.get("host", ""),
+        protocol=data.get("protocol", "ftp"),
+        timeout=120 if data.get("protocol") == "https" else 60,
+    )
+
+    # Build base_paths from product/station paths
+    if server_type == "product" and "products" in data:
+        for product_type, tiers in data["products"].items():
+            for tier, paths in tiers.items():
+                key = f"{product_type}_{tier}" if tier != "final" else product_type
+                config.base_paths[key] = paths.get("path", "")
+
+    if server_type == "station":
+        if "daily" in data:
+            config.base_paths["daily"] = data["daily"].get("path", "")
+        if "hourly" in data:
+            config.base_paths["hourly"] = data["hourly"].get("path", "")
+
+    return config
+
+
+def _merge_station_config(config: FTPServerConfig, station_data: dict) -> None:
+    """Merge station configuration into existing server config."""
+    if "daily" in station_data:
+        config.base_paths["daily"] = station_data["daily"].get("path", "")
+    if "hourly" in station_data:
+        config.base_paths["hourly"] = station_data["hourly"].get("path", "")
 
 
 def load_ftp_config_xml(config_path: Path | str) -> FTPConfigManager:
