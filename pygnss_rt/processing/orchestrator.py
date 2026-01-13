@@ -1703,7 +1703,7 @@ class PPPProductDownloader:
                 source="local",
             )
 
-        # Try local source directory first (like /home/ahunegnaw/tiga/CODE_APRIORI)
+        # Try local source directory first (from PathConfig or explicit argument)
         if source_dir and source_dir.exists():
             source_file = source_dir / (filename + ".gz")
             if source_file.exists():
@@ -2373,11 +2373,13 @@ class IGNSSOrchestrator:
                 orb_dir=orb_dir or self.config.data_dir,
             )
 
-        # Set default source directories if not provided
+        # Set default source directories from PathConfig if not provided
+        from pygnss_rt.core.paths import get_paths
+        paths = get_paths()
         if vmf_source is None:
-            vmf_source = Path("/home/ahunegnaw/tiga/VMF3")
+            vmf_source = paths.vmf_source_dir
         if crd_source is None:
-            crd_source = Path("/home/ahunegnaw/tiga/CODE_APRIORI")
+            crd_source = paths.apriori_source_dir
 
         # Download all products
         results = self.ppp_downloader.download_all_ppp_products(

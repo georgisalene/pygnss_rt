@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from pygnss_rt.core.paths import PathConfig, get_paths
 from pygnss_rt.processing.networks import (
     NetworkID,
     NetworkProfile,
@@ -130,26 +131,21 @@ class DailyPPPProcessor:
     def __init__(
         self,
         config_path: Path | str | None = None,
-        ignss_dir: str | None = None,
-        data_root: str | None = None,
-        gpsuser_dir: str | None = None,
+        paths: PathConfig | None = None,
     ):
         """Initialize daily PPP processor.
 
         Args:
             config_path: Path to configuration file
-            ignss_dir: Override i-GNSS directory
-            data_root: Override data root directory
-            gpsuser_dir: Override GPSUSER directory
+            paths: PathConfig instance (uses global instance if None)
         """
         self.config_path = Path(config_path) if config_path else None
-        self.ignss_dir = ignss_dir or os.environ.get(
-            "IGNSS", "/home/ahunegnaw/Python_IGNSS/i-GNSS"
-        )
-        self.data_root = data_root or "/home/ahunegnaw/data54"
-        self.gpsuser_dir = gpsuser_dir or os.environ.get(
-            "GPSUSER", "/home/ahunegnaw/GPSUSER54_LANT"
-        )
+        self.paths = paths or get_paths()
+
+        # For backward compatibility, expose these as properties
+        self.ignss_dir = str(self.paths.pygnss_rt_dir)
+        self.data_root = str(self.paths.data_root) if self.paths.data_root else ""
+        self.gpsuser_dir = str(self.paths.gpsuser_dir) if self.paths.gpsuser_dir else ""
 
         self._config: dict[str, Any] = {}
         self._load_config()
@@ -170,12 +166,7 @@ class DailyPPPProcessor:
         Returns:
             NetworkProfile for the specified network
         """
-        return get_network_profile(
-            network_id,
-            ignss_dir=self.ignss_dir,
-            data_root=self.data_root,
-            gpsuser_dir=self.gpsuser_dir,
-        )
+        return get_network_profile(network_id, paths=self.paths)
 
     def process(self, args: DailyPPPArgs) -> list[DailyPPPResult]:
         """Run daily PPP processing.
@@ -425,11 +416,13 @@ class DailyPPPProcessor:
 
         # Build session name and campaign ORB directory
         session_name = f"{date.year % 100:02d}{date.doy:03d}{profile.session_id}"
-        campaign_root = Path(
-            self._config.get("bsw", {}).get(
-                "campaign_root", "/home/ahunegnaw/GPSDATA/CAMPAIGN54"
-            )
-        )
+        campaign_root_cfg = self._config.get("bsw", {}).get("campaign_root")
+        if campaign_root_cfg:
+            campaign_root = Path(campaign_root_cfg)
+        elif self.paths.campaign_root:
+            campaign_root = self.paths.campaign_root
+        else:
+            campaign_root = Path.home() / "GPSDATA" / "CAMPAIGN54"
         orb_dir = campaign_root / session_name / "ORB"
         orb_dir.mkdir(parents=True, exist_ok=True)
 
@@ -440,8 +433,8 @@ class DailyPPPProcessor:
             # Try alternate location
             ftp_config_path = Path(self.ignss_dir) / "pygnss_rt" / "conf" / "ftpConfig.xml"
 
-        # Use data54 as the product storage directory
-        product_storage = Path(self.data_root)  # /home/ahunegnaw/data54
+        # Use data_root as the product storage directory
+        product_storage = Path(self.data_root)
         gps_week = date.gps_week
         product_week_dir = product_storage / "products" / str(gps_week)
         product_week_dir.mkdir(parents=True, exist_ok=True)
@@ -634,16 +627,18 @@ class DailyPPPProcessor:
         )
 
         # Step 1: Central storage directory (like Perl's dataDir)
-        # Downloads go to: /home/ahunegnaw/data54/rinex/{year}/{doy}/
+        # Downloads go to: {data_root}/rinex/{year}/{doy}/
         central_storage = Path(self.data_root) / "rinex" / str(date.year) / f"{date.doy:03d}"
         central_storage.mkdir(parents=True, exist_ok=True)
 
         # Step 2: Campaign RAW directory (final destination)
-        campaign_root = Path(
-            self._config.get("bsw", {}).get(
-                "campaign_root", "/home/ahunegnaw/GPSDATA/CAMPAIGN54"
-            )
-        )
+        campaign_root_cfg = self._config.get("bsw", {}).get("campaign_root")
+        if campaign_root_cfg:
+            campaign_root = Path(campaign_root_cfg)
+        elif self.paths.campaign_root:
+            campaign_root = self.paths.campaign_root
+        else:
+            campaign_root = Path.home() / "GPSDATA" / "CAMPAIGN54"
         session_name = f"{date.year % 100:02d}{date.doy:03d}{profile.session_id}"
         raw_dir = campaign_root / session_name / "RAW"
         raw_dir.mkdir(parents=True, exist_ok=True)
@@ -655,11 +650,13 @@ class DailyPPPProcessor:
                 print(f"  FTP source: {ftp.server_id} ({ftp.category})")
 
         # Determine which provider to use based on profile
+        # Provider names should match YAML config (CDDIS for daily, CDDIS_HOURLY for hourly)
         providers = []
         for ftp_source in profile.data_ftp_sources:
             if ftp_source.server_id == "CDDIS":
-                if ftp_source.category == "daily":
-                    providers.append("CDDIS_DAILY")
+                # YAML uses CDDIS for daily, CDDIS_HOURLY for hourly
+                if ftp_source.category == "hourly":
+                    providers.append("CDDIS_HOURLY")
                 else:
                     providers.append("CDDIS")
             else:
@@ -782,10 +779,14 @@ class DailyPPPProcessor:
         Returns:
             Path to campaign directory
         """
-        # Campaign root from config or profile
-        campaign_root = Path(
-            self._config.get("bsw", {}).get("campaign_root", "/home/ahunegnaw/GPSDATA/CAMPAIGN54")
-        )
+        # Campaign root from config or PathConfig
+        campaign_root_cfg = self._config.get("bsw", {}).get("campaign_root")
+        if campaign_root_cfg:
+            campaign_root = Path(campaign_root_cfg)
+        elif self.paths.campaign_root:
+            campaign_root = self.paths.campaign_root
+        else:
+            campaign_root = Path.home() / "GPSDATA" / "CAMPAIGN54"
 
         campaign_dir = campaign_root / session_name
 
@@ -816,7 +817,7 @@ class DailyPPPProcessor:
             args: Processing arguments
         """
         sta_dir = campaign_dir / "STA"
-        info_dir = Path(self.ignss_dir) / "info"
+        info_dir = self.paths.info_dir
 
         # Map of info file types to their source files (relative to info dir)
         # These are the essential reference files for BSW processing
@@ -895,9 +896,8 @@ class DailyPPPProcessor:
         # Copy observation selection file (OBSERV_COD.SEL) to GEN directory
         # This file is required by RNXSMT and RNXGRA programs
         ref54_local_dir = Path(os.environ.get("U", "")) / "REF54_LOCAL"
-        if not ref54_local_dir.exists():
-            # Try default location
-            ref54_local_dir = Path("/home/ahunegnaw/GPSUSER54_LANT/REF54_LOCAL")
+        if not ref54_local_dir.exists() and self.paths.ref_local_dir:
+            ref54_local_dir = self.paths.ref_local_dir
 
         observ_sel_file = ref54_local_dir / "OBSERV_COD.SEL"
         if observ_sel_file.exists():
@@ -960,21 +960,21 @@ class DailyPPPProcessor:
         from pygnss_rt.bsw.environment import load_bsw_environment
         from pygnss_rt.bsw.bpe_runner import BPERunner, BPEConfig, parse_bsw_options_xml
 
-        # Find LOADGPS.setvar
-        loadgps_path = Path(self.gpsuser_dir).parent / "LOADGPS.setvar"
-        if not loadgps_path.exists():
-            # Try common locations
+        # Find LOADGPS.setvar using PathConfig
+        loadgps_path = self.paths.loadgps_setvar
+        if loadgps_path is None or not loadgps_path.exists():
+            # Try common locations as fallback
             for loc in [
-                Path("/home/ahunegnaw/BERN54/LOADGPS.setvar"),
+                Path(self.gpsuser_dir).parent / "LOADGPS.setvar" if self.gpsuser_dir else None,
                 Path(os.environ.get("C", "")) / "LOADGPS.setvar",
-                Path(self.gpsuser_dir) / ".." / "LOADGPS.setvar",
             ]:
-                if loc.exists():
+                if loc and loc.exists():
                     loadgps_path = loc
                     break
 
-        if not loadgps_path.exists():
-            print(f"  Warning: LOADGPS.setvar not found at {loadgps_path}")
+        if loadgps_path is None or not loadgps_path.exists():
+            print(f"  Warning: LOADGPS.setvar not found")
+            print("  Set BERN54_DIR environment variable or configure paths")
             print("  Skipping actual BSW execution (dry run mode)")
             return True
 

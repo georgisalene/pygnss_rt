@@ -32,6 +32,28 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from pygnss_rt.core.paths import PathConfig, get_paths
+
+
+def _get_default_nrt_coord_dir() -> Path:
+    """Get default NRT coordinate directory from PathConfig."""
+    paths = get_paths()
+    if paths.nrt_coord_dir:
+        return paths.nrt_coord_dir
+    if paths.data_root:
+        return paths.data_root / "nrtCoord"
+    return Path.home() / "data54" / "nrtCoord"
+
+
+def _get_default_ppp_root() -> Path:
+    """Get default PPP campaign root from PathConfig."""
+    paths = get_paths()
+    if paths.ppp_campaign_root:
+        return paths.ppp_campaign_root
+    if paths.data_root:
+        return paths.data_root / "campaigns" / "ppp"
+    return Path.home() / "data54" / "campaigns" / "ppp"
+
 
 @dataclass
 class NetworkArchive:
@@ -78,12 +100,8 @@ class DailyCRDConfig:
         latency_hours: Processing latency in hours for cron mode
     """
 
-    output_dir: Path = field(
-        default_factory=lambda: Path("/home/nrt105/data54/nrtCoord")
-    )
-    ppp_root: Path = field(
-        default_factory=lambda: Path("/home/nrt105/data54/campaigns/ppp")
-    )
+    output_dir: Path = field(default_factory=_get_default_nrt_coord_dir)
+    ppp_root: Path = field(default_factory=_get_default_ppp_root)
 
     networks: list[NetworkArchive] = field(default_factory=list)
 
@@ -192,7 +210,7 @@ class DailyCRDProcessor:
 
     def _create_default_config(self) -> DailyCRDConfig:
         """Create default configuration with standard networks."""
-        ppp_root = Path("/home/nrt105/data54/campaigns/ppp")
+        ppp_root = _get_default_ppp_root()
 
         networks = [
             NetworkArchive(
@@ -793,18 +811,23 @@ class DailyCRDProcessor:
 
 
 def create_daily_crd_config(
-    output_dir: str = "/home/nrt105/data54/nrtCoord",
-    ppp_root: str = "/home/nrt105/data54/campaigns/ppp",
+    output_dir: str | Path | None = None,
+    ppp_root: str | Path | None = None,
 ) -> DailyCRDConfig:
     """Create a daily CRD configuration.
 
     Args:
-        output_dir: Output directory for CRD files
-        ppp_root: Root directory for PPP archives
+        output_dir: Output directory for CRD files (uses PathConfig default if None)
+        ppp_root: Root directory for PPP archives (uses PathConfig default if None)
 
     Returns:
         DailyCRDConfig instance
     """
+    if output_dir is None:
+        output_dir = _get_default_nrt_coord_dir()
+    if ppp_root is None:
+        ppp_root = _get_default_ppp_root()
+
     ppp_path = Path(ppp_root)
 
     networks = [
@@ -856,8 +879,8 @@ def main():
     parser.add_argument(
         "--output-dir", "-o",
         type=str,
-        default="/home/nrt105/data54/nrtCoord",
-        help="Output directory for CRD files",
+        default=None,
+        help="Output directory for CRD files (default: from PathConfig)",
     )
     parser.add_argument(
         "--verbose", "-v",
@@ -867,7 +890,7 @@ def main():
 
     args = parser.parse_args()
 
-    # Create config
+    # Create config (uses PathConfig defaults if output_dir is None)
     config = create_daily_crd_config(output_dir=args.output_dir)
     config.latency_hours = args.latency
 

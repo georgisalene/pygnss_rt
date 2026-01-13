@@ -26,6 +26,8 @@ from pathlib import Path
 from typing import Any
 import xml.etree.ElementTree as ET
 
+from pygnss_rt.core.paths import get_paths
+
 
 class NetworkSource(str, Enum):
     """Network source identifiers.
@@ -80,8 +82,8 @@ class MergerConfig:
     # XML file paths for each network
     xml_paths: dict[NetworkSource, Path] = field(default_factory=dict)
 
-    # Base directory for finding XML files
-    info_dir: Path = field(default_factory=lambda: Path("/home/ahunegnaw/Python_IGNSS/i-GNSS/info"))
+    # Base directory for finding XML files (station_data directory)
+    station_data_dir: Path = field(default_factory=lambda: get_paths().station_data_dir)
 
     # Default XML file names
     default_files: dict[NetworkSource, str] = field(default_factory=lambda: {
@@ -122,20 +124,20 @@ class StationMerger:
     def __init__(
         self,
         config: MergerConfig | None = None,
-        info_dir: str | Path | None = None,
+        station_data_dir: str | Path | None = None,
         verbose: bool = False,
     ) -> None:
         """Initialize station merger.
 
         Args:
             config: Full merger configuration
-            info_dir: Base directory for XML files (shortcut)
+            station_data_dir: Base directory for XML files (shortcut)
             verbose: Enable verbose output
         """
         if config:
             self.config = config
-        elif info_dir:
-            self.config = MergerConfig(info_dir=Path(info_dir))
+        elif station_data_dir:
+            self.config = MergerConfig(station_data_dir=Path(station_data_dir))
         else:
             self.config = MergerConfig()
 
@@ -166,7 +168,7 @@ class StationMerger:
             default_file = self.config.default_files.get(source)
             if not default_file:
                 raise ValueError(f"No XML file configured for source: {source}")
-            path = self.config.info_dir / default_file
+            path = self.config.station_data_dir / default_file
 
         # Get type filter
         type_filter = self.config.type_filters.get(source)
@@ -430,7 +432,7 @@ class StationMerger:
 
 
 def create_nrddp_merger(
-    info_dir: str | Path = "/home/ahunegnaw/Python_IGNSS/i-GNSS/info",
+    station_data_dir: str | Path | None = None,
     verbose: bool = False,
 ) -> StationMerger:
     """Create a station merger configured for NRDDP TRO processing.
@@ -448,13 +450,13 @@ def create_nrddp_merger(
     - Canada (NRCAN)
 
     Args:
-        info_dir: Directory containing station XML files
+        station_data_dir: Directory containing station XML files
         verbose: Enable verbose output
 
     Returns:
         Configured StationMerger with all sources loaded
     """
-    merger = StationMerger(info_dir=info_dir, verbose=verbose)
+    merger = StationMerger(station_data_dir=station_data_dir, verbose=verbose)
     merger.add_all_sources()
     return merger
 

@@ -392,12 +392,21 @@ def load_providers_from_yaml(config_path: str | Path | None = None) -> dict[str,
 
         providers: dict[str, ProviderConfig] = {}
         station_servers = config.get("station_servers", {})
-        priority = 1
+
+        # Get provider priority from YAML (default IGS priority)
+        provider_priority = config.get("provider_priority", {}).get("stations", {}).get("igs", [])
+
+        # Build priority map from YAML priority list
+        priority_map = {name: idx + 1 for idx, name in enumerate(provider_priority)}
+        default_priority = len(provider_priority) + 1
 
         for name, cfg in station_servers.items():
             host = cfg.get("host", "")
             protocol = cfg.get("protocol", "ftp")
             rinex_version = cfg.get("rinex_version", 2)
+
+            # Get priority from YAML provider_priority, or use default
+            base_priority = priority_map.get(name, default_priority)
 
             # Create provider for daily data
             daily = cfg.get("daily")
@@ -411,12 +420,11 @@ def load_providers_from_yaml(config_path: str | Path | None = None) -> dict[str,
                     base_path="",  # Embedded in path template
                     path_template=daily.get("path", ""),
                     filename_template=daily.get("filename", "") or daily.get("filename_pattern", ""),
-                    priority=priority,
+                    priority=base_priority,
                     supports_hourly=False,
                     supports_daily=True,
                     timeout=120 if protocol == "https" else 60,
                 )
-                priority += 1
 
             # Create provider for hourly data
             hourly = cfg.get("hourly")
@@ -430,15 +438,17 @@ def load_providers_from_yaml(config_path: str | Path | None = None) -> dict[str,
                     base_path="",
                     path_template=hourly.get("path", ""),
                     filename_template=hourly.get("filename", "") or hourly.get("filename_pattern", ""),
-                    priority=priority,
+                    priority=base_priority,  # Same priority as daily for the same server
                     supports_hourly=True,
                     supports_daily=False,
                     timeout=120 if protocol == "https" else 60,
                 )
-                priority += 1
 
         if providers:
             logger.info("Loaded station providers from YAML", path=str(config_path), count=len(providers))
+            # Log priority order
+            sorted_provs = sorted(providers.items(), key=lambda x: x[1].priority)
+            logger.info("Provider priority order", order=[p[0] for p in sorted_provs[:5]])
             return providers
 
         logger.warning("No station providers in YAML, using defaults")

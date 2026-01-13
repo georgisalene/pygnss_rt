@@ -5,13 +5,12 @@ Handles dynamic coordinate file paths that are updated daily for
 Near Real-Time processing. Coordinates are stored in files with
 date-based naming: DNR{YY}{DOY}0.CRD (main) and ANR{YY}{DOY}0.CRD (backup).
 
-This replaces the Perl coordinate path construction:
-    $args{infoCRD} = "/home/nrt105/data54/nrtCoord/DNR".$args{y2c}.$args{doy}.'0.CRD';
+This replaces the Perl coordinate path construction.
 
 Usage:
     from pygnss_rt.processing.nrt_coordinates import NRTCoordinateManager
 
-    manager = NRTCoordinateManager(base_dir="/home/nrt105/data54/nrtCoord")
+    manager = NRTCoordinateManager()  # Uses PathConfig defaults
     crd_path = manager.get_coordinate_file(year=2024, doy=260)
 """
 
@@ -22,6 +21,18 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from pygnss_rt.core.paths import PathConfig, get_paths
+
+
+def _get_default_nrt_coord_dir() -> Path:
+    """Get default NRT coordinate directory from PathConfig."""
+    paths = get_paths()
+    if paths.nrt_coord_dir:
+        return paths.nrt_coord_dir
+    if paths.data_root:
+        return paths.data_root / "nrtCoord"
+    return Path.home() / "data54" / "nrtCoord"
+
 
 @dataclass
 class NRTCoordinateConfig:
@@ -30,7 +41,7 @@ class NRTCoordinateConfig:
     Corresponds to the Perl args structure for coordinate handling.
     """
 
-    base_dir: Path = field(default_factory=lambda: Path("/home/nrt105/data54/nrtCoord"))
+    base_dir: Path = field(default_factory=_get_default_nrt_coord_dir)
 
     # File naming pattern prefixes
     main_prefix: str = "DNR"  # Main coordinate file prefix
@@ -351,7 +362,7 @@ class NRTCoordinateManager:
 
 
 def create_nrt_coordinate_config(
-    base_dir: str | Path = "/home/nrt105/data54/nrtCoord",
+    base_dir: str | Path | None = None,
     main_prefix: str = "DNR",
     backup_prefix: str = "ANR",
     static_fallback: str | Path | None = None,
@@ -359,7 +370,7 @@ def create_nrt_coordinate_config(
     """Convenience function to create NRT coordinate configuration.
 
     Args:
-        base_dir: Base directory for coordinate files
+        base_dir: Base directory for coordinate files (uses PathConfig default if None)
         main_prefix: Main file prefix (default: DNR)
         backup_prefix: Backup file prefix (default: ANR)
         static_fallback: Optional static fallback file
@@ -367,6 +378,8 @@ def create_nrt_coordinate_config(
     Returns:
         NRTCoordinateConfig instance
     """
+    if base_dir is None:
+        base_dir = _get_default_nrt_coord_dir()
     return NRTCoordinateConfig(
         base_dir=Path(base_dir),
         main_prefix=main_prefix,
@@ -375,19 +388,28 @@ def create_nrt_coordinate_config(
     )
 
 
-# Default configuration for NRDDP TRO processing
-NRDDP_TRO_COORDINATES = NRTCoordinateConfig(
-    base_dir=Path("/home/nrt105/data54/nrtCoord"),
-    main_prefix="DNR",
-    backup_prefix="ANR",
-    remove_if_no_coord=True,
-)
+def _get_nrddp_tro_coordinates() -> NRTCoordinateConfig:
+    """Get default NRDDP TRO coordinates configuration."""
+    return NRTCoordinateConfig(
+        base_dir=_get_default_nrt_coord_dir(),
+        main_prefix="DNR",
+        backup_prefix="ANR",
+        remove_if_no_coord=True,
+    )
 
-# Configuration with static IGS20 fallback
-NRDDP_TRO_WITH_FALLBACK = NRTCoordinateConfig(
-    base_dir=Path("/home/nrt105/data54/nrtCoord"),
-    main_prefix="DNR",
-    backup_prefix="ANR",
-    remove_if_no_coord=True,
-    static_fallback=Path("/home/ahunegnaw/GPSUSER54_LANT/STA/IGS20_54.CRD"),
-)
+
+def _get_nrddp_tro_with_fallback() -> NRTCoordinateConfig:
+    """Get NRDDP TRO coordinates configuration with IGS20 fallback."""
+    paths = get_paths()
+    return NRTCoordinateConfig(
+        base_dir=_get_default_nrt_coord_dir(),
+        main_prefix="DNR",
+        backup_prefix="ANR",
+        remove_if_no_coord=True,
+        static_fallback=(paths.gpsuser_dir / "STA/IGS20_54.CRD" if paths.gpsuser_dir else None),
+    )
+
+
+# Lazy-loaded default configurations (call functions to get current values)
+NRDDP_TRO_COORDINATES = _get_nrddp_tro_coordinates()
+NRDDP_TRO_WITH_FALLBACK = _get_nrddp_tro_with_fallback()

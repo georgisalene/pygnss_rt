@@ -37,6 +37,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from pygnss_rt.core.paths import PathConfig, get_paths
 from pygnss_rt.processing.bsw_options import (
     BSWOptionsParser,
     BSWOptionsConfig,
@@ -137,19 +138,51 @@ class NRDDPTROArgs:
     verbose: bool = False
 
 
+def _get_default_paths() -> PathConfig:
+    """Get default PathConfig for NRDDP TRO."""
+    return get_paths()
+
+
+def _get_default_data_root() -> Path:
+    """Get default data root from PathConfig."""
+    paths = _get_default_paths()
+    if paths.data_root:
+        return paths.data_root
+    return Path.home() / "data54"
+
+
+def _get_default_gpsuser_dir() -> Path:
+    """Get default GPSUSER directory from PathConfig."""
+    paths = _get_default_paths()
+    if paths.gpsuser_dir:
+        return paths.gpsuser_dir
+    return Path.home() / "GPSUSER54_LANT"
+
+
+def _get_default_tro_campaign_root() -> Path:
+    """Get default TRO campaign root from PathConfig."""
+    paths = _get_default_paths()
+    if paths.tro_campaign_root:
+        return paths.tro_campaign_root
+    if paths.data_root:
+        return paths.data_root / "campaigns" / "tro"
+    return Path.home() / "data54" / "campaigns" / "tro"
+
+
 @dataclass
 class NRDDPTROConfig:
     """Configuration for NRDDP TRO processing."""
 
-    # Directory paths
-    ignss_dir: Path = field(default_factory=lambda: Path("/home/ahunegnaw/Python_IGNSS/i-GNSS"))
-    data_root: Path = field(default_factory=lambda: Path("/home/nrt105/data54"))
-    gpsuser_dir: Path = field(default_factory=lambda: Path("/home/ahunegnaw/GPSUSER54_LANT"))
-    campaign_root: Path = field(default_factory=lambda: Path("/home/nrt105/data54/campaigns/tro"))
+    # Directory paths (using PathConfig for defaults)
+    pygnss_rt_dir: Path = field(default_factory=lambda: _get_default_paths().pygnss_rt_dir)
+    station_data_dir: Path = field(default_factory=lambda: _get_default_paths().station_data_dir)
+    data_root: Path = field(default_factory=_get_default_data_root)
+    gpsuser_dir: Path = field(default_factory=_get_default_gpsuser_dir)
+    campaign_root: Path = field(default_factory=_get_default_tro_campaign_root)
 
     # Processing configuration
-    pcf_file: str = "NRDDPTRO_BSW54.PCF"
-    bsw_options_xml: str = "callers/NRDDP_TRO/iGNSS_NRDDP_TRO_BSW54_direct.xml"
+    pcf_file: str = "SMHI_TGX_OCT2025_MGX.PCF"  # TGX-based DD processing chain
+    bsw_options_yaml: str = "bsw_configs/iGNSS_NRDDP_TRO_BSW54_direct.yaml"
 
     # Session naming
     session_suffix: str = "NR"  # e.g., 24260ANR
@@ -173,7 +206,7 @@ class NRDDPTROConfig:
     # DCM settings
     dcm_enabled: bool = True
     dcm_dirs_to_delete: list[str] = field(default_factory=lambda: ["RAW", "OBS", "ORB", "ORX"])
-    dcm_archive_dir: str = "/home/nrt105/data54/campaigns/tro"
+    dcm_archive_dir: str = field(default_factory=lambda: str(_get_default_tro_campaign_root()))
     dcm_organization: str = "yyyy/doy"
 
     # Data sources
@@ -251,7 +284,7 @@ class NRDDPTROProcessor:
         """
         if self._station_merger is None:
             self._station_merger = StationMerger(
-                info_dir=self.config.ignss_dir / "info",
+                station_data_dir=self.config.station_data_dir,
                 verbose=args.verbose,
             )
             # Add sources specified in args
@@ -723,9 +756,9 @@ class NRDDPTROProcessor:
         from pygnss_rt.data_access.ftp_config import load_ftp_config
 
         # Load FTP configuration
-        ftp_config_path = self.config.ignss_dir / "cfg" / "ftp_config.xml"
+        ftp_config_path = self.config.pygnss_rt_dir / "config" / "ftp_config.xml"
         if not ftp_config_path.exists():
-            ftp_config_path = self.config.ignss_dir / "callers" / "ftp_config.xml"
+            ftp_config_path = self.config.pygnss_rt_dir / "callers" / "ftp_config.xml"
 
         ftp_configs = []
         if ftp_config_path.exists():
@@ -938,7 +971,7 @@ class NRDDPTROProcessor:
 
         if args.verbose:
             print(f"    PCF: {self.config.pcf_file}")
-            print(f"    Options: {self.config.bsw_options_xml}")
+            print(f"    Options: {self.config.bsw_options_yaml}")
             print(f"    Coordinate: {coord_file}")
 
         # Get BSW environment variables
@@ -1205,7 +1238,7 @@ class NRDDPTROProcessor:
             "sessID2char": self.config.session_suffix,
             # PCF and options
             "PCF_FILE": self.config.pcf_file,
-            "bswOpt": str(self.config.ignss_dir / self.config.bsw_options_xml),
+            "bswOpt": str(self.config.pygnss_rt_dir / self.config.bsw_options_yaml),
             # Option directories mapping
             "optDirs": get_option_dirs("nrddp"),
             # Datum and reference
@@ -1282,7 +1315,7 @@ class NRDDPTROProcessor:
             return 0
 
         # Load meteorological station database
-        wmo_file = self.config.ignss_dir / "info" / "wmo_stations.dat"
+        wmo_file = self.config.station_data_dir / "wmo_stations.dat"
         met_db = None
         if wmo_file.exists():
             met_db = MeteoStationDatabase()
@@ -1422,22 +1455,28 @@ class NRDDPTROProcessor:
 
 
 def create_nrddp_tro_config(
-    data_root: str = "/home/nrt105/data54",
-    ignss_dir: str = "/home/ahunegnaw/Python_IGNSS/i-GNSS",
-    gpsuser_dir: str = "/home/ahunegnaw/GPSUSER54_LANT",
+    paths: PathConfig | None = None,
+    data_root: str | None = None,
+    pygnss_rt_dir: str | None = None,
+    gpsuser_dir: str | None = None,
 ) -> NRDDPTROConfig:
     """Create NRDDP TRO configuration.
 
     Args:
-        data_root: Data root directory
-        ignss_dir: i-GNSS directory
-        gpsuser_dir: GPSUSER directory
+        paths: PathConfig instance (uses global instance if None)
+        data_root: Override data root directory
+        pygnss_rt_dir: Override pygnss_rt directory
+        gpsuser_dir: Override GPSUSER directory
 
     Returns:
         NRDDPTROConfig instance
     """
+    if paths is None:
+        paths = get_paths()
+
     return NRDDPTROConfig(
-        data_root=Path(data_root),
-        ignss_dir=Path(ignss_dir),
-        gpsuser_dir=Path(gpsuser_dir),
+        data_root=Path(data_root) if data_root else _get_default_data_root(),
+        pygnss_rt_dir=Path(pygnss_rt_dir) if pygnss_rt_dir else paths.pygnss_rt_dir,
+        station_data_dir=paths.station_data_dir,
+        gpsuser_dir=Path(gpsuser_dir) if gpsuser_dir else _get_default_gpsuser_dir(),
     )

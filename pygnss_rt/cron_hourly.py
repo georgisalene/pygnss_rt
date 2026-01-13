@@ -5,14 +5,11 @@ Hourly GNSS Processing CRON Entry Point.
 Main entry point for hourly GNSS processing designed to run from crontab.
 Produces ZTD (Zenith Tropospheric Delay) and coordinates.
 
-Replaces the Perl cron job entry points:
-- /home/nrt105/bin/hourlyFuncs/runHourlyProc_BSW54.bash
-- iGNSS_NRDDP_TRO_54_nrt_direct.pl (called by bash wrapper)
+Replaces the Perl cron job entry points.
 
 Usage from crontab:
     # Run every hour at minute 45 (for 3-hour latency)
-    45 * * * * /home/ahunegnaw/Python_IGNSS/i-GNSS/venv/bin/python \
-        /home/ahunegnaw/Python_IGNSS/i-GNSS/pygnss_rt/cron_hourly.py
+    45 * * * * /path/to/venv/bin/python /path/to/pygnss_rt/cron_hourly.py
 
     # Or with specific latency
     45 * * * * /path/to/python /path/to/cron_hourly.py --latency 3
@@ -23,9 +20,9 @@ Manual execution:
     python cron_hourly.py --dry-run
 
 Environment Variables:
-    IGNSS_HOME: Base directory for i-GNSS (default: /home/ahunegnaw/Python_IGNSS/i-GNSS)
-    IGNSS_DATA: Data root directory (default: /home/nrt105/data54)
-    GPSUSER_DIR: GPSUSER directory (default: /home/ahunegnaw/GPSUSER54_LANT)
+    DATA_ROOT: Data root directory (auto-detected from PathConfig)
+    BERN54_DIR: Bernese 5.4 installation directory
+    GPSUSER_DIR: GPSUSER directory (auto-detected from PathConfig)
     IGNSS_CONFIG: Path to config file (optional)
     IGNSS_DRY_RUN: Set to "1" for dry-run mode
 """
@@ -219,7 +216,7 @@ Examples:
         "--data-root",
         type=str,
         default=None,
-        help="Data root directory (default: $IGNSS_DATA or /home/nrt105/data54)"
+        help="Data root directory (default: from PathConfig or $DATA_ROOT)"
     )
     path_group.add_argument(
         "--ignss-dir",
@@ -388,12 +385,21 @@ def run_nrddp_tro(args: argparse.Namespace, logger: Any) -> bool:
 
     logger.info(f"Processing: {proc_date.year}/{proc_date.doy:03d} hours {start_hour}-{end_hour}")
 
-    # Create config
-    data_root = args.data_root or os.environ.get("IGNSS_DATA", "/home/nrt105/data54")
-    ignss_dir = args.ignss_dir or os.environ.get(
-        "IGNSS_HOME", "/home/ahunegnaw/Python_IGNSS/i-GNSS"
-    )
-    gpsuser_dir = os.environ.get("GPSUSER_DIR", "/home/ahunegnaw/GPSUSER54_LANT")
+    # Create config using PathConfig defaults (override with CLI args if provided)
+    from pygnss_rt.core.paths import get_paths
+    paths = get_paths()
+
+    data_root = args.data_root or os.environ.get("DATA_ROOT")
+    if data_root is None and paths.data_root:
+        data_root = str(paths.data_root)
+
+    ignss_dir = args.ignss_dir
+    if ignss_dir is None:
+        ignss_dir = str(paths.pygnss_rt_dir)
+
+    gpsuser_dir = os.environ.get("GPSUSER_DIR")
+    if gpsuser_dir is None and paths.gpsuser_dir:
+        gpsuser_dir = str(paths.gpsuser_dir)
 
     config = create_nrddp_tro_config(
         data_root=data_root,

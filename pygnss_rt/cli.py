@@ -2315,14 +2315,14 @@ def download_sitelogs(
 @click.option(
     "--output-dir", "-o",
     type=click.Path(path_type=Path),
-    default=Path("/home/nrt105/data54/nrtCoord"),
-    help="Output directory for CRD files",
+    default=None,
+    help="Output directory for CRD files (default: from PathConfig)",
 )
 @click.option(
     "--ppp-root",
     type=click.Path(path_type=Path),
-    default=Path("/home/nrt105/data54/campaigns/ppp"),
-    help="Root directory for archived PPP solutions",
+    default=None,
+    help="Root directory for archived PPP solutions (default: from PathConfig)",
 )
 @click.option(
     "--dry-run",
@@ -2379,27 +2379,36 @@ def daily_crd(
         click.echo("[DRY RUN MODE]")
         click.echo()
 
-    # Create configuration
+    # Use defaults from dataclass if not explicitly provided
+    from pygnss_rt.processing.daily_crd import (
+        _get_default_nrt_coord_dir,
+        _get_default_ppp_root,
+    )
+
+    actual_output_dir = output_dir if output_dir else _get_default_nrt_coord_dir()
+    actual_ppp_root = ppp_root if ppp_root else _get_default_ppp_root()
+
+    # Create configuration with network archives
     networks = [
-        NetworkArchive(network_id="IG", root=ppp_root, campaign_pattern="YYDOYIG", prefix="AIG"),
-        NetworkArchive(network_id="EU", root=ppp_root, campaign_pattern="YYDOYEU", prefix="AEU"),
-        NetworkArchive(network_id="GB", root=ppp_root, campaign_pattern="YYDOYGB", prefix="AGB"),
-        NetworkArchive(network_id="IR", root=ppp_root, campaign_pattern="YYDOYIR", prefix="AIR"),
-        NetworkArchive(network_id="IS", root=ppp_root, campaign_pattern="YYDOYIS", prefix="AIS"),
-        NetworkArchive(network_id="RG", root=ppp_root, campaign_pattern="YYDOYRG", prefix="ARG"),
-        NetworkArchive(network_id="SS", root=ppp_root, campaign_pattern="YYDOYSS", prefix="ASS"),
-        NetworkArchive(network_id="CA", root=ppp_root, campaign_pattern="YYDOYCA", prefix="ACA"),
+        NetworkArchive(network_id="IG", root=actual_ppp_root, campaign_pattern="YYDOYIG", prefix="AIG"),
+        NetworkArchive(network_id="EU", root=actual_ppp_root, campaign_pattern="YYDOYEU", prefix="AEU"),
+        NetworkArchive(network_id="GB", root=actual_ppp_root, campaign_pattern="YYDOYGB", prefix="AGB"),
+        NetworkArchive(network_id="IR", root=actual_ppp_root, campaign_pattern="YYDOYIR", prefix="AIR"),
+        NetworkArchive(network_id="IS", root=actual_ppp_root, campaign_pattern="YYDOYIS", prefix="AIS"),
+        NetworkArchive(network_id="RG", root=actual_ppp_root, campaign_pattern="YYDOYRG", prefix="ARG"),
+        NetworkArchive(network_id="SS", root=actual_ppp_root, campaign_pattern="YYDOYSS", prefix="ASS"),
+        NetworkArchive(network_id="CA", root=actual_ppp_root, campaign_pattern="YYDOYCA", prefix="ACA"),
     ]
 
     config = DailyCRDConfig(
-        output_dir=output_dir,
-        ppp_root=ppp_root,
+        output_dir=actual_output_dir,
+        ppp_root=actual_ppp_root,
         networks=networks,
         latency_hours=latency,
     )
 
-    click.echo(f"Output directory: {output_dir}")
-    click.echo(f"PPP archive root: {ppp_root}")
+    click.echo(f"Output directory: {actual_output_dir}")
+    click.echo(f"PPP archive root: {actual_ppp_root}")
 
     if cron:
         click.echo(f"Mode: CRON (latency: {latency} hours)")

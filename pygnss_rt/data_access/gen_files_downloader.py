@@ -21,6 +21,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
+from pygnss_rt.core.paths import PathConfig, get_paths
 from pygnss_rt.data_access.ftp_client import FTPClient
 from pygnss_rt.data_access.ftp_config import FTPServerConfig, load_ftp_config
 from pygnss_rt.utils.logging import get_logger, ignss_print, MessageType
@@ -43,7 +44,7 @@ class GENFileSpec:
     Attributes:
         filename: Name of the file to download
         remote_dir: Remote directory (CONFIG or REF)
-        copy_to_info: Whether to also copy to IGNSS/info directory
+        copy_to_info: Whether to also copy to pygnss_rt info directory
         year_suffix: If True, append current year to filename (e.g., SAT_{year}.CRX)
     """
 
@@ -88,7 +89,7 @@ class GENDownloaderConfig:
         ftp_host: FTP server hostname (default: CODE server)
         ftp_config_path: Path to FTP config XML (alternative to ftp_host)
         bern_dir: Bernese installation directory
-        ignss_info_dir: i-GNSS info directory
+        info_dir: pygnss_rt station_data directory (uses PathConfig by default)
         max_retries: Maximum FTP connection retry attempts
         timeout: FTP timeout in seconds
     """
@@ -97,20 +98,23 @@ class GENDownloaderConfig:
     ftp_host: str = "ftp.aiub.unibe.ch"
     ftp_config_path: Path | None = None
     bern_dir: Path | None = None
-    ignss_info_dir: Path | None = None
+    info_dir: Path | None = None
     max_retries: int = 3
     timeout: int = 60
 
     def __post_init__(self):
-        """Set default directories from environment."""
-        if self.bern_dir is None:
-            home = Path(os.environ.get("HOME", ""))
-            self.bern_dir = home / f"BERN{self.bsw_version.value}" / "GLOBAL" / "CONFIG"
+        """Set default directories from PathConfig."""
+        paths = get_paths()
 
-        if self.ignss_info_dir is None:
-            ignss = os.environ.get("IGNSS", "")
-            if ignss:
-                self.ignss_info_dir = Path(ignss) / "info"
+        if self.bern_dir is None:
+            if paths.bern54_dir:
+                self.bern_dir = paths.bern54_dir / "GLOBAL" / "CONFIG"
+            else:
+                home = Path.home()
+                self.bern_dir = home / f"BERN{self.bsw_version.value}" / "GLOBAL" / "CONFIG"
+
+        if self.info_dir is None:
+            self.info_dir = paths.info_dir
 
 
 # Default GEN files for BSW54
@@ -251,8 +255,8 @@ class GENFilesDownloader:
         if self.config.bern_dir and not self.config.bern_dir.exists():
             errors.append(f"Bernese CONFIG directory does not exist: {self.config.bern_dir}")
 
-        if self.config.ignss_info_dir and not self.config.ignss_info_dir.exists():
-            errors.append(f"i-GNSS info directory does not exist: {self.config.ignss_info_dir}")
+        if self.config.info_dir and not self.config.info_dir.exists():
+            errors.append(f"pygnss_rt station_data directory does not exist: {self.config.info_dir}")
 
         return errors
 
@@ -308,8 +312,8 @@ class GENFilesDownloader:
                 logger.info("Moved file to Bernese CONFIG", file=filename)
 
                 # Copy to info directory if needed
-                if spec.copy_to_info and self.config.ignss_info_dir:
-                    info_path = self.config.ignss_info_dir / filename
+                if spec.copy_to_info and self.config.info_dir:
+                    info_path = self.config.info_dir / filename
                     shutil.copy2(str(dest_path), str(info_path))
                     result.copied_to_info += 1
                     logger.info("Copied file to info directory", file=filename)
@@ -446,7 +450,7 @@ def download_gen_files(
     Args:
         bsw_version: Bernese Software version ("52" or "54")
         bern_dir: Optional Bernese CONFIG directory override
-        info_dir: Optional i-GNSS info directory override
+        info_dir: Optional station_data directory override
         verbose: Print progress messages
 
     Returns:
@@ -461,7 +465,7 @@ def download_gen_files(
     config = GENDownloaderConfig(
         bsw_version=version,
         bern_dir=Path(bern_dir) if bern_dir else None,
-        ignss_info_dir=Path(info_dir) if info_dir else None,
+        info_dir=Path(info_dir) if info_dir else None,
     )
 
     downloader = GENFilesDownloader(config)
@@ -530,7 +534,7 @@ Examples:
     parser.add_argument(
         "--info-dir",
         type=Path,
-        help="i-GNSS info directory",
+        help="pygnss_rt station_data directory (default: pygnss_rt/station_data)",
     )
     parser.add_argument(
         "--config-only",
@@ -554,7 +558,7 @@ Examples:
     config = GENDownloaderConfig(
         bsw_version=BSWVersion(args.version),
         bern_dir=args.bern_dir,
-        ignss_info_dir=args.info_dir,
+        info_dir=args.info_dir,
     )
 
     downloader = GENFilesDownloader(config)

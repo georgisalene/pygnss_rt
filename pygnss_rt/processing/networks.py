@@ -15,9 +15,8 @@ Replaces hardcoded configurations in Perl caller scripts:
 - iGNSS_D_PPP_AR_RG_IGS54_direct_NRT.pl
 - iGNSS_D_PPP_AR_SS_IGS54_direct_NRT.pl
 
-PCF Files:
-- PPP-AR processing: /home/ahunegnaw/GPSUSER54_LANT/PCF/PPP54IGS.PCF
-- Network DD (NRDDP): /home/ahunegnaw/GPSUSER54_LANT/PCF/SMHI_TGX_OCT2025_MGX.PCF
+Author: Addisu Hunegnaw
+Date: January 2026
 """
 
 from __future__ import annotations
@@ -27,8 +26,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from pygnss_rt.core.paths import PathConfig, get_paths
 
-# PCF file paths for different processing modes
+
+# PCF file names for different processing modes
 PCF_PPP_AR = "PPP54IGS.PCF"  # PPP with Ambiguity Resolution
 PCF_NETWORK_DD = "SMHI_TGX_OCT2025_MGX.PCF"  # Network Double Difference (NRDDP)
 
@@ -143,24 +144,40 @@ class NetworkProfile:
     cron_latency_days: int = 21
 
 
-def get_default_info_files(ignss_dir: str) -> dict[str, str]:
-    """Get default BSW information files."""
+def get_default_info_files(paths: PathConfig) -> dict[str, str]:
+    """Get default BSW information files using PathConfig.
+
+    Args:
+        paths: PathConfig instance
+
+    Returns:
+        Dictionary of info file paths
+    """
     return {
-        "sessions": f"{ignss_dir}/info/SESSIONS.SES",
-        "station": f"{ignss_dir}/info/IGS20_54.STA",
-        "ocean_loading": f"{ignss_dir}/info/IGS20_54.BLQ",
-        "abbreviations": f"{ignss_dir}/info/IGS20_54.ABB",
-        "obs_selection": f"{ignss_dir}/info/OBSSEL.SEL",
-        "sinex_skeleton": f"{ignss_dir}/info/SINEX.SKL",
-        "phase_center": f"{ignss_dir}/info/ANTENNA_I20.PCV",
+        "sessions": str(paths.sessions_file),
+        "station": str(paths.station_info_file),
+        "ocean_loading": str(paths.ocean_loading_file),
+        "abbreviations": str(paths.abbreviations_file),
+        "obs_selection": str(paths.obs_selection_file),
+        "sinex_skeleton": str(paths.sinex_skeleton_file),
+        "phase_center": str(paths.phase_center_file),
     }
 
 
-def get_igs_archive_specs(data_root: str) -> dict[str, ArchiveFileSpec]:
-    """Get archive file specs for networks needing IGS alignment."""
+def get_igs_archive_specs(paths: PathConfig) -> dict[str, ArchiveFileSpec]:
+    """Get archive file specs for networks needing IGS alignment.
+
+    Args:
+        paths: PathConfig instance
+
+    Returns:
+        Dictionary of archive file specifications
+    """
+    ppp_dir = str(paths.ppp_campaigns_dir) if paths.ppp_campaigns_dir else ""
+
     return {
         "alignment": ArchiveFileSpec(
-            root=f"{data_root}/campaigns/ppp",
+            root=ppp_dir,
             organization="yyyy/doy",
             campaign_pattern="YYDOYIG",
             prefix="AIG",
@@ -171,7 +188,7 @@ def get_igs_archive_specs(data_root: str) -> dict[str, ArchiveFileSpec]:
             option_name="opt_IGSALI",
         ),
         "ppp_coords": ArchiveFileSpec(
-            root=f"{data_root}/campaigns/ppp",
+            root=ppp_dir,
             organization="yyyy/doy",
             campaign_pattern="YYDOYIG",
             prefix="PIG",
@@ -185,22 +202,27 @@ def get_igs_archive_specs(data_root: str) -> dict[str, ArchiveFileSpec]:
 
 
 def create_network_profiles(
-    ignss_dir: str = "/home/ahunegnaw/Python_IGNSS/i-GNSS",
-    data_root: str = "/home/ahunegnaw/data54",
-    gpsuser_dir: str = "/home/ahunegnaw/GPSUSER54_LANT",
+    paths: PathConfig | None = None,
 ) -> dict[NetworkID, NetworkProfile]:
     """Create all network profiles.
 
     Args:
-        ignss_dir: i-GNSS installation directory
-        data_root: Root data directory
-        gpsuser_dir: GPSUSER directory for BSW
+        paths: PathConfig instance (uses global instance if None)
 
     Returns:
         Dictionary of NetworkID -> NetworkProfile
     """
-    default_info = get_default_info_files(ignss_dir)
-    igs_archives = get_igs_archive_specs(data_root)
+    if paths is None:
+        paths = get_paths()
+
+    default_info = get_default_info_files(paths)
+    igs_archives = get_igs_archive_specs(paths)
+
+    # Get directory paths as strings
+    station_data_dir = str(paths.station_data_dir)
+    bsw_configs_dir = str(paths.bsw_configs_dir)
+    pcf_dir = str(paths.pcf_dir) if paths.pcf_dir else ""
+    ppp_dir = str(paths.ppp_campaigns_dir) if paths.ppp_campaigns_dir else ""
 
     # Default product sources (same for all networks)
     default_orbit = ProductSource(
@@ -231,12 +253,13 @@ def create_network_profiles(
         session_id="IG",
         task_id="IG",
         station_filter=StationFilter(
-            xml_file=f"{ignss_dir}/info/IGS20rh.xml",
+            xml_file=f"{station_data_dir}/IGS20rh.xml",
             primary_net="IGS20",
             station_type="core",
             exclude_stations=["lpgs", "yel2"],
         ),
         data_ftp_sources=[
+            # RINEX3 from CDDIS (primary), fallback to RINEX2 from FTP servers
             FTPDataSource(server_id="CDDIS", category="daily"),
             FTPDataSource(server_id="BKGE_IGS", category="daily"),
             FTPDataSource(server_id="IGN_IGS", category="daily"),
@@ -244,13 +267,13 @@ def create_network_profiles(
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
-        bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_IG_IGS54_direct.xml",
+        pcf_file=f"{pcf_dir}/{PCF_PPP_AR}",
+        bsw_options_xml=f"{bsw_configs_dir}/iGNSS_D_PPP_AR_IG_IGS54_direct.yaml",
         info_files={**default_info},
-        coord_file=f"{ignss_dir}/info/IGS20_54.CRD",
+        coord_file=str(paths.igs20_coord_file),
         archive_files={},  # IGS is primary, no archive dependencies
         requires_igs_alignment=False,
-        dcm_archive_dir=f"{data_root}/campaigns/ppp",
+        dcm_archive_dir=ppp_dir,
     )
 
     # EU - EUREF Network
@@ -260,26 +283,25 @@ def create_network_profiles(
         session_id="EU",
         task_id="EU",
         station_filter=StationFilter(
-            xml_file=f"{ignss_dir}/info/eurefrh.xml",
+            xml_file=f"{station_data_dir}/eurefrh.xml",
             station_type="EUREF",
             use_nrt=True,
             exclude_stations=["newl"],
         ),
         data_ftp_sources=[
-            FTPDataSource(server_id="BKGE", category="daily"),
+            FTPDataSource(server_id="BKGE_EUREF", category="daily"),
             FTPDataSource(server_id="BKGE_IGS", category="daily"),
-            FTPDataSource(server_id="BEV", category="daily"),
         ],
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
-        bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_EU_IGS54_direct.xml",
+        pcf_file=f"{pcf_dir}/{PCF_PPP_AR}",
+        bsw_options_xml=f"{bsw_configs_dir}/iGNSS_D_PPP_AR_EU_IGS54_direct.yaml",
         info_files={**default_info},
-        coord_file=f"{ignss_dir}/info/NEWNRT54.CRD",
+        coord_file=str(paths.nrt_coord_file),
         archive_files=igs_archives,
         requires_igs_alignment=True,
-        dcm_archive_dir=f"{data_root}/campaigns/ppp",
+        dcm_archive_dir=ppp_dir,
     )
 
     # GB - Great Britain Network
@@ -289,24 +311,24 @@ def create_network_profiles(
         session_id="GB",
         task_id="GB",
         station_filter=StationFilter(
-            xml_file=f"{ignss_dir}/info/stationsrh.xml",
+            xml_file=f"{station_data_dir}/stationsrh.xml",
             use_nrt=True,
             additional_types=["OS active", "scientific", "IGS"],
             exclude_stations=["newl00gbr", "cari00gbr", "hart00gbr"],
         ),
         data_ftp_sources=[
-            FTPDataSource(server_id="OSGB", category="daily"),
+            FTPDataSource(server_id="OSGB_HOURLY", category="hourly"),
         ],
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
-        bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_GB_IGS54_direct.xml",
+        pcf_file=f"{pcf_dir}/{PCF_PPP_AR}",
+        bsw_options_xml=f"{bsw_configs_dir}/iGNSS_D_PPP_AR_GB_IGS54_direct.yaml",
         info_files={**default_info},
-        coord_file=f"{ignss_dir}/info/NEWNRT54.CRD",
+        coord_file=str(paths.nrt_coord_file),
         archive_files=igs_archives,
         requires_igs_alignment=True,
-        dcm_archive_dir=f"{data_root}/campaigns/ppp",
+        dcm_archive_dir=ppp_dir,
     )
 
     # RG - RGP France Network
@@ -316,23 +338,23 @@ def create_network_profiles(
         session_id="RG",
         task_id="RG",
         station_filter=StationFilter(
-            xml_file=f"{ignss_dir}/info/RGPrh.xml",
+            xml_file=f"{station_data_dir}/RGPrh.xml",
             station_type="active",
             use_nrt=True,
         ),
         data_ftp_sources=[
-            FTPDataSource(server_id="RGPDATA", category="daily"),
+            FTPDataSource(server_id="RGP", category="daily"),
         ],
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
-        bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_RG_IGS54_direct.xml",
+        pcf_file=f"{pcf_dir}/{PCF_PPP_AR}",
+        bsw_options_xml=f"{bsw_configs_dir}/iGNSS_D_PPP_AR_RG_IGS54_direct.yaml",
         info_files={**default_info},
-        coord_file=f"{ignss_dir}/info/NEWNRT54.CRD",
+        coord_file=str(paths.nrt_coord_file),
         archive_files=igs_archives,
         requires_igs_alignment=True,
-        dcm_archive_dir=f"{data_root}/campaigns/ppp",
+        dcm_archive_dir=ppp_dir,
     )
 
     # SS - Supersites Network (Netherlands)
@@ -342,24 +364,24 @@ def create_network_profiles(
         session_id="SS",
         task_id="SS",
         station_filter=StationFilter(
-            xml_file=f"{ignss_dir}/info/supersitesrh.xml",
+            xml_file=f"{station_data_dir}/supersitesrh.xml",
             station_type="active",
             use_nrt=True,
             exclude_stations=["stav00nld", "bors00nld", "warm00nld"],
         ),
         data_ftp_sources=[
-            FTPDataSource(server_id="Kadaster", category="daily"),
+            FTPDataSource(server_id="CDDIS", category="daily"),
         ],
         orbit_source=default_orbit,
         erp_source=default_erp,
         clock_source=default_clock,
-        pcf_file=f"{gpsuser_dir}/PCF/{PCF_PPP_AR}",
-        bsw_options_xml=f"{ignss_dir}/callers/iGNSS_D_PPP_AR_SS_IGS54_direct.xml",
+        pcf_file=f"{pcf_dir}/{PCF_PPP_AR}",
+        bsw_options_xml=f"{bsw_configs_dir}/iGNSS_D_PPP_AR_SS_IGS54_direct.yaml",
         info_files={**default_info},
-        coord_file=f"{ignss_dir}/info/NEWNRT54.CRD",
+        coord_file=str(paths.nrt_coord_file),
         archive_files=igs_archives,
         requires_igs_alignment=True,
-        dcm_archive_dir=f"{data_root}/campaigns/ppp",
+        dcm_archive_dir=ppp_dir,
     )
 
     return profiles
@@ -367,17 +389,13 @@ def create_network_profiles(
 
 def get_network_profile(
     network_id: NetworkID | str,
-    ignss_dir: str | None = None,
-    data_root: str | None = None,
-    gpsuser_dir: str | None = None,
+    paths: PathConfig | None = None,
 ) -> NetworkProfile:
     """Get a specific network profile.
 
     Args:
         network_id: Network ID (e.g., "IG", "EU", NetworkID.IG)
-        ignss_dir: Override i-GNSS directory
-        data_root: Override data root directory
-        gpsuser_dir: Override GPSUSER directory
+        paths: PathConfig instance (uses global instance if None)
 
     Returns:
         NetworkProfile for the specified network
@@ -392,15 +410,7 @@ def get_network_profile(
             valid = ", ".join(n.value for n in NetworkID)
             raise ValueError(f"Invalid network ID '{network_id}'. Valid: {valid}")
 
-    kwargs = {}
-    if ignss_dir:
-        kwargs["ignss_dir"] = ignss_dir
-    if data_root:
-        kwargs["data_root"] = data_root
-    if gpsuser_dir:
-        kwargs["gpsuser_dir"] = gpsuser_dir
-
-    profiles = create_network_profiles(**kwargs) if kwargs else create_network_profiles()
+    profiles = create_network_profiles(paths)
     return profiles[network_id]
 
 

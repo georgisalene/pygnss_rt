@@ -18,14 +18,15 @@ from typing import Any
 
 from pygnss_rt.bsw.environment import BSWEnvironment, load_bsw_environment
 from pygnss_rt.core.exceptions import BSWError
+from pygnss_rt.core.paths import get_paths
 from pygnss_rt.utils.dates import GNSSDate
 from pygnss_rt.utils.logging import get_logger
 
 
 logger = get_logger(__name__)
 
-# Default path to SESSIONS.SES template file
-DEFAULT_SESSIONS_FILE = Path(__file__).parent.parent.parent / "info" / "SESSIONS.SES"
+# Default path to SESSIONS.SES template file (from station_data directory)
+DEFAULT_SESSIONS_FILE = get_paths().station_data_dir / "SESSIONS.SES"
 
 
 @dataclass
@@ -260,14 +261,14 @@ class BPERunner:
             (campaign_dir / subdir).mkdir(parents=True, exist_ok=True)
 
         gen_dir = campaign_dir / "GEN"
-        info_dir = Path(__file__).parent.parent.parent / "info"
+        station_data_dir = get_paths().station_data_dir
 
         # Essential GEN files to copy if missing
         essential_gen_files = [
             ("SESSIONS.SES", sessions_file or DEFAULT_SESSIONS_FILE),
-            ("ANTENNA_I20.PCV", info_dir / "ANTENNA_I20.PCV"),
-            ("I20.ATX", info_dir / "I20.ATX"),
-            ("SINEX_PPP.SKL", info_dir / "SINEX_PPP.SKL"),
+            ("ANTENNA_I20.PCV", station_data_dir / "ANTENNA_I20.PCV"),
+            ("I20.ATX", station_data_dir / "I20.ATX"),
+            ("SINEX_PPP.SKL", station_data_dir / "SINEX_PPP.SKL"),
         ]
 
         for dest_name, src_path in essential_gen_files:
@@ -824,19 +825,91 @@ class BPERunner:
             )
 
 
-def parse_bsw_options_xml(xml_path: Path) -> dict[str, dict[str, dict[str, str]]]:
-    """Parse BSW options XML file.
+def parse_bsw_options_file(config_path: Path) -> dict[str, dict[str, dict[str, str]]]:
+    """Parse BSW options from YAML or XML file.
 
-    Parses the iGNSS XML format:
-    <recipe>
-        <bernOptions>
-            <D_PPPGEN>  (or PPP_GEN)
-                <CODSPP>
-                    <key1>value1</key1>
-                </CODSPP>
-            </D_PPPGEN>
-        </bernOptions>
-    </recipe>
+    Supports both YAML (preferred) and XML (legacy) formats.
+
+    YAML format:
+        bern_options:
+            D_PPPGEN:
+                CODSPP:
+                    key1: value1
+
+    XML format:
+        <recipe>
+            <bernOptions>
+                <D_PPPGEN>
+                    <CODSPP>
+                        <key1>value1</key1>
+                    </CODSPP>
+                </D_PPPGEN>
+            </bernOptions>
+        </recipe>
+
+    Args:
+        config_path: Path to YAML or XML file
+
+    Returns:
+        Nested dict: opt_dir -> inp_file -> key -> value
+    """
+    path = Path(config_path)
+
+    # Try YAML first
+    yaml_path = path.with_suffix('.yaml')
+    xml_path = path.with_suffix('.xml')
+
+    if yaml_path.exists():
+        return _parse_bsw_options_yaml(yaml_path)
+    elif path.suffix == '.yaml' and path.exists():
+        return _parse_bsw_options_yaml(path)
+    elif xml_path.exists():
+        return _parse_bsw_options_xml(xml_path)
+    elif path.exists():
+        if path.suffix == '.yaml':
+            return _parse_bsw_options_yaml(path)
+        else:
+            return _parse_bsw_options_xml(path)
+
+    return {}
+
+
+def _parse_bsw_options_yaml(yaml_path: Path) -> dict[str, dict[str, dict[str, str]]]:
+    """Parse BSW options from YAML file.
+
+    Args:
+        yaml_path: Path to YAML file
+
+    Returns:
+        Nested dict: opt_dir -> inp_file -> key -> value
+    """
+    import yaml
+
+    if not yaml_path.exists():
+        return {}
+
+    with open(yaml_path) as f:
+        data = yaml.safe_load(f)
+
+    result: dict[str, dict[str, dict[str, str]]] = {}
+
+    bern_opts = data.get("bern_options", {})
+
+    for opt_name, opt_data in bern_opts.items():
+        result[opt_name] = {}
+        if isinstance(opt_data, dict):
+            for inp_name, inp_data in opt_data.items():
+                result[opt_name][inp_name] = {}
+                if isinstance(inp_data, dict):
+                    for key_name, key_value in inp_data.items():
+                        # Convert to string for consistency
+                        result[opt_name][inp_name][key_name] = str(key_value) if key_value is not None else ""
+
+    return result
+
+
+def _parse_bsw_options_xml(xml_path: Path) -> dict[str, dict[str, dict[str, str]]]:
+    """Parse BSW options from XML file (legacy format).
 
     Args:
         xml_path: Path to XML file
@@ -880,3 +953,12 @@ def parse_bsw_options_xml(xml_path: Path) -> dict[str, dict[str, dict[str, str]]
                 result[opt_name][inp_name][key_name] = key_value.strip()
 
     return result
+
+
+# Backward compatibility alias
+def parse_bsw_options_xml(xml_path: Path) -> dict[str, dict[str, dict[str, str]]]:
+    """Parse BSW options file (backward compatibility alias).
+
+    Now supports both YAML and XML formats.
+    """
+    return parse_bsw_options_file(xml_path)

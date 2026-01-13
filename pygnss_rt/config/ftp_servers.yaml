@@ -270,6 +270,7 @@ provider_priority:
     ion: [CODE]
 
   stations:
+    # CDDIS (RINEX3) is primary, fallback to FTP servers (RINEX2) if not available
     igs: [CDDIS, BKGE_IGS, IGN_IGS, SOPAC]
     euref: [BKGE_EUREF, CDDIS]
     uk: [OSGB, CDDIS]

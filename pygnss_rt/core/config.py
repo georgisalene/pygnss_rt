@@ -62,7 +62,7 @@ class DataConfig(BaseModel):
 
     oedc_dir: Path = Field(default=Path("data/oedc"))
     rinex_dir: Path = Field(default=Path("data/rinex"))
-    info_dir: Path = Field(default=Path("info"))
+    station_data_dir: Path = Field(default=Path("station_data"))
 
 
 class ProcessingConfig(BaseModel):

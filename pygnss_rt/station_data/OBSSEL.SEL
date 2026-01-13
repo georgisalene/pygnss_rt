@@ -1,0 +1,83 @@
+GNSS observation selection for Bernese GNSS Software Version 5.3     06-Jan-2021
+--------------------------------------------------------------------------------
+
+Format version:  1.00
+
+Bias convention       S/S  O/F  OBS
+********************  ***  ***  ***
+GPS                   G    C1   C1W
+                      G    C2   C2W
+
+GLONASS               R    C1   C1P
+                      R    C2   C2P
+
+GALILEO               E    C1   C1C
+                      E    C2   C5Q
+
+BEIDOU                C    C1   C2I
+                      C    C2   C6I
+
+QZSS                  J    C1   C1C
+                      J    C2   C2L
+
+Receiver type         S/S  O/F  RINEX observation codes and their priority
+********************  ***  ***  *** *** *** *** *** *** *** *** *** *** *** ***
+DEFAULT               G    L1   L1W L1C L1X
+                      G    L2   L2W L2C L2D L2P L2X L2S L2L
+                      G    C1   C1W C1C C1X
+                      G    C2   C2W C2C C2D C2P C2X C2S C2L
+                      R    L1   L1P L1C L1X
+                      R    L2   L2P L2C L2X
+                      R    C1   C1P C1C C1X
+                      R    C2   C2P C2C C2X
+                      E    L1   L1C L1X
+                      E    L2   L5Q L5X L5I
+                      E    C1   C1C C1X
+                      E    C2   C5Q C5X C5I
+                      C    L1   L2I L2X
+                      C    L2   L6I L6X
+                      C    C1   C2I C2X
+                      C    C2   C6I C6X
+                      J    L1   L1C L1X
+                      J    L2   L2L L2S L2X
+                      J    C1   C1C C1X
+                      J    C2   C2L C2S C2X
+
+SIMULA DEFAULT        G    L1   L1W L1C L1X
+                      G    L2   L2W L2C L2D L2P L2X
+                      G    C1   C1W C1C C1X
+                      G    C2   C2W C2C C2D C2P C2X
+                      R    L1   L1P L1C L1X
+                      R    L2   L2P L2C L2X
+                      R    C1   C1P C1C C1X
+                      R    C2   C2P C2C C2X
+
+SIMULA                G    L1    1P
+                      G    L2    2P
+                      G    C1    1P
+                      G    C2    2P
+                      R    L1    1P
+                      R    L2    2P
+                      R    C1    1P
+                      R    C2    2P
+                      E    L1    1C
+                      E    L2    5Q
+                      E    C1    1C
+                      E    C2    5Q
+
+Special receivers     Xcor 1frq C1   C2
+********************  *    *    *    *
+3SNAV*                          X     
+AOA ICS-4000Z         X         X     
+ASHTECH PF500                   X     
+IFEN*                           X     
+LEICA*                          X     
+MINIMAC 2816AT             X    X     
+NOV*                            X     
+ROGUE*                X         X     
+SPP GEOTRACER100      X         X     
+TOPCON GP-DX1         X         X     
+TOPCON TT4000SSI      X         X     
+TRIMBLE*                        X     
+TRIMBLE 4000SS*       X         X     
+

@@ -1,22 +1,31 @@
 """
-BSW (Bernese GNSS Software) Options XML Parser.
+BSW (Bernese GNSS Software) Options Parser.
 
-Parses BSW processing options from XML files used by i-GNSS caller scripts.
-Each XML file contains Bernese program configurations organized by processing step.
+Parses BSW processing options from YAML or XML configuration files.
+Each file contains Bernese program configurations organized by processing step.
 
-XML Structure:
+YAML Structure (preferred):
+    recipe:
+      target: Processor
+      version: "1.0"
+    bern_options:
+      STEP_NAME:           # Processing step (e.g., D_PPPGEN, NRDDPGEN)
+        PROGRAM:           # BSW program (e.g., POLUPD, ORBGEN, GPSEST)
+          OPTION: value    # Program option
+
+XML Structure (legacy):
     <recipe target="Processor" version="1.0">
         <bernOptions>
-            <STEP_NAME>           # Processing step (e.g., D_PPPGEN, NRDDPGEN)
-                <PROGRAM>         # BSW program (e.g., POLUPD, ORBGEN, GPSEST)
-                    <OPTION>value</OPTION>  # Program option
+            <STEP_NAME>
+                <PROGRAM>
+                    <OPTION>value</OPTION>
                 </PROGRAM>
             </STEP_NAME>
         </bernOptions>
     </recipe>
 
 Variable Substitution:
-    The XML uses Bernese-style placeholders that get substituted at runtime:
+    The config files use Bernese-style placeholders that get substituted at runtime:
     - $Y+0, $Y      : 4-digit year (e.g., 2024)
     - $YY, $y2c     : 2-digit year (e.g., 24)
     - $D+0, $D      : 3-digit DOY (e.g., 260)
@@ -32,7 +41,8 @@ Usage:
     from pygnss_rt.processing.bsw_options import BSWOptionsParser
 
     parser = BSWOptionsParser()
-    parser.load("callers/iGNSS_D_PPP_AR_IG_IGS54_direct.xml")
+    # Load YAML (preferred) or XML
+    parser.load("bsw_configs/iGNSS_D_PPP_AR_IG_IGS54_direct.yaml")
 
     # Get all options for a processing step
     ppp_gen = parser.get_step_options("D_PPPGEN")
@@ -57,6 +67,8 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 
 @dataclass
@@ -168,24 +180,106 @@ class BSWOptionsParser:
         """Get the loaded configuration."""
         return self._config
 
-    def load(self, xml_path: Path | str) -> BSWOptionsConfig:
-        """Load and parse BSW options from XML file.
+    def load(self, config_path: Path | str) -> BSWOptionsConfig:
+        """Load and parse BSW options from YAML or XML file.
+
+        Supports both YAML (preferred) and XML (legacy) formats.
+        If given a .xml path, will first try to load .yaml version if it exists.
 
         Args:
-            xml_path: Path to the BSW options XML file
+            config_path: Path to the BSW options file (YAML or XML)
 
         Returns:
             Parsed BSWOptionsConfig
 
         Raises:
-            FileNotFoundError: If XML file doesn't exist
+            FileNotFoundError: If config file doesn't exist
+            yaml.YAMLError: If YAML is malformed
             ET.ParseError: If XML is malformed
         """
-        path = Path(xml_path)
-        if not path.exists():
-            raise FileNotFoundError(f"BSW options XML not found: {path}")
+        path = Path(config_path)
 
-        self._xml_tree = ET.parse(path)
+        # Try YAML first (preferred format)
+        yaml_path = path.with_suffix('.yaml')
+        xml_path = path.with_suffix('.xml')
+
+        if yaml_path.exists():
+            return self._load_yaml(yaml_path)
+        elif path.suffix == '.yaml':
+            raise FileNotFoundError(f"BSW options YAML not found: {yaml_path}")
+        elif xml_path.exists():
+            return self._load_xml(xml_path)
+        elif path.exists():
+            # Try to determine format from content
+            if path.suffix == '.xml':
+                return self._load_xml(path)
+            else:
+                return self._load_yaml(path)
+        else:
+            raise FileNotFoundError(f"BSW options file not found: {path}")
+
+    def _load_yaml(self, yaml_path: Path) -> BSWOptionsConfig:
+        """Load BSW options from YAML file.
+
+        Args:
+            yaml_path: Path to YAML file
+
+        Returns:
+            Parsed BSWOptionsConfig
+        """
+        with open(yaml_path) as f:
+            data = yaml.safe_load(f)
+
+        # Parse recipe section
+        recipe = data.get("recipe", {})
+        target = recipe.get("target", "Processor")
+        version = str(recipe.get("version", "1.0"))
+        author = recipe.get("author", "")
+
+        self._config = BSWOptionsConfig(
+            xml_path=yaml_path,  # Using xml_path for backward compatibility
+            target=target,
+            version=version,
+            author=author,
+        )
+
+        # Parse bern_options section
+        bern_options = data.get("bern_options", {})
+        self._parse_yaml_bern_options(bern_options)
+
+        return self._config
+
+    def _parse_yaml_bern_options(self, bern_options: dict) -> None:
+        """Parse bern_options from YAML dict."""
+        if self._config is None:
+            return
+
+        for step_name, step_data in bern_options.items():
+            step_options = BSWStepOptions(step_name=step_name)
+
+            if isinstance(step_data, dict):
+                for program_name, program_data in step_data.items():
+                    program_options = BSWProgramOptions(program_name=program_name)
+
+                    if isinstance(program_data, dict):
+                        for opt_name, opt_value in program_data.items():
+                            # Convert values to strings for consistency
+                            program_options.options[opt_name] = str(opt_value) if opt_value is not None else ""
+
+                    step_options.programs[program_name] = program_options
+
+            self._config.steps[step_name] = step_options
+
+    def _load_xml(self, xml_path: Path) -> BSWOptionsConfig:
+        """Load BSW options from XML file (legacy format).
+
+        Args:
+            xml_path: Path to XML file
+
+        Returns:
+            Parsed BSWOptionsConfig
+        """
+        self._xml_tree = ET.parse(xml_path)
         self._xml_root = self._xml_tree.getroot()
 
         # Parse recipe attributes
@@ -194,7 +288,7 @@ class BSWOptionsParser:
         author = self._xml_root.get("author", "")
 
         self._config = BSWOptionsConfig(
-            xml_path=path,
+            xml_path=xml_path,
             target=target,
             version=version,
             author=author,
