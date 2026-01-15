@@ -53,9 +53,9 @@ dev = [
 pygnss-rt = "pygnss_rt.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/pygnss-rt"
-Documentation = "https://github.com/yourusername/pygnss-rt#readme"
-Repository = "https://github.com/yourusername/pygnss-rt"
+Homepage = "https://github.com/georgisalene/pygnss_rt"
+Documentation = "https://github.com/georgisalene/pygnss_rt#readme"
+Repository = "https://github.com/georgisalene/pygnss_rt"
 
 [tool.setuptools.packages.find]
 where = ["."]
