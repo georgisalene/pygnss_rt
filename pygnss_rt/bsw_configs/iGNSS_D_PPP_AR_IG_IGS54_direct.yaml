@@ -112,7 +112,7 @@ bern_options:
       RADIO_FR: '1'
       RNXOUTVERS: '3.05'
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '1'
       USE_C: '1'
@@ -317,7 +317,7 @@ bern_options:
       ANTOFF: '0'
       SATSELECT: ALL_SATELLITES
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '1'
       USE_C: '1'
@@ -425,7 +425,7 @@ bern_options:
       CYCEVT: '0.001'
       MAXEVT: '20'
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '1'
       USE_C: '1'
@@ -504,7 +504,7 @@ bern_options:
       AUXPHS: RXOBV3$J
       TITLE: PPP_$YYYSS+0
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '1'
       USE_C: '1'
@@ -634,7 +634,7 @@ bern_options:
       SYSERR: ERROR
       TITLE: 'PPP_$YYYSS+0_$(FFFF): Receiver clock synchronization'
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
@@ -791,7 +791,7 @@ bern_options:
       RGBOUT: ''
       TITLE: 'PPP_$YYYSS+0_$(FFFF)_$(FL): Single station solution'
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
@@ -1646,7 +1646,7 @@ bern_options:
       SYSERR: ERROR
       TITLE: 'PPP_$YYYSS+0_$(FFFF): Receiver clock synchronization'
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
@@ -1838,7 +1838,7 @@ bern_options:
       CYCEVT: '0.001'
       MAXEVT: '20'
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '1'
       USE_C: '1'
@@ -1917,7 +1917,7 @@ bern_options:
       AUXPHS: RXOBV3$J
       TITLE: PPP_$YYYSS+0
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: ''
       USE_C: ''
@@ -2102,7 +2102,7 @@ bern_options:
       RGBOUT: ''
       TITLE: SCRIPT
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
@@ -2132,7 +2132,7 @@ bern_options:
       TROPOS_S: MENDES-PAVLIS
       AMBSTRAT: SIGMA
       USEAR_G: '1'
-      USEAR_R: '1'
+      USEAR_R: '0'
       USEAR_E: '1'
       USEAR_S: ''
       USEAR_C: ''
@@ -2626,7 +2626,7 @@ bern_options:
       TITLE: 'PPP: Ambiguity Resolution Statistics'
       WHAT: AMBIGUITIES
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '1'
       USE_C: '1'
@@ -2737,7 +2737,7 @@ bern_options:
       RGBOUT: ''
       TITLE: 'PPP_$YYYSS+0_$(FFFF): COMPUTATION OF AMBIGUITY-FIXED SOLUTION'
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
