@@ -50,65 +50,14 @@
 }
 
 % =============================================================================
-% COLORFUL CODE LISTING STYLES
+% CODE LISTING STYLES (for YAML/Bash examples)
 % =============================================================================
-% Define vibrant colors
 \definecolor{codebackground}{RGB}{250,250,252}
 \definecolor{codekeyword}{RGB}{0,119,170}
 \definecolor{codestring}{RGB}{170,55,90}
 \definecolor{codecomment}{RGB}{60,128,60}
-\definecolor{codenumber}{RGB}{150,100,0}
-\definecolor{codefunction}{RGB}{153,51,153}
-\definecolor{codedecorator}{RGB}{200,80,0}
-\definecolor{codeself}{RGB}{180,60,60}
-\definecolor{codetype}{RGB}{20,120,80}
-\definecolor{codeoperator}{RGB}{104,34,139}
 \definecolor{codeframe}{RGB}{200,200,210}
 \definecolor{codelinenumber}{RGB}{130,130,150}
-
-% Enhanced Python style with more colors
-\lstdefinestyle{colorfulpython}{
-    language=Python,
-    backgroundcolor=\color{codebackground},
-    basicstyle=\ttfamily\small,
-    keywordstyle=\color{codekeyword}\bfseries,
-    keywordstyle=[2]\color{codefunction}\bfseries,
-    keywordstyle=[3]\color{codedecorator},
-    stringstyle=\color{codestring},
-    commentstyle=\color{codecomment}\itshape,
-    numberstyle=\tiny\color{codelinenumber},
-    breakatwhitespace=false,
-    breaklines=true,
-    captionpos=b,
-    keepspaces=true,
-    numbers=left,
-    numbersep=8pt,
-    showspaces=false,
-    showstringspaces=false,
-    showtabs=false,
-    tabsize=4,
-    frame=single,
-    framerule=0.5pt,
-    rulecolor=\color{codeframe},
-    xleftmargin=15pt,
-    framexleftmargin=15pt,
-    framexrightmargin=0pt,
-    framextopmargin=3pt,
-    framexbottommargin=3pt,
-    aboveskip=12pt,
-    belowskip=8pt,
-    % Additional keywords
-    morekeywords={self, cls, True, False, None, async, await, yield, lambda, with, as, assert, pass, raise, try, except, finally, import, from, global, nonlocal},
-    morekeywords=[2]{__init__, __str__, __repr__, __call__, __enter__, __exit__, __iter__, __next__, property, staticmethod, classmethod, dataclass, field},
-    morekeywords=[3]{@property, @staticmethod, @classmethod, @dataclass},
-    emph={int, str, float, bool, list, dict, tuple, set, Path, datetime, Any, Optional, Union, Callable},
-    emphstyle=\color{codetype},
-    literate=
-        {->}{{\textcolor{codeoperator}{->}}}2
-        {=>}{{\textcolor{codeoperator}{=>}}}2
-        {|}{{\textcolor{codeoperator}{|}}}1
-        {:=}{{\textcolor{codeoperator}{:=}}}2
-}
 
 % YAML style
 \lstdefinestyle{yamlstyle}{
@@ -148,8 +97,6 @@
     xleftmargin=15pt,
     framexleftmargin=15pt,
 }
-
-\lstset{style=colorfulpython}
 
 % =============================================================================
 % CUSTOM COMMANDS
@@ -193,14 +140,14 @@
     \Huge\textbf{\color{blue!70!black}PyGNSS-RT}\\[0.3cm]
     \LARGE\textbf{Technical Design Document}\\[0.5cm]
     \Large Python-Based Real-Time PPP-AR GNSS Positioning System\\[0.3cm]
-    \large Comprehensive Technical Specification with Full Source Code\\[1cm]
+    \large Technical Specification and Architecture\\[1cm]
     \normalsize
     \begin{tikzpicture}
         \node[draw=blue!50, fill=blue!5, rounded corners=5pt, inner sep=10pt] {
             \begin{tabular}{l}
                 \textbf{Repository:} \url{https://github.com/georgisalene/pygnss_rt}\\
-                \textbf{Version:} \texttt{v1.4.0-GE}\\
-                \textbf{Python Files:} 75 modules $\bullet$ \textbf{Lines of Code:} 46,945
+                \textbf{Version:} \texttt{v1.4.0-GRE}\\
+                \textbf{Configuration:} GPS + GLONASS + Galileo (GRE)
             \end{tabular}
         };
     \end{tikzpicture}
@@ -228,7 +175,7 @@ This document provides a comprehensive technical specification for the \texttt{p
 \noindent
 \textbf{Key Features:}
 \begin{itemize}[noitemsep,topsep=0pt]
-    \item Multi-GNSS support: GPS (G) + Galileo (E) combination for optimal AR
+    \item Multi-GNSS support: GPS (G) + GLONASS (R) + Galileo (E) triple-constellation
     \item VMF3 Vienna Mapping Functions for tropospheric modeling
     \item CODE OSB (Observable-Specific Signal Biases) for phase bias consistency
     \item LAMBDA-based integer ambiguity resolution
@@ -243,13 +190,12 @@ This document provides a comprehensive technical specification for the \texttt{p
 
 \vspace{0.5cm}
 \noindent
-This document includes the complete source code with colorful syntax highlighting, mathematical formulations, and architectural diagrams for all major system components.
+This document describes the system architecture, mathematical formulations, processing workflows, and configuration options.
 \end{abstract}
 
 \tableofcontents
 \listoffigures
 \listoftables
-\lstlistoflistings
 
 % =============================================================================
 % CHAPTER 1: INTRODUCTION
@@ -274,10 +220,10 @@ This technical design document serves as the authoritative reference for the \te
 
 \begin{itemize}
     \item \textbf{Complete mathematical formulations} for PPP-AR processing
-    \item \textbf{Full source code} with colorful syntax highlighting (75 Python modules, 46,945 lines)
     \item \textbf{System architecture} and data flow specifications
     \item \textbf{Implementation details} for atmospheric and bias modeling
     \item \textbf{Ambiguity resolution algorithms} and validation strategies
+    \item \textbf{Configuration reference} for Bernese integration
 \end{itemize}
 
 \section{System Overview}
@@ -292,37 +238,37 @@ The \texttt{pygnss\_rt} package implements a sophisticated orchestration framewo
 \toprule
 \textbf{Feature} & \textbf{Implementation} & \textbf{Status} \\
 \midrule
-Multi-GNSS Processing & GPS + Galileo (GE) & \textcolor{green!60!black}{\checkmark Active} \\
+Multi-GNSS Processing & GPS + GLONASS + Galileo (GRE) & \textcolor{green!60!black}{\checkmark Active} \\
 PPP-AR & CODE OSB + LAMBDA & \textcolor{green!60!black}{\checkmark Active} \\
 Troposphere Modeling & VMF3 + ZTD estimation & \textcolor{green!60!black}{\checkmark Active} \\
 Product Downloads & CDDIS, CODE, IGN & \textcolor{green!60!black}{\checkmark Active} \\
 IWV Derivation & Bevis formulation & \textcolor{green!60!black}{\checkmark Active} \\
 Network Support & 5 networks (IG/EU/GB/RG/SS) & \textcolor{green!60!black}{\checkmark Active} \\
-GLONASS AR & FDMA IFB handling & \textcolor{orange!80!black}{Disabled (BSW 5.4 limit)} \\
+GLONASS AR & GLORES: ALWAYS & \textcolor{green!60!black}{\checkmark Active} \\
 BeiDou AR & DCB complexity & \textcolor{red!60!black}{$\times$ Not implemented} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Codebase Statistics}
+\section{GRE Configuration}
+
+The system uses a triple-constellation configuration with special handling for the BSW 5.4 CODSPP 2-GNSS limitation:
 
 \begin{table}[H]
 \centering
-\caption{Source Code Statistics}
-\label{tab:codestats}
-\begin{tabular}{@{}lr@{}}
+\caption{GRE Processing Configuration}
+\label{tab:greconfig}
+\begin{tabular}{@{}llll@{}}
 \toprule
-\textbf{Metric} & \textbf{Value} \\
+\textbf{Program} & \textbf{GPS} & \textbf{GLONASS} & \textbf{Galileo} \\
 \midrule
-Total Python Files & 75 \\
-Total Lines of Code & 46,945 \\
-Main Packages & 9 \\
-Unit Tests & 26 \\
-YAML Config Files & 7 \\
-BSW Interface Modules & 5 \\
+CODSPP (clock sync) & \checkmark & -- & -- \\
+GPSEST (PPP-AR) & \checkmark & \checkmark & \checkmark \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+This approach mirrors the proven double-difference processing strategy where CODSPP uses GPS-only for initial clock synchronization, while GPSEST performs full GRE processing.
 
 % =============================================================================
 % CHAPTER 2: SYSTEM ARCHITECTURE
@@ -443,129 +389,6 @@ The \texttt{pygnss\_rt} package is organized into functional modules:
 
 The CLI module (\pyfile{cli.py}) provides a modern Click-based interface for all PyGNSS-RT operations.
 
-\begin{lstlisting}[caption={CLI Main Entry Point (cli.py)}, label={lst:cli-main}]
-"""
-Command-line interface for PyGNSS-RT.
-
-Provides a modern CLI using Click for running GNSS processing,
-data downloads, and other operations.
-"""
-
-from __future__ import annotations
-
-import sys
-from datetime import datetime
-from pathlib import Path
-
-import click
-
-from pygnss_rt import __version__
-
-
-@click.group()
-@click.version_option(version=__version__, prog_name="PyGNSS-RT")
-@click.option(
-    "--config", "-c",
-    type=click.Path(exists=True, path_type=Path),
-    help="Path to configuration file",
-)
-@click.option(
-    "--verbose", "-v",
-    is_flag=True,
-    help="Enable verbose output",
-)
-@click.option(
-    "--debug",
-    is_flag=True,
-    help="Enable debug mode",
-)
-@click.pass_context
-def cli(ctx: click.Context, config: Path | None, verbose: bool, debug: bool) -> None:
-    """PyGNSS-RT: Python GNSS Real-Time Processing System
-
-    A modern Python framework for real-time GNSS data processing and analysis,
-    integrating with Bernese GNSS Software for PPP and tropospheric
-    parameter estimation.
-    """
-    ctx.ensure_object(dict)
-    ctx.obj["config"] = config
-    ctx.obj["verbose"] = verbose
-    ctx.obj["debug"] = debug
-
-    if debug:
-        import logging
-        logging.basicConfig(level=logging.DEBUG)
-\end{lstlisting}
-
-\section{Daily PPP Command}
-
-\begin{lstlisting}[caption={Daily PPP Command Implementation}, label={lst:cli-dailyppp}]
-@cli.command()
-@click.argument("network", type=click.Choice(["IG", "EU", "GB", "RG", "SS"]))
-@click.option("--start-date", "-s", type=str, required=True,
-              help="Start date (YYYY-MM-DD)")
-@click.option("--end-date", "-e", type=str, required=True,
-              help="End date (YYYY-MM-DD)")
-@click.option("--stations", "-S", type=str, help="Comma-separated stations")
-@click.option("--exclude", "-x", type=str, help="Stations to exclude")
-@click.option("--skip-products", is_flag=True, help="Skip product download")
-@click.option("--skip-data", is_flag=True, help="Skip station data download")
-@click.option("--skip-dcm", is_flag=True, help="Skip DCM archiving")
-@click.option("--dry-run", is_flag=True, help="Show what would be done")
-@click.pass_context
-def daily_ppp(
-    ctx: click.Context,
-    network: str,
-    start_date: str,
-    end_date: str,
-    stations: str | None,
-    exclude: str | None,
-    skip_products: bool,
-    skip_data: bool,
-    skip_dcm: bool,
-    dry_run: bool,
-) -> None:
-    """Run daily PPP-AR processing for a network.
-
-    NETWORK: Network identifier (IG, EU, GB, RG, SS)
-
-    Examples:
-        pygnss_rt daily-ppp IG -s 2025-12-23 -e 2025-12-23
-        pygnss_rt daily-ppp EU -s 2025-01-01 -e 2025-01-31
-    """
-    from pygnss_rt.processing.daily_ppp import DailyPPPProcessor, DailyPPPArgs
-    from pygnss_rt.utils.dates import GNSSDate
-
-    # Parse dates
-    start = GNSSDate.from_string(start_date)
-    end = GNSSDate.from_string(end_date)
-
-    # Build arguments
-    args = DailyPPPArgs(
-        network_id=network,
-        start_date=start,
-        end_date=end,
-        stations=stations.split(",") if stations else [],
-        exclude_stations=exclude.split(",") if exclude else [],
-        skip_products=skip_products,
-        skip_data=skip_data,
-        skip_dcm=skip_dcm,
-        dry_run=dry_run,
-        verbose=ctx.obj.get("verbose", False),
-    )
-
-    # Run processor
-    processor = DailyPPPProcessor(args)
-    results = processor.process()
-
-    # Print summary
-    success_count = sum(1 for r in results if r.success)
-    print(f"\n{'='*50}")
-    print(f"PROCESSING SUMMARY")
-    print(f"{'='*50}")
-    print(f"Total: {success_count}/{len(results)} days successful")
-\end{lstlisting}
-
 \section{Available Commands}
 
 \begin{table}[H]
@@ -586,6 +409,31 @@ def daily_ppp(
 \end{tabular}
 \end{table}
 
+\section{Command Options}
+
+\subsection{daily-ppp Command}
+
+\begin{table}[H]
+\centering
+\caption{daily-ppp Command Options}
+\label{tab:dailyppp-options}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{Option} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\code{NETWORK} & Choice & Network identifier (IG, EU, GB, RG, SS) \\
+\code{-s, --start-date} & String & Start date (YYYY-MM-DD) \\
+\code{-e, --end-date} & String & End date (YYYY-MM-DD) \\
+\code{-S, --stations} & String & Comma-separated station list \\
+\code{-x, --exclude} & String & Stations to exclude \\
+\code{--skip-products} & Flag & Skip product download \\
+\code{--skip-data} & Flag & Skip station data download \\
+\code{--skip-dcm} & Flag & Skip DCM archiving \\
+\code{--dry-run} & Flag & Show what would be done \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 % =============================================================================
 % CHAPTER 4: DAILY PPP PROCESSOR
 % =============================================================================
@@ -593,236 +441,48 @@ def daily_ppp(
 
 \section{Module Overview}
 
-The daily PPP processor (\pyfile{processing/daily\_ppp.py}) implements the unified daily PPP-AR processing workflow, replacing five separate Perl caller scripts.
+The daily PPP processor (\pyfile{processing/daily\_ppp.py}) implements the unified daily PPP-AR processing workflow, replacing five separate Perl caller scripts:
 
-\begin{lstlisting}[caption={Daily PPP Processor Core Classes}, label={lst:dailyppp}]
-"""
-Daily PPP (Precise Point Positioning) processor.
+\begin{itemize}
+    \item \code{iGNSS\_D\_PPP\_AR\_IG\_IGS54\_direct\_NRT.pl} -- IGS stations
+    \item \code{iGNSS\_D\_PPP\_AR\_EU\_IGS54\_direct\_NRT.pl} -- EUREF stations
+    \item \code{iGNSS\_D\_PPP\_AR\_GB\_IGS54\_direct\_NRT.pl} -- GB stations
+    \item \code{iGNSS\_D\_PPP\_AR\_RG\_IGS54\_direct\_NRT.pl} -- RGP France stations
+    \item \code{iGNSS\_D\_PPP\_AR\_SS\_IGS54\_direct\_NRT.pl} -- Supersites
+\end{itemize}
 
-Unified implementation for daily PPP processing across all networks.
-Replaces the 5 Perl caller scripts:
-- iGNSS_D_PPP_AR_IG_IGS54_direct_NRT.pl
-- iGNSS_D_PPP_AR_EU_IGS54_direct_NRT.pl
-- iGNSS_D_PPP_AR_GB_IGS54_direct_NRT.pl
-- iGNSS_D_PPP_AR_RG_IGS54_direct_NRT.pl
-- iGNSS_D_PPP_AR_SS_IGS54_direct_NRT.pl
-"""
+\section{Processing Workflow}
 
-from __future__ import annotations
+The daily PPP processor follows this workflow:
 
-import os
-import shutil
-import subprocess
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any
+\begin{enumerate}
+    \item \textbf{Download Products} -- Orbit (SP3), Clock (CLK), ERP, BIA/OSB, VMF3
+    \item \textbf{Download Station Data} -- RINEX observations from FTP servers
+    \item \textbf{Setup Campaign} -- Create BSW campaign directory structure
+    \item \textbf{Run BSW Processing} -- Execute BPE with GPSEST for PPP-AR
+    \item \textbf{DCM Archiving} -- Archive results and clean up
+\end{enumerate}
 
-from pygnss_rt.core.paths import PathConfig, get_paths
-from pygnss_rt.processing.networks import (
-    NetworkID,
-    NetworkProfile,
-    get_network_profile,
-)
-from pygnss_rt.utils.dates import GNSSDate
+\section{Result Structure}
 
-
-@dataclass
-class DailyPPPResult:
-    """Result of a daily PPP processing run."""
-
-    network_id: str
-    session_name: str
-    date: GNSSDate
-    success: bool
-    stations_processed: int = 0
-    stations_total: int = 0
-    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    end_time: datetime | None = None
-    error_message: str = ""
-    output_files: list[str] = field(default_factory=list)
-
-    @property
-    def duration_seconds(self) -> float:
-        """Get processing duration in seconds."""
-        if self.end_time:
-            return (self.end_time - self.start_time).total_seconds()
-        return 0.0
-
-
-@dataclass
-class DailyPPPArgs:
-    """Arguments for daily PPP processing."""
-
-    # Network selection
-    network_id: NetworkID | str
-
-    # Date range
-    start_date: GNSSDate | None = None
-    end_date: GNSSDate | None = None
-
-    # CRON mode settings
-    cron_mode: bool = False
-    latency_days: int = 21
-
-    # Station overrides
-    stations: list[str] = field(default_factory=list)
-    exclude_stations: list[str] = field(default_factory=list)
-
-    # Processing options
-    use_clockprep: bool = True
-    use_cc2noncc: bool = False
-
-    # Skip options
-    skip_products: bool = False
-    skip_data: bool = False
-    skip_dcm: bool = False
-
-    # Output control
-    dry_run: bool = False
-    verbose: bool = False
-\end{lstlisting}
-
-\section{Main Processor Class}
-
-\begin{lstlisting}[caption={DailyPPPProcessor Implementation}, label={lst:processor}]
-class DailyPPPProcessor:
-    """Daily PPP processor managing complete workflow."""
-
-    def __init__(self, args: DailyPPPArgs):
-        """Initialize processor with arguments."""
-        self.args = args
-        self.paths = get_paths()
-
-        # Get network profile
-        network_id = NetworkID(args.network_id) if isinstance(
-            args.network_id, str) else args.network_id
-        self.profile = get_network_profile(network_id)
-
-        # Initialize components
-        self.bpe_runner: BPERunner | None = None
-        self.downloader: ProductDownloader | None = None
-
-    def process(self) -> list[DailyPPPResult]:
-        """Run daily PPP processing for date range.
-
-        Returns:
-            List of results, one per day processed
-        """
-        results: list[DailyPPPResult] = []
-
-        if not self.args.start_date or not self.args.end_date:
-            raise ValueError("Start and end dates are required")
-
-        current = self.args.start_date
-        while current.mjd <= self.args.end_date.mjd:
-            result = self._process_single_day(current)
-            results.append(result)
-            current = current.add_days(1)
-
-        return results
-
-    def _process_single_day(self, date: GNSSDate) -> DailyPPPResult:
-        """Process a single day."""
-        result = DailyPPPResult(
-            network_id=self.profile.network_id.value,
-            session_name=self._get_session_name(date),
-            date=date,
-            success=False,
-        )
-
-        try:
-            # Step 1: Download products
-            if not self.args.skip_products:
-                self._check_products(date)
-
-            # Step 2: Download station data
-            if not self.args.skip_data:
-                stations = self._download_station_data(date)
-                result.stations_total = len(stations)
-
-            # Step 3: Setup campaign
-            campaign_root = self._setup_campaign(date)
-
-            # Step 4: Run BSW processing
-            bpe_result = self._run_bsw_processing(date, campaign_root)
-
-            if bpe_result.success:
-                result.success = True
-                result.stations_processed = bpe_result.sessions_finished
-
-                # Step 5: DCM archiving
-                if not self.args.skip_dcm:
-                    self._run_dcm(date, campaign_root)
-
-        except Exception as e:
-            result.error_message = str(e)
-
-        result.end_time = datetime.now(timezone.utc)
-        return result
-\end{lstlisting}
-
-\section{Product Download Integration}
-
-\begin{lstlisting}[caption={Product Download in Daily PPP}, label={lst:products}]
-def _check_products(self, date: GNSSDate) -> bool:
-    """Download required products for processing.
-
-    Downloads from CODE/CDDIS/IGN:
-    - SP3 orbit files
-    - CLK clock files
-    - ERP Earth rotation parameters
-    - BIA/OSB signal biases (for PPP-AR)
-    - ION ionosphere maps
-    - VMF3 troposphere grids
-    """
-    from pygnss_rt.data_access.product_downloader import ProductDownloader
-
-    downloader = ProductDownloader()
-    all_products_ok = True
-
-    # Get campaign directories
-    campaign_root = self.paths.campaign_dir / self._get_session_name(date)
-    orb_dir = campaign_root / "ORB"
-    orb_dir.mkdir(parents=True, exist_ok=True)
-
-    print(f"  Downloading products for {date.year}/{date.doy:03d}...")
-
-    # Download orbit (SP3)
-    print(f"  Downloading orbit file...")
-    orbit_result = downloader.download_orbit(date, provider="CODE")
-    if orbit_result.success:
-        print(f"    Orbit: {orbit_result.local_path.name}")
-        self._copy_product_to_campaign(orbit_result.local_path, orb_dir, date, "EPH")
-    else:
-        print(f"    Orbit download failed: {orbit_result.error_message}")
-        all_products_ok = False
-
-    # Download clock
-    print(f"  Downloading clock file...")
-    clock_result = downloader.download_clock(date, provider="CODE")
-    if clock_result.success:
-        print(f"    Clock: {clock_result.local_path.name}")
-
-    # Download BIA/OSB (Signal Biases for PPP-AR)
-    print(f"  Downloading BIA/OSB file...")
-    bia_result = downloader.download_bia(date, provider="CODE")
-    if bia_result.success:
-        print(f"    BIA: {bia_result.local_path.name}")
-        self._copy_product_to_campaign(bia_result.local_path, orb_dir, date, "BIA")
-    else:
-        print(f"    BIA download failed - PPP-AR may not work")
-
-    # Download VMF3 (Troposphere mapping functions)
-    print(f"  Downloading VMF3 files...")
-    grd_dir = campaign_root / "GRD"
-    grd_dir.mkdir(parents=True, exist_ok=True)
-    vmf_result = downloader.download_vmf3(date, destination=grd_dir)
-    if vmf_result.success:
-        print(f"    VMF3: {vmf_result.local_path.name}")
-
-    return all_products_ok
-\end{lstlisting}
+\begin{table}[H]
+\centering
+\caption{DailyPPPResult Fields}
+\label{tab:result-fields}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\code{network\_id} & str & Network identifier \\
+\code{session\_name} & str & Session name (e.g., 25357IG) \\
+\code{date} & GNSSDate & Processing date \\
+\code{success} & bool & Processing success flag \\
+\code{stations\_processed} & int & Number of stations processed \\
+\code{duration\_seconds} & float & Processing duration \\
+\code{output\_files} & list & List of output file paths \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % =============================================================================
 % CHAPTER 5: PRODUCT DOWNLOADER
@@ -833,234 +493,36 @@ def _check_products(self, date: GNSSDate) -> bool:
 
 The product downloader (\pyfile{data\_access/product\_downloader.py}) replaces the Perl FTP.pm module, providing unified download capabilities for all GNSS products.
 
-\begin{lstlisting}[caption={Product Downloader Core Classes}, label={lst:downloader}]
-"""
-GNSS Product Downloader.
+\section{Supported Products}
 
-Replaces Perl FTP.pm product download functionality.
-Provides unified download interface with:
-- Multi-source retry logic (CDDIS, CODE, IGN)
-- Compression handling (.Z, .gz, .zip)
-- Progress tracking
-"""
+\begin{table}[H]
+\centering
+\caption{GNSS Product Types}
+\label{tab:products}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Product} & \textbf{Format} & \textbf{Sources} & \textbf{Purpose} \\
+\midrule
+Orbit & SP3 & CDDIS, IGN, CODE & Satellite positions \\
+Clock & CLK & CDDIS, IGN, CODE & Satellite clock corrections \\
+ERP & ERP & CDDIS, IGN, CODE & Earth rotation parameters \\
+BIA/OSB & BIA & CDDIS, CODE & Signal biases for PPP-AR \\
+VMF3 & GRD & TU Wien & Troposphere mapping functions \\
+ION & ION & CDDIS, CODE & Ionosphere maps \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-from __future__ import annotations
+\section{Multi-Source Retry Logic}
 
-import gzip
-import shutil
-import subprocess
-import tempfile
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from pathlib import Path
+The downloader implements automatic retry logic across multiple servers:
 
-from pygnss_rt.data_access.ftp_client import FTPClient, SFTPClient
-from pygnss_rt.data_access.http_client import HTTPClient, CDDISClient
-from pygnss_rt.utils.dates import GNSSDate
-from pygnss_rt.utils.logging import get_logger
-
-
-logger = get_logger(__name__)
-
-
-class CompressionType(str, Enum):
-    """Compression types for GNSS files."""
-    NONE = ""
-    UNIX_Z = ".Z"
-    GZIP = ".gz"
-    ZIP = ".zip"
-
-
-class DownloadStatus(str, Enum):
-    """Status of a download operation."""
-    SUCCESS = "success"
-    NOT_FOUND = "not_found"
-    TIMEOUT = "timeout"
-    CONNECTION_ERROR = "connection_error"
-    DECOMPRESSION_ERROR = "decompression_error"
-    UNKNOWN_ERROR = "unknown_error"
-
-
-@dataclass
-class ProductDownloadResult:
-    """Result of a product download operation."""
-
-    status: DownloadStatus = DownloadStatus.UNKNOWN_ERROR
-    local_path: Path | None = None
-    remote_path: str = ""
-    source: str = ""
-    file_size: int = 0
-    compressed: bool = False
-    download_time_seconds: float = 0.0
-    error_message: str = ""
-
-    @property
-    def success(self) -> bool:
-        """Check if download was successful."""
-        return self.status == DownloadStatus.SUCCESS
-\end{lstlisting}
-
-\section{ProductDownloader Class}
-
-\begin{lstlisting}[caption={ProductDownloader Implementation}, label={lst:proddownloader}]
-class ProductDownloader:
-    """Downloads GNSS products from multiple sources.
-
-    Supports:
-    - IGS (CDDIS, IGN)
-    - CODE (ftp.aiub.unibe.ch)
-    - TU Wien VMF3
-    """
-
-    # Default server priorities
-    ORBIT_SOURCES = ["CDDIS", "IGN", "CODE"]
-    CLOCK_SOURCES = ["CDDIS", "IGN", "CODE"]
-    ERP_SOURCES = ["CDDIS", "IGN", "CODE"]
-    DCB_SOURCES = ["CODE", "CDDIS"]
-
-    def __init__(self, config: ProductDownloadConfig | None = None):
-        """Initialize product downloader."""
-        self.config = config or ProductDownloadConfig()
-        self.ftp_config = load_ftp_config()
-
-    def download_orbit(
-        self,
-        date: GNSSDate,
-        provider: str = "CODE",
-    ) -> ProductDownloadResult:
-        """Download SP3 orbit file.
-
-        Args:
-            date: GNSS date
-            provider: Provider ID (CODE, IGS)
-
-        Returns:
-            Download result with local path
-        """
-        gps_week = date.gps_week
-        paths = self._build_orbit_paths(date, provider)
-
-        return self._download_with_server_paths(
-            paths,
-            sources=self.ORBIT_SOURCES,
-            subdirectory=str(gps_week),
-        )
-
-    def download_bia(
-        self,
-        date: GNSSDate,
-        provider: str = "CODE",
-    ) -> ProductDownloadResult:
-        """Download BIA/OSB (Observable-Specific Signal Biases) file.
-
-        Required for PPP-AR (Precise Point Positioning with Ambiguity Resolution).
-        CODE OSB files contain multi-GNSS phase biases including GPS and Galileo.
-
-        Args:
-            date: GNSS date
-            provider: Provider ID (CODE recommended)
-
-        Returns:
-            Download result
-        """
-        gps_week = date.gps_week
-        paths = self._build_bia_paths(date, provider)
-
-        return self._download_with_server_paths(
-            paths,
-            sources=["CDDIS", "IGN", "CODE"],
-            subdirectory=str(gps_week),
-        )
-
-    def download_vmf3(
-        self,
-        date: GNSSDate,
-        destination: Path | None = None,
-    ) -> ProductDownloadResult:
-        """Download VMF3 troposphere grid files from TU Wien.
-
-        Downloads 4 hourly files (H00, H06, H12, H18) and combines
-        them into a single Bernese GRD file.
-
-        Args:
-            date: GNSS date
-            destination: Output directory
-
-        Returns:
-            Download result with combined GRD file path
-        """
-        year = date.year
-        doy = date.doy
-
-        # VMF3 URL pattern
-        base_url = "https://vmf.geo.tuwien.ac.at/trop_products/GRID"
-
-        hours = ["H00", "H06", "H12", "H18"]
-        downloaded_files = []
-
-        for hour in hours:
-            filename = f"VMF3_{year}{doy:03d}.{hour}"
-            url = f"{base_url}/{year}/VMF3/VMF3_{year}{doy:03d}.{hour}"
-
-            result = self._download_http(url, destination, filename)
-            if result.success:
-                downloaded_files.append(result.local_path)
-
-        if len(downloaded_files) == 4:
-            # Combine into single GRD file
-            combined = self._combine_vmf3_files(downloaded_files, date, destination)
-            return ProductDownloadResult(
-                status=DownloadStatus.SUCCESS,
-                local_path=combined,
-                source="TU_WIEN",
-            )
-
-        return ProductDownloadResult(
-            status=DownloadStatus.NOT_FOUND,
-            error_message=f"Only {len(downloaded_files)}/4 VMF3 files downloaded",
-        )
-\end{lstlisting}
-
-\section{BIA/OSB Path Building}
-
-\begin{lstlisting}[caption={BIA/OSB Path Building for PPP-AR}, label={lst:biapaths}]
-def _build_bia_paths(
-    self,
-    date: GNSSDate,
-    provider: str = "CODE",
-) -> dict[str, tuple[str, str]]:
-    """Build remote paths for BIA/OSB (Observable-Specific Signal Biases) file.
-
-    For PPP-AR, we need the satellite signal biases (OSB) which come from
-    CODE in the long filename format.
-
-    Args:
-        date: GNSS date
-        provider: Provider ID
-
-    Returns:
-        Dict mapping server_id to (remote_path, filename)
-    """
-    year = date.year
-    doy = date.doy
-    gps_week = date.gps_week
-    dow = date.dow
-
-    paths = {}
-
-    # CODE long-format OSB (for PPP-AR ambiguity resolution)
-    # Format: COD0OPSFIN_YYYYDOY0000_01D_01D_OSB.BIA.gz
-    bia_filename = f"COD0OPSFIN_{year}{doy:03d}0000_01D_01D_OSB.BIA.gz"
-    paths["CDDIS"] = (f"/archive/gnss/products/{gps_week}/{bia_filename}", bia_filename)
-    paths["IGN"] = (f"/pub/igs/products/{gps_week}/{bia_filename}", bia_filename)
-
-    # Also try shorter CODE format
-    code_filename = f"COD{gps_week}{dow}.BIA.Z"
-    paths["CODE"] = (f"/CODE/{year}/{code_filename}", code_filename)
-
-    return paths
-\end{lstlisting}
+\begin{enumerate}
+    \item Try primary server (e.g., CDDIS)
+    \item On failure, try secondary server (e.g., IGN)
+    \item On failure, try tertiary server (e.g., CODE)
+    \item Handle compression (.Z, .gz, .zip) automatically
+\end{enumerate}
 
 % =============================================================================
 % CHAPTER 6: BPE RUNNER
@@ -1071,261 +533,49 @@ def _build_bia_paths(
 
 The BPE runner (\pyfile{bsw/bpe\_runner.py}) manages Bernese GNSS Software execution, replacing the Perl startBPE.pm and RUNBPE.pm modules.
 
-\begin{lstlisting}[caption={BPE Runner Core Classes}, label={lst:bperunner}]
-"""
-BPE (Bernese Processing Engine) runner.
+\section{BPE Execution Workflow}
 
-Replaces Perl startBPE.pm module.
-Manages the execution of BSW processing through the BPE server.
-"""
-
-from __future__ import annotations
-
-import os
-import re
-import shutil
-import subprocess
-import time
-from dataclasses import dataclass, field
-from pathlib import Path
-
-from pygnss_rt.bsw.environment import BSWEnvironment, load_bsw_environment
-from pygnss_rt.core.exceptions import BSWError
-from pygnss_rt.utils.dates import GNSSDate
-from pygnss_rt.utils.logging import get_logger
-
-
-logger = get_logger(__name__)
-
-
-@dataclass
-class BPEConfig:
-    """BPE execution configuration.
-
-    Corresponds to the RUNBPE.INP keywords in BSW.
-    """
-
-    # Mandatory parameters
-    pcf_file: str          # PCF file name (without path)
-    campaign: str          # Campaign name/path
-    session: str           # Session (e.g., "2600" for DOY 260, daily)
-    year: int              # Year
-
-    # Processing identification
-    task_id: str = "IG"    # 2-char task identifier
-
-    # CPU file
-    cpu_file: str = "CPUFILE"
-    cpu_update_rate: int = 300
-
-    # Session control
-    num_sessions: int = 1
-    modulo_sessions: int = 1
-    next_session: int = 0
-
-    # Output control
-    sysout: str = "NEWBPE"     # BPE output file name
-    syserr: str = "ERROR"      # Error output name
-    status: str = "NEWBPE.SUM" # Status file name
-
-    # Debug options
-    debug: bool = False
-    no_clean: bool = False
-
-    # Timeout
-    max_time: int = 0  # 0 = no limit
-
-
-@dataclass
-class BPEResult:
-    """Result from BPE execution."""
-
-    success: bool
-    return_code: int
-    output_file: Path | None = None
-    status_file: Path | None = None
-    error_message: str | None = None
-    runtime_seconds: float = 0.0
-    sessions_finished: int = 0
-    sessions_error: int = 0
-\end{lstlisting}
-
-\section{BPERunner Class}
-
-\begin{lstlisting}[caption={BPERunner Implementation}, label={lst:bperunnerclass}]
-class BPERunner:
-    """Runs Bernese Processing Engine.
-
-    Workflow:
-    1. Creates temporary user area ($T/BPE_{pcf}_{year}_{session}_{pid})
-    2. Copies INP files from OPT directories to temp $U/PAN/
-    3. Customizes INP files with putKey operations
-    4. Creates MENU_$$.TMP control file
-    5. Executes menu.sh to run BPE scripts
-    """
-
-    def __init__(self, env: BSWEnvironment):
-        """Initialize with BSW environment."""
-        self.env = env
-        self._validate_environment()
-
-    def run(
-        self,
-        config: BPEConfig,
-        opt_dirs: dict[str, str] | None = None,
-        bsw_options: dict[str, dict[str, dict[str, str]]] | None = None,
-        variable_substitutions: dict[str, str] | None = None,
-        prod_mode: bool = True,
-        timeout: int = 7200,
-    ) -> BPEResult:
-        """Execute BPE processing.
-
-        Args:
-            config: BPE configuration
-            opt_dirs: OPT directory mapping (i1 -> PPP_GEN, etc.)
-            bsw_options: Options to customize in INP files
-            variable_substitutions: Variable substitutions for opt_* values
-            prod_mode: Use production OPT directories
-            timeout: Timeout in seconds
-
-        Returns:
-            BPE execution result
-        """
-        start_time = time.time()
-
-        try:
-            # Step 1: Create temporary user area
-            temp_u = self._create_temp_user_area(config)
-            logger.info(f"Created temp user area: {temp_u}")
-
-            # Step 2: Add campaign
-            self.add_campaign(config.campaign)
-
-            # Step 3: Create work directory
-            work_dir = temp_u / "WORK"
-            work_dir.mkdir(exist_ok=True)
-
-            # Step 4: Copy INP files from OPT to temp directories
-            temp_opt = temp_u / "OPT"
-            if opt_dirs:
-                self.copy_opt_to_temp(temp_u, opt_dirs, prod_mode)
-
-            # Step 5: Create Melbourne-Wuebbena copies
-            self._create_mw_copies(temp_opt)
-
-            # Step 6: Customize INP files
-            if bsw_options:
-                keys_set = self.customize_inp_files(
-                    temp_opt, bsw_options, variable_substitutions
-                )
-                logger.info(f"Customized {keys_set} INP keys")
-
-            # Step 7: Configure and run BPE
-            self._configure_runbpe(temp_u, config)
-
-            logger.info(f"Executing BPE via menu.sh")
-            bpe_result = self._execute_bpe(temp_u, config, timeout)
-
-            return bpe_result
-
-        except Exception as e:
-            logger.error(f"BPE execution failed: {e}")
-            return BPEResult(
-                success=False,
-                return_code=-1,
-                error_message=str(e),
-                runtime_seconds=time.time() - start_time,
-            )
-\end{lstlisting}
+\begin{enumerate}
+    \item Create temporary user area (\code{\$T/BPE\_\{pcf\}\_\{year\}\_\{session\}\_\{pid\}})
+    \item Copy INP files from OPT directories to temp \code{\$U/PAN/}
+    \item Customize INP files with putKey operations
+    \item Create \code{MENU\_\$\$.TMP} control file
+    \item Execute \code{menu.sh} to run BPE scripts
+    \item Monitor output and wait for completion
+    \item Clean up temporary files
+\end{enumerate}
 
 \section{INP File Customization}
 
-\begin{lstlisting}[caption={INP File Customization Methods}, label={lst:inpcustom}]
-def put_key(
-    self,
-    inp_file: Path,
-    key: str,
-    value: str,
-) -> bool:
-    """Set a key-value pair in an INP file.
+The \code{put\_key} function mimics the Perl putKey functionality:
 
-    Mimics the Perl putKey function from BSW interface.
+\begin{itemize}
+    \item Reads INP file content
+    \item Matches key pattern: \code{KEY  "value"} or \code{KEY  'value'}
+    \item Replaces value while preserving quotes
+    \item Writes updated content back to file
+\end{itemize}
 
-    Args:
-        inp_file: Path to INP file
-        key: Key name (e.g., "USE_G", "TROPOS")
-        value: Value to set
+\section{BPE Configuration Parameters}
 
-    Returns:
-        True if key was found and updated
-    """
-    if not inp_file.exists():
-        logger.warning(f"INP file not found: {inp_file}")
-        return False
-
-    content = inp_file.read_text()
-
-    # Pattern: KEY  "value" or KEY  'value' or KEY  value
-    pattern = rf'^(\s*{re.escape(key)}\s+)(["\']?)([^"\']*)\2\s*$'
-
-    def replacer(match):
-        prefix = match.group(1)
-        quote = match.group(2) or "'"
-        return f"{prefix}{quote}{value}{quote}"
-
-    new_content, count = re.subn(pattern, replacer, content, flags=re.MULTILINE)
-
-    if count > 0:
-        inp_file.write_text(new_content)
-        logger.debug(f"Set {key}={value} in {inp_file.name}")
-        return True
-
-    logger.warning(f"Key {key} not found in {inp_file}")
-    return False
-
-
-def customize_inp_files(
-    self,
-    temp_opt_dir: Path,
-    bsw_options: dict[str, dict[str, dict[str, str]]],
-    variable_subs: dict[str, str] | None = None,
-) -> int:
-    """Customize INP files based on BSW options from YAML/XML.
-
-    Args:
-        temp_opt_dir: Temp OPT directory
-        bsw_options: Nested dict {opt_dir: {inp_file: {key: value}}}
-        variable_subs: Variable substitutions for opt_* values
-
-    Returns:
-        Number of keys set
-    """
-    keys_set = 0
-
-    for opt_name, inp_files in bsw_options.items():
-        opt_path = temp_opt_dir / opt_name
-
-        if not opt_path.exists():
-            logger.warning(f"OPT directory not found: {opt_path}")
-            continue
-
-        for inp_name, keys in inp_files.items():
-            inp_file = opt_path / f"{inp_name}.INP"
-
-            if not inp_file.exists():
-                logger.warning(f"INP file not found: {inp_file}")
-                continue
-
-            for key, value in keys.items():
-                # Apply variable substitutions
-                if variable_subs and value.startswith("opt_"):
-                    value = variable_subs.get(value, value)
-
-                if self.put_key(inp_file, key, value):
-                    keys_set += 1
-
-    return keys_set
-\end{lstlisting}
+\begin{table}[H]
+\centering
+\caption{BPEConfig Parameters}
+\label{tab:bpeconfig}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{Parameter} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\code{pcf\_file} & str & PCF file name (without path) \\
+\code{campaign} & str & Campaign name/path \\
+\code{session} & str & Session identifier \\
+\code{year} & int & Processing year \\
+\code{task\_id} & str & 2-char task identifier \\
+\code{cpu\_file} & str & CPU configuration file \\
+\code{max\_time} & int & Timeout in seconds (0=no limit) \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % =============================================================================
 % CHAPTER 7: NETWORK PROFILES
@@ -1336,176 +586,36 @@ def customize_inp_files(
 
 The networks module (\pyfile{processing/networks.py}) defines configuration profiles for five international GNSS station networks.
 
-\begin{lstlisting}[caption={Network Profile Classes}, label={lst:networks}]
-"""
-Network configuration profiles for daily PPP processing.
+\section{Supported Networks}
 
-Defines network-specific configurations for different GNSS station networks:
-- IG: IGS core stations (global reference network)
-- EU: EUREF stations (European reference network)
-- GB: Great Britain stations (OS active, scientific, local IGS)
-- RG: RGP France stations (French permanent network)
-- SS: Supersites (Netherlands/European supersites)
-"""
+\begin{table}[H]
+\centering
+\caption{Network Identifiers}
+\label{tab:networks}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Name} & \textbf{Description} \\
+\midrule
+IG & IGS & IGS core stations (global reference network) \\
+EU & EUREF & EUREF stations (European reference network) \\
+GB & Great Britain & OS active, scientific, local IGS stations \\
+RG & RGP & RGP France stations (French permanent network) \\
+SS & Supersites & Netherlands/European supersites \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-from __future__ import annotations
+\section{Network Profile Components}
 
-from dataclasses import dataclass, field
-from enum import Enum
-from pathlib import Path
+Each network profile contains:
 
-from pygnss_rt.core.paths import PathConfig, get_paths
-
-
-class NetworkID(str, Enum):
-    """Network identifiers for daily PPP processing."""
-
-    IG = "IG"  # IGS core stations
-    EU = "EU"  # EUREF stations
-    GB = "GB"  # Great Britain stations
-    RG = "RG"  # RGP France stations
-    SS = "SS"  # Supersites (Netherlands)
-
-
-@dataclass
-class StationFilter:
-    """Station selection criteria for a network."""
-
-    xml_file: str                    # Station XML info file
-    primary_net: str | None = None   # Primary network filter
-    station_type: str | None = None  # Station type filter
-    use_nrt: bool = True             # Filter for NRT-enabled stations
-    additional_types: list[str] = field(default_factory=list)
-    exclude_stations: list[str] = field(default_factory=list)
-
-
-@dataclass
-class ProductSource:
-    """Product (orbit/ERP/clock) source configuration."""
-
-    enabled: bool = True
-    provider: str = "IGS"        # IGS, CODE, etc.
-    tier: str = "final"          # final, rapid, ultra
-    ftp_servers: list[str] = field(default_factory=lambda: ["CDDIS", "BKGE_IGS"])
-
-
-@dataclass
-class NetworkProfile:
-    """Complete network configuration profile."""
-
-    network_id: NetworkID
-    description: str
-    session_id: str       # 2-char session ID
-    task_id: str          # Task ID for BSW
-
-    # Station configuration
-    station_filter: StationFilter
-
-    # FTP data sources
-    data_ftp_sources: list[FTPDataSource]
-
-    # Product sources
-    orbit_source: ProductSource
-    erp_source: ProductSource
-    clock_source: ProductSource
-
-    # BSW configuration
-    pcf_file: str
-    bsw_options_xml: str
-
-    # Information files
-    info_files: dict[str, str] = field(default_factory=dict)
-
-    # Archive settings
-    archive_files: dict[str, ArchiveFileSpec] = field(default_factory=dict)
-
-    # Dependencies
-    requires_igs_alignment: bool = False
-
-    # DCM settings
-    dcm_enabled: bool = True
-    dcm_dirs_to_delete: list[str] = field(
-        default_factory=lambda: ["RAW", "BPE", "OBS", "ORX", "INP", "ORB", "GRD", "GEN"]
-    )
-\end{lstlisting}
-
-\section{Network Profile Factory}
-
-\begin{lstlisting}[caption={Network Profile Factory Functions}, label={lst:networkfactory}]
-def get_network_profile(network_id: NetworkID | str) -> NetworkProfile:
-    """Get network profile by ID.
-
-    Args:
-        network_id: Network identifier (IG, EU, GB, RG, SS)
-
-    Returns:
-        NetworkProfile for the specified network
-
-    Raises:
-        ValueError: If network ID is not recognized
-    """
-    if isinstance(network_id, str):
-        network_id = NetworkID(network_id)
-
-    profiles = create_network_profiles()
-
-    if network_id not in profiles:
-        raise ValueError(f"Unknown network ID: {network_id}")
-
-    return profiles[network_id]
-
-
-def create_network_profiles() -> dict[NetworkID, NetworkProfile]:
-    """Create all network profiles.
-
-    Returns:
-        Dictionary mapping NetworkID to NetworkProfile
-    """
-    paths = get_paths()
-
-    # Default product sources (CODE for PPP-AR consistency)
-    default_orbit = ProductSource(
-        enabled=True,
-        provider="CODE",
-        tier="final",
-        ftp_servers=["CDDIS", "IGN", "CODE"],
-    )
-
-    default_clock = ProductSource(
-        enabled=True,
-        provider="CODE",
-        tier="final",
-        ftp_servers=["CDDIS", "IGN", "CODE"],
-    )
-
-    # IGS Network Profile
-    igs_profile = NetworkProfile(
-        network_id=NetworkID.IG,
-        description="IGS Core Stations (Global Reference)",
-        session_id="IG",
-        task_id="IG",
-        station_filter=StationFilter(
-            xml_file="IGS20.xml",
-            primary_net="IGS20",
-            station_type="core",
-        ),
-        data_ftp_sources=[
-            FTPDataSource(server_id="CDDIS", data_type="data"),
-            FTPDataSource(server_id="BKGE_IGS", data_type="data"),
-        ],
-        orbit_source=default_orbit,
-        erp_source=default_orbit,
-        clock_source=default_clock,
-        pcf_file="PPP54IGS.PCF",
-        bsw_options_xml="iGNSS_D_PPP_AR_IG_IGS54_direct.yaml",
-        dcm_enabled=True,
-    )
-
-    return {
-        NetworkID.IG: igs_profile,
-        # EU, GB, RG, SS profiles defined similarly...
-    }
-\end{lstlisting}
+\begin{itemize}
+    \item \textbf{Station Filter} -- XML/YAML file, network filter, station type
+    \item \textbf{Data FTP Sources} -- Server IDs and data types
+    \item \textbf{Product Sources} -- Orbit, ERP, clock provider configuration
+    \item \textbf{BSW Configuration} -- PCF file, YAML options file
+    \item \textbf{Archive Settings} -- DCM directories, file specifications
+\end{itemize}
 
 % =============================================================================
 % CHAPTER 8: DATE UTILITIES
@@ -1514,177 +624,51 @@ def create_network_profiles() -> dict[NetworkID, NetworkProfile]:
 
 \section{GNSSDate Class}
 
-The dates module (\pyfile{utils/dates.py}) provides conversions between various GNSS time systems.
+The dates module (\pyfile{utils/dates.py}) provides conversions between various GNSS time systems:
 
-\begin{lstlisting}[caption={GNSSDate Implementation}, label={lst:gnssdate}]
-"""
-Date and time utilities for GNSS processing.
+\begin{itemize}
+    \item Modified Julian Date (MJD)
+    \item GPS Week and Day of Week
+    \item Year and Day of Year (DOY)
+    \item Calendar dates (YYYY-MM-DD)
+    \item Hour alpha characters (a-x for 0-23)
+\end{itemize}
 
-Provides conversions between:
-- Modified Julian Date (MJD)
-- GPS Week and Day of Week
-- Year and Day of Year (DOY)
-- Calendar dates
+\section{Time System Constants}
 
-Replaces Perl modules: DATES.pm, GMTTIME.pm
-"""
+\begin{table}[H]
+\centering
+\caption{GNSS Time Constants}
+\label{tab:timeconstants}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{Constant} & \textbf{Value} & \textbf{Description} \\
+\midrule
+GPS\_EPOCH\_MJD & 44244.0 & January 6, 1980 \\
+MJD\_OFFSET & 2400000.5 & Offset from JD to MJD \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-from __future__ import annotations
+\section{Conversion Methods}
 
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-
-
-# Constants
-GPS_EPOCH_MJD = 44244.0  # January 6, 1980
-MJD_OFFSET = 2400000.5   # Offset from JD to MJD
-
-
-@dataclass
-class GNSSDate:
-    """Unified GNSS date representation.
-
-    Provides conversions between all common GNSS time formats.
-    """
-
-    year: int
-    month: int
-    day: int
-    hour: int = 0
-    minute: int = 0
-    second: float = 0.0
-
-    @property
-    def mjd(self) -> float:
-        """Get Modified Julian Date."""
-        return mjd_from_date(
-            self.year, self.month, self.day,
-            self.hour, self.minute, self.second
-        )
-
-    @property
-    def gps_week(self) -> int:
-        """Get GPS week number."""
-        week, _ = gps_week_from_mjd(self.mjd)
-        return week
-
-    @property
-    def dow(self) -> int:
-        """Get day of week (0=Sunday)."""
-        _, dow = gps_week_from_mjd(self.mjd)
-        return dow
-
-    @property
-    def doy(self) -> int:
-        """Get day of year (1-366)."""
-        return doy_from_date(self.year, self.month, self.day)
-
-    @property
-    def hour_alpha(self) -> str:
-        """Get hour as alpha character (a-x for 0-23)."""
-        return hour_to_alpha(self.hour)
-
-    @classmethod
-    def from_mjd(cls, mjd: float) -> GNSSDate:
-        """Create from Modified Julian Date."""
-        dt = date_from_mjd(mjd)
-        return cls(
-            year=dt.year, month=dt.month, day=dt.day,
-            hour=dt.hour, minute=dt.minute, second=dt.second
-        )
-
-    @classmethod
-    def from_gps_week(cls, week: int, dow: int, sow: float = 0.0) -> GNSSDate:
-        """Create from GPS week and day of week."""
-        mjd = GPS_EPOCH_MJD + week * 7 + dow + sow / 86400.0
-        return cls.from_mjd(mjd)
-
-    @classmethod
-    def from_doy(cls, year: int, doy: int, hour: int = 0) -> GNSSDate:
-        """Create from year and day of year."""
-        dt = datetime(year, 1, 1) + timedelta(days=doy - 1, hours=hour)
-        return cls(year=dt.year, month=dt.month, day=dt.day, hour=hour)
-
-    @classmethod
-    def from_string(cls, date_str: str) -> GNSSDate:
-        """Parse date from string (YYYY-MM-DD or YYYY/DOY)."""
-        if "/" in date_str and len(date_str.split("/")[1]) == 3:
-            # YYYY/DOY format
-            year, doy = date_str.split("/")
-            return cls.from_doy(int(year), int(doy))
-        else:
-            # YYYY-MM-DD format
-            dt = datetime.strptime(date_str, "%Y-%m-%d")
-            return cls(year=dt.year, month=dt.month, day=dt.day)
-
-    @classmethod
-    def now(cls) -> GNSSDate:
-        """Get current UTC time."""
-        dt = datetime.now(timezone.utc)
-        return cls(
-            year=dt.year, month=dt.month, day=dt.day,
-            hour=dt.hour, minute=dt.minute, second=dt.second
-        )
-
-    def add_days(self, days: int) -> GNSSDate:
-        """Add days to date."""
-        return GNSSDate.from_mjd(self.mjd + days)
-
-    def add_hours(self, hours: int) -> GNSSDate:
-        """Add hours to date."""
-        return GNSSDate.from_mjd(self.mjd + hours / 24.0)
-\end{lstlisting}
-
-\section{Conversion Functions}
-
-\begin{lstlisting}[caption={Date Conversion Functions}, label={lst:dateconv}]
-def mjd_from_date(
-    year: int, month: int, day: int,
-    hour: int = 0, minute: int = 0, second: float = 0.0,
-) -> float:
-    """Calculate Modified Julian Date from calendar date.
-
-    Uses the standard astronomical algorithm.
-    """
-    a = (14 - month) // 12
-    y = year + 4800 - a
-    m = month + 12 * a - 3
-
-    # Julian Day Number
-    jdn = day + (153 * m + 2) // 5 + 365 * y + y // 4 - y // 100 + y // 400 - 32045
-
-    # Add fractional day
-    frac = (hour + minute / 60.0 + second / 3600.0) / 24.0
-
-    return jdn - MJD_OFFSET + frac
-
-
-def gps_week_from_mjd(mjd: float) -> tuple[int, int]:
-    """Get GPS week and day of week from MJD.
-
-    Returns:
-        Tuple of (gps_week, day_of_week)
-    """
-    days_since_epoch = mjd - GPS_EPOCH_MJD
-    gps_week = int(days_since_epoch / 7)
-    dow = int(days_since_epoch % 7)
-    return gps_week, dow
-
-
-def hour_to_alpha(hour: int) -> str:
-    """Convert hour (0-23) to alpha character (a-x)."""
-    if not 0 <= hour <= 23:
-        raise ValueError(f"Hour must be 0-23, got {hour}")
-    return chr(ord('a') + hour)
-
-
-def alpha_to_hour(alpha: str) -> int:
-    """Convert alpha character (a-x) to hour (0-23)."""
-    alpha = alpha.lower()
-    if not 'a' <= alpha <= 'x':
-        raise ValueError(f"Alpha must be a-x, got {alpha}")
-    return ord(alpha) - ord('a')
-\end{lstlisting}
+\begin{table}[H]
+\centering
+\caption{GNSSDate Conversion Methods}
+\label{tab:conversions}
+\begin{tabular}{@{}lp{8cm}@{}}
+\toprule
+\textbf{Method} & \textbf{Description} \\
+\midrule
+\code{from\_mjd(mjd)} & Create from Modified Julian Date \\
+\code{from\_gps\_week(week, dow)} & Create from GPS week and day of week \\
+\code{from\_doy(year, doy)} & Create from year and day of year \\
+\code{from\_string(date\_str)} & Parse from YYYY-MM-DD or YYYY/DOY \\
+\code{add\_days(n)} & Add n days to date \\
+\code{add\_hours(n)} & Add n hours to date \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % =============================================================================
 % CHAPTER 9: ZTD TO IWV CONVERSION
@@ -1712,227 +696,31 @@ The IWV is then derived from ZWD using:
 \iwv = \frac{10^6 \cdot \zwd}{\rho_w \cdot R_v \cdot (k_2' + k_3/T_m)}
 \end{equation}
 
-where $T_m$ is the mean atmospheric temperature estimated from surface temperature.
+where $T_m$ is the mean atmospheric temperature estimated from surface temperature using the Bevis empirical formula:
+\begin{equation}
+T_m = 70.2 + 0.72 \cdot T_s
+\end{equation}
 
-\section{Implementation}
+\section{Physical Constants}
 
-\begin{lstlisting}[caption={ZTD2IWV Core Implementation}, label={lst:ztd2iwv}]
-"""
-ZTD to IWV conversion module.
-
-Converts Zenith Tropospheric Delay (ZTD) to Integrated Water Vapor (IWV).
-Implements Bevis (1992, 1994) formulation with meteorological lookup.
-"""
-
-from __future__ import annotations
-
-import math
-from dataclasses import dataclass
-from datetime import datetime
-from pathlib import Path
-
-from pygnss_rt.utils.logging import get_logger
-
-
-logger = get_logger(__name__)
-
-
-# Physical constants (Bevis, 1994)
-R_DRY = 287.0586      # Gas constant for dry air (J/kg/K)
-R_VAPOR = 461.525     # Gas constant for water vapor (J/kg/K)
-K1 = 77.6             # K/hPa
-K2 = 70.4             # K/hPa
-K3 = 373900           # K^2/hPa
-G = 9.80665           # Standard gravity (m/s^2)
-
-# ICAO standard atmosphere
-ALPHA = -0.0065       # Temperature lapse rate (K/m)
-
-
-@dataclass
-class IWVResult:
-    """IWV calculation result."""
-
-    station_id: str
-    timestamp: datetime
-    mjd: float
-    ztd: float           # Zenith Total Delay (mm)
-    ztd_sigma: float     # ZTD uncertainty (mm)
-    zhd: float           # Zenith Hydrostatic Delay (mm)
-    zwd: float           # Zenith Wet Delay (mm)
-    iwv: float           # Integrated Water Vapor (kg/m^2)
-    iwv_sigma: float     # IWV uncertainty (kg/m^2)
-    latitude: float
-    longitude: float
-    height: float        # Ellipsoidal height (m)
-    pressure: float | None = None
-    temperature: float | None = None
-    met_station_id: str | None = None
-
-
-class ZTD2IWV:
-    """ZTD to IWV converter.
-
-    Implements:
-    - Saastamoinen ZHD model
-    - Bevis mean temperature formulation
-    - ICAO pressure extrapolation
-    """
-
-    def __init__(
-        self,
-        met_station_db: MeteoStationDatabase | None = None,
-        max_met_distance: float = 100000.0,  # 100 km
-    ):
-        """Initialize converter."""
-        self.met_db = met_station_db
-        self.max_met_distance = max_met_distance
-
-    def calculate_zhd_saastamoinen(
-        self,
-        pressure: float,
-        latitude: float,
-        height: float,
-    ) -> float:
-        """Calculate Zenith Hydrostatic Delay using Saastamoinen model.
-
-        Args:
-            pressure: Surface pressure (hPa)
-            latitude: Station latitude (degrees)
-            height: Ellipsoidal height (m)
-
-        Returns:
-            ZHD in millimeters
-        """
-        lat_rad = math.radians(latitude)
-
-        # Saastamoinen formula
-        zhd = (0.0022768 * pressure) / (
-            1 - 0.00266 * math.cos(2 * lat_rad) - 0.00028 * height / 1000.0
-        )
-
-        return zhd * 1000.0  # Convert to mm
-
-    def calculate_mean_temperature(
-        self,
-        surface_temp: float,
-        latitude: float,
-    ) -> float:
-        """Estimate mean atmospheric temperature.
-
-        Uses Bevis (1992) empirical relationship:
-        Tm = 70.2 + 0.72 * Ts
-
-        Args:
-            surface_temp: Surface temperature (K)
-            latitude: Station latitude (degrees)
-
-        Returns:
-            Mean temperature (K)
-        """
-        # Bevis empirical formula
-        tm = 70.2 + 0.72 * surface_temp
-        return tm
-
-    def calculate_iwv_from_zwd(
-        self,
-        zwd: float,
-        mean_temp: float,
-    ) -> float:
-        """Calculate IWV from Zenith Wet Delay.
-
-        Args:
-            zwd: Zenith Wet Delay (mm)
-            mean_temp: Mean atmospheric temperature (K)
-
-        Returns:
-            IWV (kg/m^2)
-        """
-        # Conversion factor (Bevis, 1994)
-        k2_prime = K2 - K1 * R_DRY / R_VAPOR
-
-        # Pi factor
-        pi_factor = 1e6 / (R_VAPOR * (k2_prime + K3 / mean_temp))
-
-        # IWV = ZWD * Pi
-        iwv = zwd * pi_factor / 1000.0  # zwd in mm, iwv in kg/m^2
-
-        return iwv
-
-    def process(
-        self,
-        station_id: str,
-        ztd: float,
-        ztd_sigma: float,
-        timestamp: datetime,
-        latitude: float,
-        longitude: float,
-        height: float,
-        met_obs: MeteoObservation | None = None,
-    ) -> IWVResult:
-        """Convert single ZTD observation to IWV.
-
-        Args:
-            station_id: 4-char station ID
-            ztd: Zenith Total Delay (mm)
-            ztd_sigma: ZTD uncertainty (mm)
-            timestamp: Observation time
-            latitude: Station latitude (degrees)
-            longitude: Station longitude (degrees)
-            height: Ellipsoidal height (m)
-            met_obs: Optional meteorological observation
-
-        Returns:
-            IWVResult with all derived quantities
-        """
-        # Get meteorological data
-        if met_obs is None and self.met_db:
-            met_obs = self._find_nearest_met_obs(latitude, longitude, timestamp)
-
-        if met_obs is None:
-            raise ValueError("No meteorological data available")
-
-        # Extrapolate pressure to GPS height
-        pressure = self._extrapolate_pressure(
-            met_obs.msl_pressure,
-            met_obs.height,
-            height,
-            met_obs.temperature,
-        )
-
-        # Calculate ZHD
-        zhd = self.calculate_zhd_saastamoinen(pressure, latitude, height)
-
-        # Calculate ZWD
-        zwd = ztd - zhd
-
-        # Calculate mean temperature
-        tm = self.calculate_mean_temperature(met_obs.temperature, latitude)
-
-        # Calculate IWV
-        iwv = self.calculate_iwv_from_zwd(zwd, tm)
-
-        # Propagate uncertainty
-        iwv_sigma = self._propagate_uncertainty(ztd_sigma, zwd, tm)
-
-        return IWVResult(
-            station_id=station_id,
-            timestamp=timestamp,
-            mjd=mjd_from_datetime(timestamp),
-            ztd=ztd,
-            ztd_sigma=ztd_sigma,
-            zhd=zhd,
-            zwd=zwd,
-            iwv=iwv,
-            iwv_sigma=iwv_sigma,
-            latitude=latitude,
-            longitude=longitude,
-            height=height,
-            pressure=pressure,
-            temperature=met_obs.temperature,
-            met_station_id=met_obs.station_id,
-        )
-\end{lstlisting}
+\begin{table}[H]
+\centering
+\caption{Physical Constants (Bevis, 1994)}
+\label{tab:constants}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Symbol} & \textbf{Value} & \textbf{Unit} & \textbf{Description} \\
+\midrule
+$R_{dry}$ & 287.0586 & J/kg/K & Gas constant for dry air \\
+$R_{vapor}$ & 461.525 & J/kg/K & Gas constant for water vapor \\
+$k_1$ & 77.6 & K/hPa & Refractivity constant \\
+$k_2$ & 70.4 & K/hPa & Refractivity constant \\
+$k_3$ & 373900 & K$^2$/hPa & Refractivity constant \\
+$g$ & 9.80665 & m/s$^2$ & Standard gravity \\
+$\alpha$ & -0.0065 & K/m & Temperature lapse rate \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % =============================================================================
 % CHAPTER 10: STATION MANAGEMENT
@@ -1943,145 +731,39 @@ class ZTD2IWV:
 
 The station module (\pyfile{stations/station.py}) provides unified station management supporting both XML and YAML formats.
 
-\begin{lstlisting}[caption={Station Class Implementation}, label={lst:station}]
-"""
-Station management and XML/YAML parsing.
+\section{Station Attributes}
 
-Replaces Perl STA.pm module.
-Supports both XML (legacy) and YAML (preferred) station files.
-"""
+\begin{table}[H]
+\centering
+\caption{Station Class Attributes}
+\label{tab:station-attrs}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{Attribute} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\code{station\_id} & str & 4-character station ID \\
+\code{name} & str & Station name \\
+\code{network} & str & Network identifier \\
+\code{latitude} & float & Latitude (degrees) \\
+\code{longitude} & float & Longitude (degrees) \\
+\code{height} & float & Ellipsoidal height (m) \\
+\code{x, y, z} & float & ECEF coordinates (m) \\
+\code{receiver\_type} & str & Receiver type \\
+\code{antenna\_type} & str & Antenna type \\
+\code{use\_nrt} & bool & NRT processing enabled \\
+\code{active} & bool & Station active flag \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-from __future__ import annotations
+\section{Station File Formats}
 
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any
-from xml.etree import ElementTree
+The system supports two station file formats:
 
-import yaml
-
-from pygnss_rt.utils.logging import get_logger
-
-
-logger = get_logger(__name__)
-
-
-@dataclass
-class Station:
-    """GNSS station information."""
-
-    station_id: str
-    name: str | None = None
-    network: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
-    height: float | None = None
-    x: float | None = None        # ECEF X coordinate
-    y: float | None = None        # ECEF Y coordinate
-    z: float | None = None        # ECEF Z coordinate
-    receiver_type: str | None = None
-    antenna_type: str | None = None
-    use_nrt: bool = True
-    active: bool = True
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary."""
-        return {
-            "station_id": self.station_id,
-            "name": self.name,
-            "network": self.network,
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-            "height": self.height,
-            "x": self.x,
-            "y": self.y,
-            "z": self.z,
-            "receiver_type": self.receiver_type,
-            "antenna_type": self.antenna_type,
-            "use_nrt": self.use_nrt,
-            "active": self.active,
-        }
-
-    @classmethod
-    def from_yaml_dict(cls, data: dict[str, Any]) -> Station:
-        """Create station from YAML dictionary."""
-        return cls(
-            station_id=data.get("id", "").lower(),
-            name=data.get("name"),
-            network=data.get("network"),
-            latitude=data.get("latitude"),
-            longitude=data.get("longitude"),
-            height=data.get("height"),
-            x=data.get("x"),
-            y=data.get("y"),
-            z=data.get("z"),
-            receiver_type=data.get("receiver"),
-            antenna_type=data.get("antenna"),
-            use_nrt=data.get("use_nrt", True),
-            active=data.get("active", True),
-            metadata=data.get("metadata", {}),
-        )
-
-
-class StationManager:
-    """Station management class."""
-
-    def __init__(self):
-        """Initialize station manager."""
-        self._stations: dict[str, Station] = {}
-
-    def load(self, filepath: Path) -> int:
-        """Load stations from file (auto-detect format).
-
-        Args:
-            filepath: Path to XML or YAML file
-
-        Returns:
-            Number of stations loaded
-        """
-        if filepath.suffix in (".yaml", ".yml"):
-            return self.load_yaml(filepath)
-        elif filepath.suffix == ".xml":
-            return self.load_xml(filepath)
-        else:
-            raise ValueError(f"Unknown file format: {filepath.suffix}")
-
-    def load_yaml(self, filepath: Path) -> int:
-        """Load stations from YAML file."""
-        with open(filepath) as f:
-            data = yaml.safe_load(f)
-
-        stations = data.get("stations", [])
-        for sta_data in stations:
-            station = Station.from_yaml_dict(sta_data)
-            self._stations[station.station_id] = station
-
-        logger.info(f"Loaded {len(stations)} stations from {filepath.name}")
-        return len(stations)
-
-    def get_station(self, station_id: str) -> Station | None:
-        """Get station by ID."""
-        return self._stations.get(station_id.lower())
-
-    def get_stations(
-        self,
-        network: str | None = None,
-        use_nrt: bool | None = None,
-        active: bool | None = None,
-    ) -> list[Station]:
-        """Get stations with optional filters."""
-        stations = list(self._stations.values())
-
-        if network:
-            stations = [s for s in stations if s.network == network]
-        if use_nrt is not None:
-            stations = [s for s in stations if s.use_nrt == use_nrt]
-        if active is not None:
-            stations = [s for s in stations if s.active == active]
-
-        return stations
-\end{lstlisting}
+\begin{itemize}
+    \item \textbf{YAML} (preferred) -- Human-readable, easy to edit
+    \item \textbf{XML} (legacy) -- Compatible with existing infrastructure
+\end{itemize}
 
 % =============================================================================
 % CHAPTER 11: MATHEMATICAL FOUNDATIONS
@@ -2159,24 +841,30 @@ m_w(e) = \frac{1 + \frac{a_w}{1 + \frac{b_w}{1 + c_w}}}{\sin e + \frac{a_w}{\sin
 The BSW configuration uses YAML format for INP file customization:
 
 \begin{lstlisting}[style=yamlstyle, caption={PPP-AR YAML Configuration Example}, label={lst:yamlconfig}]
-# PyGNSS-RT BSW Configuration for PPP-AR (GE Mode)
+# PyGNSS-RT BSW Configuration for PPP-AR (GRE Mode)
 # Network: IGS Core Stations
-# Version: 1.4.0-GE
+# Version: 1.4.0-GRE
 
 processing_mode: PPP_AR
 gnss_systems:
   GPS: true
   Galileo: true
-  GLONASS: false  # Disabled due to BSW 5.4 CODSPP limit
+  GLONASS: true  # Enabled in GPSEST, disabled in CODSPP
 
 bern_options:
   PPP_GEN:
+    CODSPP:
+      # GPS-only for clock synchronization (BSW 5.4 limit)
+      USE_G: '1'
+      USE_R: '0'
+      USE_E: '0'
+
     GPSEST:
-      # Multi-GNSS selection (GE = GPS + Galileo)
-      USE_G: '1'    # GPS enabled
-      USE_R: '0'    # GLONASS disabled
-      USE_E: '1'    # Galileo enabled
-      USE_C: '0'    # BeiDou disabled
+      # Full GRE for PPP-AR processing
+      USE_G: '1'
+      USE_R: '1'
+      USE_E: '1'
+      USE_C: '0'
 
       # Troposphere modeling
       TROPOS: DRY_VMF3
@@ -2186,13 +874,14 @@ bern_options:
       AMBSTRAT: SIGMA
       USEAR_G: '1'
       USEAR_E: '1'
-      USEAR_R: '0'
-      GLORES: GNSS_BY_GNSS
+      USEAR_R: '1'
+      GLORES: ALWAYS
       LAMRES: GNSS_BY_GNSS
 
       # OSB configuration
       OSBREC_G: SYSTEM
       OSBREC_E: SYSTEM
+      OSBREC_R: SATELLITE
 
   PPP_IAR:
     GPSEST:
@@ -2200,6 +889,7 @@ bern_options:
       AMBSTRAT: SIGMA
       USEAR_G: '1'
       USEAR_E: '1'
+      USEAR_R: '1'
 
       # Ratio test threshold
       MAXFRAC: '0.1'
@@ -2207,19 +897,21 @@ bern_options:
       RMSNARR: '0.03'
 \end{lstlisting}
 
-\section{GE Configuration Rationale}
+\section{GRE Configuration Rationale}
 
 \begin{table}[H]
 \centering
-\caption{GE (GPS+Galileo) Configuration Benefits}
-\label{tab:geconfig}
+\caption{GRE (GPS+GLONASS+Galileo) Configuration}
+\label{tab:greconfig2}
 \begin{tabular}{@{}llp{6cm}@{}}
 \toprule
 \textbf{Aspect} & \textbf{Setting} & \textbf{Rationale} \\
 \midrule
-Signal Type & CDMA only & Both GPS and Galileo use CDMA with clean integer properties \\
+CODSPP GNSS & GPS-only & BSW 5.4 CODSPP has 2-GNSS limit; GPS sufficient for clock sync \\
+GPSEST GNSS & GRE (all 3) & Full triple-constellation for maximum redundancy \\
+GLORES & ALWAYS & Enable GLONASS AR across different FDMA frequencies \\
 AR Method & GNSS\_BY\_GNSS & Independent AR per constellation then combine \\
-OSB Mode & SYSTEM & System-wide biases (no FDMA IFBs) \\
+OSBREC\_R & SATELLITE & Per-satellite OSB for GLONASS FDMA IFBs \\
 Troposphere & VMF3 & Vienna Mapping Functions for accurate ZTD \\
 \bottomrule
 \end{tabular}
@@ -2230,67 +922,40 @@ Troposphere & VMF3 & Vienna Mapping Functions for accurate ZTD \\
 % =============================================================================
 \appendix
 
-\chapter{Complete Module Listing}
+\chapter{Module Summary}
 
 \begin{table}[H]
 \centering
-\caption{Complete PyGNSS-RT Module List (75 files, 46,945 lines)}
+\caption{PyGNSS-RT Main Modules}
 \label{tab:modules}
 \small
-\begin{tabular}{@{}llr@{}}
+\begin{tabular}{@{}llp{6cm}@{}}
 \toprule
-\textbf{Package} & \textbf{Module} & \textbf{Lines} \\
+\textbf{Package} & \textbf{Module} & \textbf{Purpose} \\
 \midrule
-\texttt{pygnss\_rt/} & \texttt{cli.py} & 2,663 \\
- & \texttt{\_\_init\_\_.py} & 42 \\
- & \texttt{cron\_hourly.py} & 156 \\
+\texttt{pygnss\_rt/} & \texttt{cli.py} & Command-line interface \\
 \midrule
-\texttt{core/} & \texttt{paths.py} & 289 \\
- & \texttt{config.py} & 187 \\
- & \texttt{exceptions.py} & 98 \\
- & \texttt{orchestrator.py} & 445 \\
+\texttt{core/} & \texttt{paths.py} & Path configuration \\
+ & \texttt{config.py} & System configuration \\
+ & \texttt{exceptions.py} & Custom exceptions \\
 \midrule
-\texttt{processing/} & \texttt{daily\_ppp.py} & 1,398 \\
- & \texttt{networks.py} & 450 \\
- & \texttt{orchestrator\_main.py} & 2,891 \\
- & \texttt{bsw\_options.py} & 312 \\
- & \texttt{nrddp\_tro.py} & 567 \\
- & \texttt{daily\_crd.py} & 234 \\
- & \texttt{neq\_stacking.py} & 389 \\
- & \texttt{station\_merger.py} & 276 \\
- & \texttt{campaign\_archival.py} & 198 \\
+\texttt{processing/} & \texttt{daily\_ppp.py} & Daily PPP processor \\
+ & \texttt{networks.py} & Network profiles \\
+ & \texttt{nrddp\_tro.py} & NRDDP troposphere \\
 \midrule
-\texttt{data\_access/} & \texttt{product\_downloader.py} & 1,212 \\
- & \texttt{station\_downloader.py} & 678 \\
- & \texttt{ftp\_client.py} & 456 \\
- & \texttt{http\_client.py} & 312 \\
- & \texttt{ftp\_config.py} & 189 \\
+\texttt{data\_access/} & \texttt{product\_downloader.py} & Product downloads \\
+ & \texttt{station\_downloader.py} & Station data downloads \\
+ & \texttt{ftp\_client.py} & FTP client \\
 \midrule
-\texttt{bsw/} & \texttt{bpe\_runner.py} & 1,089 \\
- & \texttt{environment.py} & 234 \\
- & \texttt{interface.py} & 178 \\
- & \texttt{parsers.py} & 312 \\
- & \texttt{rnx2snx.py} & 156 \\
+\texttt{bsw/} & \texttt{bpe\_runner.py} & BPE execution \\
+ & \texttt{environment.py} & BSW environment \\
 \midrule
-\texttt{atmosphere/} & \texttt{ztd2iwv.py} & 917 \\
- & \texttt{inx2tec.py} & 234 \\
+\texttt{atmosphere/} & \texttt{ztd2iwv.py} & ZTD to IWV conversion \\
 \midrule
-\texttt{stations/} & \texttt{station.py} & 358 \\
- & \texttt{station\_info.py} & 289 \\
- & \texttt{site\_log\_parser.py} & 445 \\
- & \texttt{sta\_file\_writer.py} & 312 \\
- & \texttt{coordinates.py} & 178 \\
+\texttt{stations/} & \texttt{station.py} & Station management \\
 \midrule
-\texttt{utils/} & \texttt{dates.py} & 331 \\
- & \texttt{logging.py} & 156 \\
- & \texttt{compression.py} & 189 \\
- & \texttt{rinex.py} & 445 \\
- & \texttt{multi\_gnss.py} & 234 \\
-\midrule
-\texttt{database/} & \texttt{models.py} & 312 \\
- & \texttt{connection.py} & 178 \\
- & \texttt{daily\_data.py} & 267 \\
- & \texttt{hourly\_data.py} & 234 \\
+\texttt{utils/} & \texttt{dates.py} & Date utilities \\
+ & \texttt{logging.py} & Logging configuration \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -2342,7 +1007,7 @@ pygnss_rt update-sta -n IG --output NEWNRT54.STA
 \begin{enumerate}
     \item Bevis, M., Businger, S., Herring, T.A., Rocken, C., Anthes, R.A., Ware, R.H. (1992). GPS Meteorology: Remote Sensing of Atmospheric Water Vapor Using the Global Positioning System. \textit{Journal of Geophysical Research}, 97(D14), 15787-15801.
 
-    \item Landskron, D., Böhm, J. (2018). VMF3/GPT3: Refined discrete and empirical troposphere mapping functions. \textit{Journal of Geodesy}, 92, 349-360.
+    \item Landskron, D., B\"ohm, J. (2018). VMF3/GPT3: Refined discrete and empirical troposphere mapping functions. \textit{Journal of Geodesy}, 92, 349-360.
 
     \item Teunissen, P.J.G. (1995). The least-squares ambiguity decorrelation adjustment: a method for fast GPS integer ambiguity estimation. \textit{Journal of Geodesy}, 70, 65-82.
 
