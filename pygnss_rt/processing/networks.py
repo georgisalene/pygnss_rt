@@ -225,21 +225,26 @@ def create_network_profiles(
     ppp_dir = str(paths.ppp_campaigns_dir) if paths.ppp_campaigns_dir else ""
 
     # Default product sources (same for all networks)
+    # For PPP-AR consistency, use CODE products throughout (orbit, ERP, clock, BIA)
+    # CODE's products are internally consistent for ambiguity resolution
     default_orbit = ProductSource(
         enabled=True,
-        provider="IGS",
+        provider="CODE",  # Use CODE orbits for consistency with CODE clocks/biases
         tier="final",
-        ftp_servers=["CDDIS", "BKGE_IGS"],
+        ftp_servers=["CDDIS", "BKGE_IGS", "CODE"],
     )
     default_erp = ProductSource(
         enabled=True,
-        provider="IGS",
+        provider="CODE",  # Use CODE ERP for consistency
         tier="final",
-        ftp_servers=["CDDIS", "BKGE_IGS"],
+        ftp_servers=["CDDIS", "BKGE_IGS", "CODE"],
     )
+    # For PPP-AR, we MUST use CODE's integer-property clocks
+    # IGS combined clocks don't have the integer-cycle property needed for phase bias consistency
+    # CODE clocks are consistent with CODE's BIA phase biases
     default_clock = ProductSource(
         enabled=True,
-        provider="IGS",
+        provider="CODE",  # Use CODE clocks for PPP-AR (integer-property clocks)
         tier="final",
         ftp_servers=["CDDIS", "BKGE_IGS"],
     )

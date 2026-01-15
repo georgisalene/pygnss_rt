@@ -324,23 +324,39 @@ class ProductDownloader:
 
         paths = {}
 
-        # IGS long-format naming convention (since 2022)
-        if tier == "final":
-            filename = f"IGS0OPSFIN_{year}{doy:03d}0000_01D_15M_ORB.SP3.gz"
-        elif tier == "rapid":
-            filename = f"IGS0OPSRAP_{year}{doy:03d}0000_01D_15M_ORB.SP3.gz"
-        else:  # ultra
-            filename = f"IGS0OPSULT_{year}{doy:03d}0000_02D_15M_ORB.SP3.gz"
+        # For PPP-AR, CODE orbits ensure consistency with CODE clocks and biases
+        if provider == "CODE":
+            # CODE long-format naming convention
+            if tier == "final":
+                filename = f"COD0OPSFIN_{year}{doy:03d}0000_01D_05M_ORB.SP3.gz"
+            elif tier == "rapid":
+                filename = f"COD0OPSRAP_{year}{doy:03d}0000_01D_05M_ORB.SP3.gz"
+            else:
+                filename = f"COD0OPSULT_{year}{doy:03d}0000_01D_05M_ORB.SP3.gz"
 
-        # CDDIS path (HTTPS)
-        paths["CDDIS"] = (f"/archive/gnss/products/{gps_week}/{filename}", filename)
+            # CDDIS path for CODE products
+            paths["CDDIS"] = (f"/archive/gnss/products/{gps_week}/{filename}", filename)
+            # IGN path
+            paths["IGN"] = (f"/pub/igs/products/{gps_week}/{filename}", filename)
+            # CODE FTP path (short format fallback)
+            code_filename = f"COD{gps_week}{dow}.EPH.Z"
+            paths["CODE"] = (f"/CODE/{year}/{code_filename}", code_filename)
+        else:
+            # IGS long-format naming convention (since 2022)
+            if tier == "final":
+                filename = f"IGS0OPSFIN_{year}{doy:03d}0000_01D_15M_ORB.SP3.gz"
+            elif tier == "rapid":
+                filename = f"IGS0OPSRAP_{year}{doy:03d}0000_01D_15M_ORB.SP3.gz"
+            else:  # ultra
+                filename = f"IGS0OPSULT_{year}{doy:03d}0000_02D_15M_ORB.SP3.gz"
 
-        # IGN path (similar to IGS FTP)
-        paths["IGN"] = (f"/pub/igs/products/{gps_week}/{filename}", filename)
-
-        # CODE FTP path (use their own products)
-        code_filename = f"COD{gps_week}{dow}.EPH.Z"
-        paths["CODE"] = (f"/CODE/{year}/{code_filename}", code_filename)
+            # CDDIS path (HTTPS)
+            paths["CDDIS"] = (f"/archive/gnss/products/{gps_week}/{filename}", filename)
+            # IGN path (similar to IGS FTP)
+            paths["IGN"] = (f"/pub/igs/products/{gps_week}/{filename}", filename)
+            # CODE FTP path (use their own products)
+            code_filename = f"COD{gps_week}{dow}.EPH.Z"
+            paths["CODE"] = (f"/CODE/{year}/{code_filename}", code_filename)
 
         return paths
 
@@ -386,23 +402,40 @@ class ProductDownloader:
 
         paths = {}
 
-        # IGS long-format naming convention
-        if tier == "final":
-            filename = f"IGS0OPSFIN_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz"
-        elif tier == "rapid":
-            filename = f"IGS0OPSRAP_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz"
-        else:  # ultra
-            filename = f"IGS0OPSULT_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz"
+        # For PPP-AR, CODE's integer-ambiguity clocks are required
+        # CODE clocks have the integer-cycle property needed for phase bias consistency
+        if provider == "CODE":
+            # CODE long-format naming convention (integer-property clocks for PPP-AR)
+            if tier == "final":
+                filename = f"COD0OPSFIN_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz"
+            elif tier == "rapid":
+                filename = f"COD0OPSRAP_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz"
+            else:
+                filename = f"COD0OPSULT_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz"
 
-        # CDDIS path (HTTPS)
-        paths["CDDIS"] = (f"/archive/gnss/products/{gps_week}/{filename}", filename)
+            # CDDIS path for CODE products
+            paths["CDDIS"] = (f"/archive/gnss/products/{gps_week}/{filename}", filename)
+            # IGN path
+            paths["IGN"] = (f"/pub/igs/products/{gps_week}/{filename}", filename)
+            # CODE FTP path (short format fallback)
+            code_filename = f"COD{gps_week}{dow}.CLK.Z"
+            paths["CODE"] = (f"/CODE/{year}/{code_filename}", code_filename)
+        else:
+            # IGS combined long-format naming convention (NOT suitable for PPP-AR)
+            if tier == "final":
+                filename = f"IGS0OPSFIN_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz"
+            elif tier == "rapid":
+                filename = f"IGS0OPSRAP_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz"
+            else:  # ultra
+                filename = f"IGS0OPSULT_{year}{doy:03d}0000_01D_30S_CLK.CLK.gz"
 
-        # IGN path
-        paths["IGN"] = (f"/pub/igs/products/{gps_week}/{filename}", filename)
-
-        # CODE FTP path (use their own products)
-        code_filename = f"COD{gps_week}{dow}.CLK.Z"
-        paths["CODE"] = (f"/CODE/{year}/{code_filename}", code_filename)
+            # CDDIS path (HTTPS)
+            paths["CDDIS"] = (f"/archive/gnss/products/{gps_week}/{filename}", filename)
+            # IGN path
+            paths["IGN"] = (f"/pub/igs/products/{gps_week}/{filename}", filename)
+            # CODE FTP path (use their own products)
+            code_filename = f"COD{gps_week}{dow}.CLK.Z"
+            paths["CODE"] = (f"/CODE/{year}/{code_filename}", code_filename)
 
         return paths
 
