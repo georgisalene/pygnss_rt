@@ -868,7 +868,7 @@ bern_options:
       LEAST: '3.0'
       MOST: '0.07'
       SIGMAMIN: '0.05'
-      GLORES: NEVER
+      GLORES: ALWAYS
       MXAQIF: '10'
       SEARWID: '0.5'
       RMSNARR: '0.03'
@@ -2179,7 +2179,7 @@ bern_options:
       LEAST: '6.0'
       MOST: '0.07'
       SIGMAMIN: '0.05'
-      GLORES: NEVER
+      GLORES: ALWAYS
       MXAQIF: '10'
       SEARWID: '0.5'
       RMSNARR: '0.03'
@@ -2814,7 +2814,7 @@ bern_options:
       LEAST: '6.0'
       MOST: '0.07'
       SIGMAMIN: '0.05'
-      GLORES: NEVER
+      GLORES: ALWAYS
       MXAQIF: '10'
       SEARWID: '0.5'
       RMSNARR: '0.03'
