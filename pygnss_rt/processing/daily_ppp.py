@@ -334,9 +334,12 @@ class DailyPPPProcessor:
         if args.stations:
             # User override
             stations = args.stations.copy()
+            print(f"\nStation source: User-specified list ({len(stations)} stations)")
         else:
             # Load from XML based on profile filter
+            print(f"\nStation source: {profile.station_filter.xml_file}")
             stations = self._load_stations_from_xml(profile)
+            print(f"  Loaded {len(stations)} stations from XML")
 
         # Apply exclusions from profile
         exclude = set(profile.station_filter.exclude_stations)
@@ -344,13 +347,26 @@ class DailyPPPProcessor:
         # Apply additional exclusions from args
         exclude.update(args.exclude_stations)
 
+        if exclude:
+            print(f"  Excluding: {', '.join(sorted(exclude))}")
+
         # Filter out excluded stations
         stations = [s for s in stations if s.lower() not in {e.lower() for e in exclude}]
+
+        # Print full station list
+        print(f"\nStations to process ({len(stations)}):")
+        # Print in columns of 10
+        for i in range(0, len(stations), 10):
+            row = stations[i:i+10]
+            print(f"  {', '.join(row)}")
 
         return sorted(stations)
 
     def _load_stations_from_xml(self, profile: NetworkProfile) -> list[str]:
-        """Load station list from XML file.
+        """Load station list from station file (XML or YAML).
+
+        Supports both XML (legacy) and YAML (preferred) formats.
+        If the XML path doesn't exist but a YAML version does, it will use YAML.
 
         Args:
             profile: Network profile
@@ -358,17 +374,34 @@ class DailyPPPProcessor:
         Returns:
             List of station IDs
         """
-        xml_path = Path(profile.station_filter.xml_file)
-        if not xml_path.exists():
-            print(f"Warning: Station XML not found: {xml_path}")
-            return []
+        station_file = Path(profile.station_filter.xml_file)
+
+        # Try YAML first if XML doesn't exist
+        if not station_file.exists():
+            yaml_path = station_file.with_suffix(".yaml")
+            if yaml_path.exists():
+                station_file = yaml_path
+            else:
+                print(f"  WARNING: Station file not found: {station_file}")
+                return []
 
         # Use the existing StationManager
         try:
             from pygnss_rt.stations.station import StationManager
 
             manager = StationManager()
-            manager.load_xml(xml_path)
+            manager.load(station_file)  # Auto-detects XML or YAML
+
+            # Print filter info
+            filters = []
+            if profile.station_filter.use_nrt:
+                filters.append("NRT-enabled")
+            if profile.station_filter.primary_net:
+                filters.append(f"network={profile.station_filter.primary_net}")
+            if profile.station_filter.station_type:
+                filters.append(f"type={profile.station_filter.station_type}")
+            if filters:
+                print(f"  Filters: {', '.join(filters)}")
 
             # Apply filters
             kwargs: dict[str, Any] = {}
@@ -376,11 +409,13 @@ class DailyPPPProcessor:
                 kwargs["use_nrt"] = True
             if profile.station_filter.primary_net:
                 kwargs["network"] = profile.station_filter.primary_net
+            if profile.station_filter.station_type:
+                kwargs["station_type"] = profile.station_filter.station_type
 
             station_objs = manager.get_stations(**kwargs)
             return [s.station_id for s in station_objs]
         except Exception as e:
-            print(f"Warning: Error loading stations from XML: {e}")
+            print(f"  WARNING: Error loading stations: {e}")
             return []
 
     def _check_products(
@@ -537,18 +572,16 @@ class DailyPPPProcessor:
                 print(f"    ION download failed: {ion_result.error_message}")
                 # ION is optional but useful
 
-            # Download VMF3 (Troposphere mapping functions)
-            print(f"  Downloading VMF3 file...")
-            vmf_result = downloader.download_vmf(date)
+            # Download VMF3 (Troposphere mapping functions) - combined 1x1 degree GRD file
+            print(f"  Downloading VMF3 files...")
+            grd_dir = campaign_root / session_name / "GRD"
+            grd_dir.mkdir(parents=True, exist_ok=True)
+            vmf_result = downloader.download_vmf3(date, destination=grd_dir)
             if vmf_result.success:
-                print(f"    VMF: {vmf_result.local_path.name} (from {vmf_result.source})")
-                # Copy to campaign GRD directory
-                grd_dir = campaign_root / session_name / "GRD"
-                grd_dir.mkdir(parents=True, exist_ok=True)
-                self._copy_product_to_campaign(vmf_result.local_path, grd_dir, date, "VMF")
+                print(f"    VMF3: Combined GRD file created - {vmf_result.local_path.name}")
             else:
-                print(f"    VMF download failed: {vmf_result.error_message}")
-                # VMF is optional but useful for troposphere modeling
+                print(f"    VMF3: All downloads failed")
+                # VMF3 is optional but useful for troposphere modeling
 
         return all_products_ok
 
@@ -649,18 +682,11 @@ class DailyPPPProcessor:
             for ftp in profile.data_ftp_sources:
                 print(f"  FTP source: {ftp.server_id} ({ftp.category})")
 
-        # Determine which provider to use based on profile
-        # Provider names should match YAML config (CDDIS for daily, CDDIS_HOURLY for hourly)
-        providers = []
-        for ftp_source in profile.data_ftp_sources:
-            if ftp_source.server_id == "CDDIS":
-                # YAML uses CDDIS for daily, CDDIS_HOURLY for hourly
-                if ftp_source.category == "hourly":
-                    providers.append("CDDIS_HOURLY")
-                else:
-                    providers.append("CDDIS")
-            else:
-                providers.append(ftp_source.server_id)
+        # Let the downloader use all available providers in priority order
+        # The YAML config defines provider priority: CDDIS (RINEX3) first, then FTP fallbacks
+        # This ensures we try CDDIS before falling back to RINEX2 servers
+        if args.verbose:
+            print(f"  Using all providers in priority order (CDDIS first)")
 
         # Download to central storage with Bernese 5.4 naming (flat_structure=True)
         # This will create files like WTZR00DEU20252710.RXO
@@ -668,17 +694,18 @@ class DailyPPPProcessor:
             download_dir=central_storage,
             verbose=args.verbose,
             max_retries=2,
-            parallel_downloads=4,
+            parallel_downloads=12,  # Increased for faster downloads (CDDIS dir is cached)
             flat_structure=True,  # Enables Bernese 5.4 long format naming
         )
 
         try:
             print(f"  Downloading {len(stations)} stations to central storage...")
+            # Pass None for providers to use all available providers in priority order
             results = downloader.download_daily_data(
                 stations=stations,
                 year=date.year,
                 doy=date.doy,
-                providers=providers if providers else None,
+                providers=None,  # Use all providers in priority order (CDDIS first)
             )
 
             # Get summary
@@ -992,14 +1019,15 @@ class DailyPPPProcessor:
             bpe_session = f"{doy:03d}{session_char}"
 
             # Create BPE config
+            # Use session_name for output files (e.g., 25358IG.OUT, 25358IG.RUN)
             config = BPEConfig(
                 pcf_file=Path(profile.pcf_file).stem,  # Just the filename without path/extension
                 campaign=session_name,
                 session=bpe_session,
                 year=date.year,
                 task_id=profile.task_id,
-                sysout=session_name,
-                status=f"{session_name}.RUN",
+                sysout=session_name,  # Output: 25358IG.OUT
+                status=f"{session_name}.RUN",  # Status: 25358IG.RUN
             )
 
             # Get option directories
@@ -1134,6 +1162,9 @@ class DailyPPPProcessor:
             "ABS_REL": profile.antenna_phase_center,
             # Minimum elevation
             "opt_MINEL": profile.min_elevation,
+            # VMF3 file pattern - full Bernese path with ${P} variable
+            # Format: ${P}/campaign/GRD/VMF3_YYDDD0.GRD
+            "opt_VMF3": f"${{P}}/{session_name}/GRD/VMF3_{y2c}{doy}0.GRD",
             # Information files
             "infoSES": profile.info_files.get("sessions", ""),
             "infoSTA": profile.info_files.get("station", ""),

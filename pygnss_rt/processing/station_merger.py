@@ -26,6 +26,8 @@ from pathlib import Path
 from typing import Any
 import xml.etree.ElementTree as ET
 
+import yaml
+
 from pygnss_rt.core.paths import get_paths
 
 
@@ -148,33 +150,45 @@ class StationMerger:
     def add_source(
         self,
         source: NetworkSource,
-        xml_path: str | Path | None = None,
+        file_path: str | Path | None = None,
     ) -> int:
         """Add a network source.
 
+        Supports both XML and YAML station files. Prefers YAML if both exist.
+
         Args:
             source: Network source identifier
-            xml_path: Path to XML file (uses default if None)
+            file_path: Path to station file (uses default if None)
 
         Returns:
             Number of stations loaded from this source
         """
-        # Determine XML path
-        if xml_path:
-            path = Path(xml_path)
+        # Determine file path
+        if file_path:
+            path = Path(file_path)
         elif source in self.config.xml_paths:
             path = self.config.xml_paths[source]
         else:
             default_file = self.config.default_files.get(source)
             if not default_file:
-                raise ValueError(f"No XML file configured for source: {source}")
+                raise ValueError(f"No station file configured for source: {source}")
             path = self.config.station_data_dir / default_file
+
+        # Try YAML first if XML path doesn't exist
+        if not path.exists() and path.suffix.lower() == ".xml":
+            yaml_path = path.with_suffix(".yaml")
+            if yaml_path.exists():
+                path = yaml_path
 
         # Get type filter
         type_filter = self.config.type_filters.get(source)
 
-        # Load stations
-        stations = self._load_stations_from_xml(path, source, type_filter)
+        # Load stations based on file type
+        if path.suffix.lower() == ".yaml":
+            stations = self._load_stations_from_yaml(path, source, type_filter)
+        else:
+            stations = self._load_stations_from_xml(path, source, type_filter)
+
         self._sources[source] = stations
 
         if self.verbose:
@@ -247,6 +261,69 @@ class StationMerger:
                 if type_filter and station.station_type.lower() != type_filter.lower():
                     continue
                 stations.append(station)
+
+        return stations
+
+    def _load_stations_from_yaml(
+        self,
+        yaml_path: Path,
+        source: NetworkSource,
+        type_filter: str | None = None,
+    ) -> list[StationInfo]:
+        """Load stations from YAML file.
+
+        Args:
+            yaml_path: Path to YAML file
+            source: Network source identifier
+            type_filter: Optional type filter
+
+        Returns:
+            List of StationInfo objects
+        """
+        if not yaml_path.exists():
+            raise FileNotFoundError(f"Station YAML file not found: {yaml_path}")
+
+        with open(yaml_path) as f:
+            data = yaml.safe_load(f)
+
+        if not data or "stations" not in data:
+            raise ValueError(f"Invalid YAML format: missing 'stations' key in {yaml_path}")
+
+        stations = []
+        for sta_data in data["stations"]:
+            # Parse station from YAML data
+            station_id = sta_data.get("id", "").lower()[:4]
+            if not station_id:
+                continue
+
+            station_type = sta_data.get("type", "")
+
+            # Apply type filter if specified
+            if type_filter and station_type.lower() != type_filter.lower():
+                continue
+
+            # Parse NRT capability
+            use_nrt = sta_data.get("use_nrt", False)
+
+            # Parse coordinates
+            coords = sta_data.get("coordinates", {})
+            lat = sta_data.get("latitude")
+            lon = sta_data.get("longitude")
+            height = sta_data.get("height")
+
+            station = StationInfo(
+                station_id=station_id,
+                name=sta_data.get("name", ""),
+                network=source.value,
+                station_type=station_type,
+                use_nrt=use_nrt,
+                latitude=lat,
+                longitude=lon,
+                height=height,
+                dome_number=sta_data.get("domes", ""),
+                source_file=str(yaml_path),
+            )
+            stations.append(station)
 
         return stations
 

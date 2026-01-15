@@ -257,10 +257,10 @@ bern_options:
       POLYOBS: '0'
       FUNCSTR: ''
       OUTFORM: '3.04'
-      UPDSTANAM: '1'
+      UPDSTANAM: '0'
       RUNBY: UL
-      AC: ULGH
-      ACNAME: ''
+      AC: ULG
+      ACNAME: IESSG
       COMMENT: ''
     ORBGEN:
       SHOWFRC: '0'
@@ -580,7 +580,7 @@ bern_options:
       TRCVTYP: WARNING
       TRCVNUM: WARNING
       DOSTAVER: '1'
-      STAVER: MARKER_DOMES
+      STAVER: MARKER_NAME
       RNXVER: '1'
       RNXINFO: ''
       AOF_ANT_MRK_NAM: WARNING
@@ -602,7 +602,7 @@ bern_options:
       STAWGT: ''
       ECCENT: ''
       TROPEST: ''
-      VMF_FILES: ''
+      VMF_FILES: VMF3_$Y$S+0
       LEOPROC: '0'
       CONST: CONST
       SUBMOD: IERS2010XY
@@ -643,7 +643,7 @@ bern_options:
       CLKPOLY: E
       CLKSAVE: BOTH
       COORDEST: STATIC
-      TROPOS: GPT3
+      TROPOS: VMF3
       IONOS: '0'
       MINEL: opt_MINEL
       SAMPLE: '1'
@@ -670,7 +670,7 @@ bern_options:
       CRNXFORM: '3.04'
       RUNBY: ''
       AC: ''
-      ACNAME: ''
+      ACNAME: IESSG
       TIMESYS: GPS
       DCBLINE: ''
       COMMENT: ''
@@ -709,8 +709,7 @@ bern_options:
       SATCLK: opt_CLK
       DCBINP: ''
       NLBCLK: '0'
-      VMF_FILES: ''
-      IONOS: ''
+      VMF_FILES: VMF3_$Y$S+0
       OCNLOAD: opt_OTL
       ATMLOAD: ''
       OPTLOAD: ERROR
@@ -818,7 +817,7 @@ bern_options:
       STATIM1: 00 00 00
       ENDDAT1: $YMD_STR+0
       ENDTIM1: 23 59 59
-      TROPOS: DRY_GPT3
+      TROPOS: DRY_VMF3
       TROPOS_S: MENDES-PAVLIS
       AMBSTRAT: NONE
       USEAR_G: '1'
@@ -941,7 +940,7 @@ bern_options:
       RBIAS: '0'
       PRE26: 'NO'
       PAR_OFF: ''
-      MAPPNG: WET_GMF3
+      MAPPNG: WET_VMF3
       NUMPAR: 01 00 00
       TRPGRD: CHEN-HERRING
       NUMGRD: 24 00 00
@@ -1135,7 +1134,7 @@ bern_options:
       CRNXFORM: ''
       RUNBY: ''
       AC: ''
-      ACNAME: ''
+      ACNAME: IESSG
       TIMESYS: GPS
       DCBLINE: ''
       COMMENT: ''
@@ -1351,7 +1350,6 @@ bern_options:
       RXCLKIN: ''
       RGBINP: ''
       PARAMIN: ''
-      IONOS: ''
       CONST: CONST
       DATUM: DATUM
       PHASECC: opt_PHASECC
@@ -1612,7 +1610,7 @@ bern_options:
       STAWGT: ''
       ECCENT: ''
       TROPEST: ''
-      VMF_FILES: ''
+      VMF_FILES: VMF3_$Y$S+0
       LEOPROC: '0'
       CONST: CONST
       SUBMOD: IERS2010XY
@@ -1648,7 +1646,7 @@ bern_options:
       SYSERR: ERROR
       TITLE: 'PPP_$YYYSS+0_$(FFFF): Receiver clock synchronization'
       USE_G: '1'
-      USE_R: '1'
+      USE_R: '0'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
@@ -1657,8 +1655,8 @@ bern_options:
       CLKPOLY: E
       CLKSAVE: BOTH
       COORDEST: STATIC
-      TROPOS: GPT3
-      IONOS: ''
+      TROPOS: VMF3
+      IONOS: '0'
       MINEL: opt_MINEL
       SAMPLE: '1'
       SECIPL: '0'
@@ -1684,15 +1682,15 @@ bern_options:
       CRNXFORM: '3.04'
       RUNBY: ''
       AC: ''
-      ACNAME: ''
+      ACNAME: IESSG
       TIMESYS: GPS
       DCBLINE: ''
       COMMENT: ''
     MAUPRP:
       SHOWGEN: '0'
-      RADIO_Z: '0'
+      RADIO_Z: '1'
       PZFILES: ????$S+0
-      RADIO_S: '1'
+      RADIO_S: '0'
       OBSFIL: ????$S+0
       COORD: $(APR)_$YYYSS+0
       ECCENT: ''
@@ -1702,8 +1700,7 @@ bern_options:
       SATCLK: ''
       TROPEST: ''
       METFIL: ''
-      VMF_FILES: ''
-      IONOS: ''
+      VMF_FILES: VMF3_$Y$S+0
       LEOPROC: '0'
       CONST: CONST
       DATUM: DATUM
@@ -1742,7 +1739,7 @@ bern_options:
       MINLEN: '20'
       SECIPL: '0'
       ISAVE: '1'
-      TROPOS: GPT3
+      TROPOS: VMF3
       STAFIX: ''
       IUSFLG: '0'
       MINEL: opt_MINEL
@@ -1876,7 +1873,7 @@ bern_options:
       RMSL4: '0.01'
       FIXSLP: '1'
       RMSL3: '2.0'
-      FLGPHS: ''
+      FLGPHS: '1'
       FLGCOD: '1'
       PRTFLG: SUM
       GLOFRQ: '0'
@@ -1948,7 +1945,7 @@ bern_options:
       MINSIG: '2'
       ACCEPT0: '1'
       ACCEPTCS: '0'
-      IREQ: '10'
+      IREQ: '1'
       RADOME: '1'
       CORRAD: '0'
       DOANTVER: '1'
@@ -1996,7 +1993,7 @@ bern_options:
       TRCVTYP: WARNING
       TRCVNUM: WARNING
       DOSTAVER: '1'
-      STAVER: MARKER_DOMES
+      STAVER: MARKER_NAME
       RNXVER: '1'
       RNXINFO: ''
       AOF_ANT_MRK_NAM: WARNING
@@ -2023,8 +2020,7 @@ bern_options:
       SATCLK: opt_CLK
       DCBINP: ''
       NLBCLK: '0'
-      VMF_FILES: ''
-      IONOS: ''
+      VMF_FILES: VMF3_$Y$S+0
       OCNLOAD: opt_OTL
       ATMLOAD: ''
       OPTLOAD: ERROR
@@ -2132,7 +2128,7 @@ bern_options:
       STATIM1: 00 00 00
       ENDDAT1: $YMD_STR+0
       ENDTIM1: 23 59 59
-      TROPOS: DRY_GPT3
+      TROPOS: DRY_VMF3
       TROPOS_S: MENDES-PAVLIS
       AMBSTRAT: SIGMA
       USEAR_G: '1'
@@ -2255,7 +2251,7 @@ bern_options:
       RBIAS: '0'
       PRE26: 'NO'
       PAR_OFF: ''
-      MAPPNG: WET_GMF3
+      MAPPNG: WET_VMF3
       NUMPAR: 01 00 00
       TRPGRD: CHEN-HERRING
       NUMGRD: 24 00 00
@@ -2449,7 +2445,7 @@ bern_options:
       CRNXFORM: ''
       RUNBY: ''
       AC: ''
-      ACNAME: ''
+      ACNAME: IESSG
       TIMESYS: GPS
       DCBLINE: ''
       COMMENT: ''
@@ -2659,8 +2655,7 @@ bern_options:
       SATCLK: opt_CLK
       DCBINP: ''
       NLBCLK: '0'
-      VMF_FILES: ''
-      IONOS: ''
+      VMF_FILES: VMF3_$Y$S+0
       OCNLOAD: opt_OTL
       ATMLOAD: ''
       OPTLOAD: ERROR
@@ -2768,7 +2763,7 @@ bern_options:
       STATIM1: 00 00 00
       ENDDAT1: $YMD_STR+0
       ENDTIM1: 23 59 59
-      TROPOS: DRY_GPT3
+      TROPOS: DRY_VMF3
       TROPOS_S: MENDES-PAVLIS
       AMBSTRAT: NONE
       USEAR_G: '1'
@@ -2891,7 +2886,7 @@ bern_options:
       RBIAS: '0'
       PRE26: 'NO'
       PAR_OFF: ''
-      MAPPNG: WET_GMF3
+      MAPPNG: WET_VMF3
       NUMPAR: 01 00 00
       TRPGRD: CHEN-HERRING
       NUMGRD: 24 00 00
@@ -3085,7 +3080,7 @@ bern_options:
       CRNXFORM: ''
       RUNBY: ''
       AC: ''
-      ACNAME: ''
+      ACNAME: IESSG
       TIMESYS: GPS
       DCBLINE: ''
       COMMENT: ''
@@ -3415,7 +3410,6 @@ bern_options:
       RXCLKIN: ''
       RGBINP: ''
       PARAMIN: ''
-      IONOS: ''
       CONST: CONST
       DATUM: DATUM
       PHASECC: opt_PHASECC
@@ -3632,7 +3626,6 @@ bern_options:
       RXCLKIN: ''
       RGBINP: ''
       PARAMIN: ''
-      IONOS: ''
       CONST: CONST
       DATUM: DATUM
       PHASECC: opt_PHASECC

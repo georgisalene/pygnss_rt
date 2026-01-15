@@ -247,16 +247,20 @@ def create_network_profiles(
     profiles = {}
 
     # IG - IGS Core Network (primary reference)
+    # Matches Perl: iGNSS_D_PPP_AR_IG_IGS54_direct_NRT.pl
     profiles[NetworkID.IG] = NetworkProfile(
         network_id=NetworkID.IG,
         description="IGS core stations (global reference network)",
         session_id="IG",
         task_id="IG",
         station_filter=StationFilter(
-            xml_file=f"{station_data_dir}/IGS20rh.xml",
+            # XML file: same as Perl $IGSXml = "$ENV{IGNSS}/info/IGS20gh.xml"
+            xml_file=f"{station_data_dir}/IGS20gh.xml",
+            # Filters: same as Perl get_list({primaryNet => 'IGS20', type => 'core'})
             primary_net="IGS20",
             station_type="core",
-            exclude_stations=["lpgs", "yel2"],
+            # Excluded: same as Perl @RemSta=qw(lpgs yel2 ptag00phl)
+            exclude_stations=["lpgs", "yel2", "ptag00phl"],
         ),
         data_ftp_sources=[
             # RINEX3 from CDDIS (primary), fallback to RINEX2 from FTP servers
@@ -289,6 +293,8 @@ def create_network_profiles(
             exclude_stations=["newl"],
         ),
         data_ftp_sources=[
+            # CDDIS (RINEX3) as primary source, then fallback to RINEX2 FTP servers
+            FTPDataSource(server_id="CDDIS", category="daily"),
             FTPDataSource(server_id="BKGE_EUREF", category="daily"),
             FTPDataSource(server_id="BKGE_IGS", category="daily"),
         ],
@@ -317,7 +323,10 @@ def create_network_profiles(
             exclude_stations=["newl00gbr", "cari00gbr", "hart00gbr"],
         ),
         data_ftp_sources=[
+            # OSGB for UK stations, CDDIS as fallback for IGS stations
             FTPDataSource(server_id="OSGB_HOURLY", category="hourly"),
+            FTPDataSource(server_id="CDDIS_HOURLY", category="hourly"),
+            FTPDataSource(server_id="CDDIS", category="daily"),
         ],
         orbit_source=default_orbit,
         erp_source=default_erp,
@@ -343,7 +352,10 @@ def create_network_profiles(
             use_nrt=True,
         ),
         data_ftp_sources=[
+            # RGP as primary for French stations, CDDIS/IGN as fallback
             FTPDataSource(server_id="RGP", category="daily"),
+            FTPDataSource(server_id="CDDIS", category="daily"),
+            FTPDataSource(server_id="IGN_IGS", category="daily"),
         ],
         orbit_source=default_orbit,
         erp_source=default_erp,

@@ -270,33 +270,73 @@ class PathConfig:
         return self.station_data_dir / "NEWNRT54.STA"
 
     # =========================================================================
-    # Station XML Files (in station_data directory)
+    # Station Files (in station_data directory) - Supports XML and YAML
     # =========================================================================
 
+    def _get_station_file(self, basename: str) -> Path:
+        """Get station file path, preferring YAML over XML.
+
+        Args:
+            basename: Base filename without extension (e.g., "IGS20rh")
+
+        Returns:
+            Path to YAML file if exists, otherwise XML file
+        """
+        yaml_path = self.station_data_dir / f"{basename}.yaml"
+        if yaml_path.exists():
+            return yaml_path
+        return self.station_data_dir / f"{basename}.xml"
+
+    @property
+    def igs_stations_file(self) -> Path:
+        """IGS stations file (YAML preferred, XML fallback)."""
+        return self._get_station_file("IGS20rh")
+
+    @property
+    def euref_stations_file(self) -> Path:
+        """EUREF stations file (YAML preferred, XML fallback)."""
+        return self._get_station_file("eurefrh")
+
+    @property
+    def gb_stations_file(self) -> Path:
+        """Great Britain stations file (YAML preferred, XML fallback)."""
+        return self._get_station_file("stationsrh")
+
+    @property
+    def rgp_stations_file(self) -> Path:
+        """RGP France stations file (YAML preferred, XML fallback)."""
+        return self._get_station_file("RGPrh")
+
+    @property
+    def supersites_file(self) -> Path:
+        """Supersites stations file (YAML preferred, XML fallback)."""
+        return self._get_station_file("supersitesrh")
+
+    # Backward compatibility aliases (deprecated - use *_file properties)
     @property
     def igs_stations_xml(self) -> Path:
-        """IGS stations XML file."""
-        return self.station_data_dir / "IGS20rh.xml"
+        """IGS stations file (deprecated, use igs_stations_file)."""
+        return self.igs_stations_file
 
     @property
     def euref_stations_xml(self) -> Path:
-        """EUREF stations XML file."""
-        return self.station_data_dir / "eurefrh.xml"
+        """EUREF stations file (deprecated, use euref_stations_file)."""
+        return self.euref_stations_file
 
     @property
     def gb_stations_xml(self) -> Path:
-        """Great Britain stations XML file."""
-        return self.station_data_dir / "stationsrh.xml"
+        """Great Britain stations file (deprecated, use gb_stations_file)."""
+        return self.gb_stations_file
 
     @property
     def rgp_stations_xml(self) -> Path:
-        """RGP France stations XML file."""
-        return self.station_data_dir / "RGPrh.xml"
+        """RGP France stations file (deprecated, use rgp_stations_file)."""
+        return self.rgp_stations_file
 
     @property
     def supersites_xml(self) -> Path:
-        """Supersites stations XML file."""
-        return self.station_data_dir / "supersitesrh.xml"
+        """Supersites stations file (deprecated, use supersites_file)."""
+        return self.supersites_file
 
     # =========================================================================
     # BSW Options XML Files (in bsw_configs directory)

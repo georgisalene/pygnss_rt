@@ -79,6 +79,10 @@ class ProcessingArgs:
     use_dcb: bool = False
     dcb_provider: str = "CODE"
 
+    # VMF3 troposphere mapping functions
+    use_vmf3: bool = True  # Enabled by default for improved troposphere modeling
+    vmf3_provider: str = "VMF3"  # TU Wien
+
     # Processing options
     cron_mode: bool = False
     latency_hours: int = 3
@@ -108,6 +112,7 @@ class ProductFiles:
     ion: Path | None = None
     dcb: Path | None = None
     iep: Path | None = None  # IERS format ERP
+    vmf3: list[Path] = field(default_factory=list)  # VMF3 grid files (5 per day)
 
 
 @dataclass
@@ -261,16 +266,16 @@ class IGNSS:
         self._now = GNSSDate.now()
         logger.debug(f"Processing time set to {self._now}")
 
-    def load_station_config(self, xml_path: Path | str) -> int:
-        """Load station configuration from XML.
+    def load_station_config(self, station_file: Path | str) -> int:
+        """Load station configuration from XML or YAML file.
 
         Args:
-            xml_path: Path to station XML file
+            station_file: Path to station file (XML or YAML)
 
         Returns:
             Number of stations loaded
         """
-        return self.station_manager.load_xml(xml_path)
+        return self.station_manager.load(station_file)
 
     def load_ftp_config(self, config_path: Path | str) -> int:
         """Load FTP server configuration.

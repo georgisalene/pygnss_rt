@@ -98,6 +98,7 @@ class DailyCRDConfig:
         max_std_meters: Maximum allowed std deviation (meters)
         datum: Reference datum name
         latency_hours: Processing latency in hours for cron mode
+        use_flat_structure: Use flat directory structure (yyyy/doy/FIN_*.CRD)
     """
 
     output_dir: Path = field(default_factory=_get_default_nrt_coord_dir)
@@ -120,6 +121,9 @@ class DailyCRDConfig:
 
     # Cron mode settings
     latency_hours: int = 12
+
+    # Directory structure mode
+    use_flat_structure: bool = False  # Use yyyy/doy/FIN_*.CRD instead of network archives
 
 
 @dataclass
@@ -410,14 +414,23 @@ class DailyCRDProcessor:
         station_data: dict[str, dict[int, dict[str, float]]] = {}
 
         try:
-            for network in self.config.networks:
-                self._log(f"\n  SOLUTION: {network.network_id}")
-
+            if self.config.use_flat_structure:
+                # Use flat structure: yyyy/doy/FIN_*.CRD
+                self._log("\n  Using flat directory structure (FIN_*.CRD)")
                 for mjd in range(start_mjd, end_mjd + 1):
-                    crd_file = self._get_archive_file(network, mjd, tmp_dir)
-
+                    crd_file = self._get_flat_crd_file(mjd, tmp_dir)
                     if crd_file and crd_file.exists():
                         self._load_crd_file(crd_file, mjd, station_data)
+            else:
+                # Use network archive structure
+                for network in self.config.networks:
+                    self._log(f"\n  SOLUTION: {network.network_id}")
+
+                    for mjd in range(start_mjd, end_mjd + 1):
+                        crd_file = self._get_archive_file(network, mjd, tmp_dir)
+
+                        if crd_file and crd_file.exists():
+                            self._load_crd_file(crd_file, mjd, station_data)
 
         finally:
             # Clean up temp directory
@@ -425,6 +438,57 @@ class DailyCRDProcessor:
                 shutil.rmtree(tmp_dir)
 
         return station_data
+
+    def _get_flat_crd_file(
+        self,
+        mjd: int,
+        tmp_dir: Path,
+    ) -> Path | None:
+        """Get CRD file from flat directory structure.
+
+        Looks for files like: {ppp_root}/2025/357/FIN_20253570.CRD
+
+        Args:
+            mjd: Modified Julian Date
+            tmp_dir: Temporary directory for decompression
+
+        Returns:
+            Path to CRD file, or None if not found
+        """
+        from pygnss_rt.utils.dates import date_from_mjd
+
+        # Get year/doy from MJD
+        dt = date_from_mjd(mjd)
+        year = dt.year
+        doy = dt.timetuple().tm_yday
+
+        # Build path: {ppp_root}/{yyyy}/{doy}/
+        day_dir = self.config.ppp_root / str(year) / f"{doy:03d}"
+
+        if not day_dir.exists():
+            return None
+
+        # Look for FIN_*.CRD file
+        crd_pattern = f"FIN_{year}{doy:03d}0.CRD"
+        crd_file = day_dir / crd_pattern
+
+        if crd_file.exists():
+            self._log(f"    Found: {crd_file.name}")
+            return crd_file
+
+        # Try compressed version
+        crd_gz = day_dir / (crd_pattern + ".gz")
+        if crd_gz.exists():
+            # Decompress to tmp_dir
+            dest = tmp_dir / crd_pattern
+            import gzip
+            with gzip.open(crd_gz, 'rb') as f_in:
+                with open(dest, 'wb') as f_out:
+                    f_out.write(f_in.read())
+            self._log(f"    Found (gz): {crd_gz.name}")
+            return dest
+
+        return None
 
     def _get_archive_file(
         self,
@@ -501,6 +565,10 @@ class DailyCRDProcessor:
     ) -> None:
         """Load coordinates from a CRD file.
 
+        Supports multiple CRD formats:
+        - Standard BSW format with DOMES ID
+        - Simple PPP format without DOMES ID
+
         Args:
             path: Path to CRD file
             mjd: MJD for this file
@@ -517,18 +585,40 @@ class DailyCRDProcessor:
                     if '.' not in line:
                         continue
 
+                    # Skip empty or too short lines
+                    if len(line.strip()) < 50:
+                        continue
+
                     try:
-                        # Parse BSW CRD format
-                        # NUM  STATION DOMES       X (M)          Y (M)          Z (M)
-                        station = line[5:9].strip().upper()
-                        x = float(line[22:36])
-                        y = float(line[37:51])
-                        z = float(line[52:66])
+                        # Try to parse by splitting on whitespace
+                        parts = line.split()
+                        if len(parts) < 5:
+                            continue
 
-                        if station not in data:
-                            data[station] = {}
+                        # First part should be a number (station index)
+                        try:
+                            int(parts[0])
+                        except ValueError:
+                            continue
 
-                        data[station][mjd] = {"X": x, "Y": y, "Z": z}
+                        # Second part is station name (4 chars)
+                        station = parts[1][:4].upper()
+
+                        # Find X, Y, Z - they're the three consecutive floats
+                        coords = []
+                        for p in parts[2:]:
+                            try:
+                                coords.append(float(p))
+                                if len(coords) == 3:
+                                    break
+                            except ValueError:
+                                continue
+
+                        if len(coords) == 3:
+                            x, y, z = coords
+                            if station not in data:
+                                data[station] = {}
+                            data[station][mjd] = {"X": x, "Y": y, "Z": z}
 
                     except (ValueError, IndexError):
                         continue
@@ -558,6 +648,28 @@ class DailyCRDProcessor:
             x_vals = [mjd_data[m]["X"] for m in mjd_data]
             y_vals = [mjd_data[m]["Y"] for m in mjd_data]
             z_vals = [mjd_data[m]["Z"] for m in mjd_data]
+
+            if len(x_vals) < 1:
+                self._log(f"    No records for station {station}! Skipped")
+                rejected += 1
+                continue
+
+            # With only 1 record, skip outlier rejection and use as-is
+            if len(x_vals) == 1:
+                self._log(f"    Single record for {station} - using directly")
+                coord = StationCoordinate(
+                    station=station,
+                    x=x_vals[0],
+                    y=y_vals[0],
+                    z=z_vals[0],
+                    std_x=0.0,
+                    std_y=0.0,
+                    std_z=0.0,
+                    n_records=1,
+                    flag="PPP",
+                )
+                coordinates.append(coord)
+                continue
 
             if len(x_vals) < 2:
                 self._log(f"    Less than 2 records for station {station}! Skipped")

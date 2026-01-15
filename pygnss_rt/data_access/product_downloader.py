@@ -939,6 +939,137 @@ class ProductDownloader:
             subdirectory=str(gps_week),
         )
 
+    def download_vmf3(
+        self,
+        date: GNSSDate,
+        destination: Path | None = None,
+        resolution: str = "1x1",
+    ) -> ProductDownloadResult:
+        """Download VMF3 troposphere grid files from TU Wien and combine into Bernese GRD format.
+
+        VMF3 requires 5 files per processing day:
+        - H00, H06, H12, H18 of current day
+        - H00 of next day (for interpolation)
+
+        Files are downloaded from:
+        https://vmf.geo.tuwien.ac.at/trop_products/GRID/{resolution}/VMF3/VMF3_OP/{year}/
+
+        The 5 individual files are combined into a single Bernese GRD file named:
+        VMF3_{YY}{DOY}0.GRD (e.g., VMF3_253580.GRD for 2025 DOY 358)
+
+        Args:
+            date: GNSS date for processing
+            destination: Destination directory for VMF3 files (defaults to download_dir)
+            resolution: Grid resolution - "1x1" (recommended) or "5x5"
+
+        Returns:
+            ProductDownloadResult with combined GRD file path
+        """
+        import requests
+        from datetime import timedelta
+
+        dest_dir = destination or Path(self.config.download_dir)
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        # Bernese-style filename: VMF3_YYDDD0.GRD
+        yy = date.year % 100
+        combined_filename = f"VMF3_{yy}{date.doy:03d}0.GRD"
+        combined_path = dest_dir / combined_filename
+
+        # Check if combined file already exists
+        if combined_path.exists():
+            logger.info(f"VMF3 combined file already exists: {combined_filename}")
+            return ProductDownloadResult(
+                status=DownloadStatus.SUCCESS,
+                local_path=combined_path,
+                source="local",
+            )
+
+        # Generate VMF3 filenames for this day
+        # Format: VMF3_YYYYMMDD.Hhh
+        dt = date.datetime
+        next_dt = dt + timedelta(days=1)
+
+        epochs = [
+            (dt, "H00"),
+            (dt, "H06"),
+            (dt, "H12"),
+            (dt, "H18"),
+            (next_dt, "H00"),  # Next day for interpolation
+        ]
+
+        vmf3_base_url = f"https://vmf.geo.tuwien.ac.at/trop_products/GRID/{resolution}/VMF3/VMF3_OP"
+        downloaded_files = []
+        temp_files = []
+
+        for epoch_dt, hour_str in epochs:
+            filename = f"VMF3_{epoch_dt.strftime('%Y%m%d')}.{hour_str}"
+            temp_path = dest_dir / filename
+            temp_files.append(temp_path)
+
+            # Check if already exists
+            if temp_path.exists():
+                downloaded_files.append(temp_path)
+                continue
+
+            # Download from TU Wien
+            file_year = epoch_dt.year
+            url = f"{vmf3_base_url}/{file_year}/{filename}"
+
+            logger.info(f"Downloading VMF3: {filename}")
+            try:
+                response = requests.get(url, timeout=120)
+                if response.status_code == 200:
+                    with open(temp_path, 'wb') as f:
+                        f.write(response.content)
+                    logger.info(f"Downloaded VMF3: {filename}")
+                    downloaded_files.append(temp_path)
+                else:
+                    logger.warning(f"VMF3 download failed: HTTP {response.status_code} for {url}")
+                    return ProductDownloadResult(
+                        status=DownloadStatus.NOT_FOUND,
+                        error_message=f"HTTP {response.status_code} for {filename}",
+                    )
+            except requests.RequestException as e:
+                logger.warning(f"VMF3 download error: {e}")
+                return ProductDownloadResult(
+                    status=DownloadStatus.CONNECTION_ERROR,
+                    error_message=str(e),
+                )
+
+        # All 5 files downloaded - combine into single GRD file
+        if len(downloaded_files) == 5:
+            logger.info(f"Combining VMF3 files into {combined_filename}")
+            try:
+                with open(combined_path, 'w') as outfile:
+                    for temp_path in temp_files:
+                        with open(temp_path, 'r') as infile:
+                            outfile.write(infile.read())
+
+                # Clean up individual files
+                for temp_path in temp_files:
+                    if temp_path.exists():
+                        temp_path.unlink()
+
+                logger.info(f"Created combined VMF3 file: {combined_filename}")
+                return ProductDownloadResult(
+                    status=DownloadStatus.SUCCESS,
+                    local_path=combined_path,
+                    remote_path=vmf3_base_url,
+                    source="VMF3_TU_Wien",
+                )
+            except Exception as e:
+                logger.error(f"Failed to combine VMF3 files: {e}")
+                return ProductDownloadResult(
+                    status=DownloadStatus.DECOMPRESS_ERROR,
+                    error_message=f"Failed to combine VMF3 files: {e}",
+                )
+
+        return ProductDownloadResult(
+            status=DownloadStatus.NOT_FOUND,
+            error_message=f"Only {len(downloaded_files)}/5 VMF3 files downloaded",
+        )
+
     def __enter__(self) -> "ProductDownloader":
         """Context manager entry."""
         return self

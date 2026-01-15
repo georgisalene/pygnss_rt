@@ -236,25 +236,26 @@ station_servers:
 
 auxiliary_servers:
 
-  VMF:
-    description: "Vienna Mapping Functions"
+  VMF3:
+    description: "Vienna Mapping Functions 3 - TU Wien (5x5 degree grid)"
     protocol: https
     host: vmf.geo.tuwien.ac.at
+    base_url: https://vmf.geo.tuwien.ac.at
     auth_required: false
 
-    vmf3:
-      path: /trop_products/GRID/2.5x2/VMF3/VMF3_OP/{year}
-      filename: VMF3_{year}{doy:03d}.H{hour:02d}
-
-  TU_WIEN:
-    description: "TU Wien troposphere products"
-    protocol: https
-    host: vmf.geo.tuwien.ac.at
-    auth_required: false
-
+    # VMF3 grid files for troposphere modeling
+    # Files are 6-hourly: H00, H06, H12, H18
+    # Format: VMF3_YYYYMMDD.H00 (6-hourly grids on 5x5 degree global grid)
     grid:
-      path: /trop_products/GRID/2.5x2/VMF3/VMF3_OP/{year}
-      filename: VMFG_{year}{doy:03d}.H{hour:02d}
+      # Path pattern for 6-hourly VMF3 grid files (5x5 degree resolution)
+      path: /trop_products/GRID/5x5/VMF3/VMF3_OP/{year}
+      # Filename: VMF3_YYYYMMDD.Hhh (e.g., VMF3_20250101.H00)
+      filename: VMF3_{year}{month:02d}{day:02d}.H{hour:02d}
+
+    # For Bernese, we typically need:
+    # - Current day: H00, H06, H12, H18
+    # - Next day: H00 (for interpolation at end of day)
+    hours: [0, 6, 12, 18]  # Hours to download for each day
 
 # =============================================================================
 # DEFAULT PROVIDER PRIORITY
@@ -268,6 +269,7 @@ provider_priority:
     erp: [CDDIS, CODE, BKGE_IGS]
     bia: [CODE]
     ion: [CODE]
+    vmf3: [VMF3]  # VMF3 from TU Wien
 
   stations:
     # CDDIS (RINEX3) is primary, fallback to FTP servers (RINEX2) if not available

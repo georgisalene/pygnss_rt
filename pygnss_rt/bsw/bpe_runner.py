@@ -167,13 +167,17 @@ class BPERunner:
         # Create symlinks to user directories that the menu expects under ${U}
         # The menu binary uses ${U}/PCF, ${U}/SCRIPT, etc. which point to temp area
         # but the actual files are in the original user directory
+        # NOTE: OPT is NOT symlinked - it will be copied so we can customize INP files
         user_dir = self.env.user_dir
-        for subdir in ["PCF", "SCRIPT", "OPT", "OUT"]:
+        for subdir in ["PCF", "SCRIPT", "OUT"]:
             src = user_dir / subdir
             dst = u_new / subdir
             if src.exists() and not dst.exists():
                 os.symlink(src, dst)
                 logger.debug(f"Created symlink: {dst} -> {src}")
+
+        # Create OPT directory structure (will be populated by copy_opt_to_pan)
+        (u_new / "OPT").mkdir(parents=True, exist_ok=True)
 
         self._temp_user_area = u_new
         logger.debug(f"Created temp user area: {u_new}")
@@ -212,27 +216,36 @@ class BPERunner:
         """
         start_time = time.time()
         last_size = 0
+        check_count = 0
 
         logger.info(f"Waiting for BPE completion (timeout: {timeout}s)")
+        logger.debug(f"Monitoring output file: {output_file}")
 
         while time.time() - start_time < timeout:
+            check_count += 1
             if output_file.exists():
                 current_size = output_file.stat().st_size
                 if current_size != last_size:
                     last_size = current_size
+                    logger.debug(f"Output file size changed to {current_size} bytes")
                     # Check for completion marker
-                    content = output_file.read_text()
-                    match = re.search(
-                        r"Sessions finished:\s*OK:\s*(\d+)\s+Error:\s*(\d+)",
-                        content
-                    )
-                    if match:
-                        sessions_ok = int(match.group(1))
-                        sessions_error = int(match.group(2))
-                        logger.info(
-                            f"BPE completed: OK={sessions_ok}, Error={sessions_error}"
+                    try:
+                        content = output_file.read_text()
+                        match = re.search(
+                            r"Sessions finished:\s*OK:\s*(\d+)\s+Error:\s*(\d+)",
+                            content
                         )
-                        return True, sessions_ok, sessions_error
+                        if match:
+                            sessions_ok = int(match.group(1))
+                            sessions_error = int(match.group(2))
+                            logger.info(
+                                f"BPE completed: OK={sessions_ok}, Error={sessions_error}"
+                            )
+                            return True, sessions_ok, sessions_error
+                    except Exception as e:
+                        logger.warning(f"Error reading output file: {e}")
+            elif check_count % 12 == 1:  # Log every minute (12 * 5 seconds)
+                logger.debug(f"Output file not yet created: {output_file}")
 
             time.sleep(poll_interval)
 
@@ -363,19 +376,17 @@ class BPERunner:
         menu_cmp.write_text("\n".join(new_lines) + "\n")
         logger.info(f"Removed campaign {campaign} from MENU_CMP.INP")
 
-    def copy_opt_to_pan(
+    def copy_opt_to_temp(
         self,
         temp_user_area: Path,
         opt_dirs: dict[str, str],
         prod_mode: bool = False,
     ) -> None:
-        """Copy OPT INP files to temp user area PAN directory.
+        """Copy OPT directories to temp user area, preserving structure.
 
-        Mimics RUNBPE.pm copyInpFiles() which copies from $U_OLD/OPT/{opt}/*.INP
-        to $U/PAN/ (the temp user area's PAN directory).
-
-        This is the key difference from the original implementation - files go
-        to PAN, not campaign/INP.
+        Copies from $U_OLD/OPT/{opt}/*.INP to $U_NEW/OPT/{opt}/*.INP
+        so that the INP files can be customized and Bernese will use them.
+        Also symlinks any other OPT directories (like NO_OPT) that BPE may need.
 
         Args:
             temp_user_area: Temporary user area path ($U_new)
@@ -383,7 +394,10 @@ class BPERunner:
             prod_mode: If True, use _PROD suffix on source directories
         """
         opt_root = self.env.user_dir / "OPT"
-        pan_dir = temp_user_area / "PAN"
+        temp_opt_root = temp_user_area / "OPT"
+
+        # Get set of OPT directories we need to copy (for customization)
+        opt_dirs_to_copy = set(opt_dirs.values())
 
         files_copied = 0
         for key, opt_name in sorted(opt_dirs.items()):
@@ -398,16 +412,29 @@ class BPERunner:
                     logger.warning(f"OPT directory not found: {source_dir}")
                     continue
 
-            # Copy all .INP and .IN1 files to PAN directory (flat, like RUNBPE.pm)
+            # Create temp OPT subdirectory
+            dest_dir = temp_opt_root / opt_name
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            # Copy all .INP and .IN1 files to temp OPT directory (preserve structure)
             for pattern in ["*.INP", "*.IN1"]:
                 for inp_file in source_dir.glob(pattern):
-                    dest_file = pan_dir / inp_file.name
+                    dest_file = dest_dir / inp_file.name
                     shutil.copy2(inp_file, dest_file)
                     files_copied += 1
 
-            logger.debug(f"Copied OPT/{source_opt}/*.INP to temp PAN/")
+            logger.debug(f"Copied OPT/{source_opt}/*.INP to temp OPT/{opt_name}/")
 
-        logger.info(f"Copied {files_copied} INP files to temp PAN directory")
+        # Symlink any other OPT directories that we didn't copy (like NO_OPT)
+        # These are used by scripts that don't need customization
+        for source_dir in opt_root.iterdir():
+            if source_dir.is_dir() and source_dir.name not in opt_dirs_to_copy:
+                dest_dir = temp_opt_root / source_dir.name
+                if not dest_dir.exists():
+                    os.symlink(source_dir, dest_dir)
+                    logger.debug(f"Symlinked OPT/{source_dir.name} to temp OPT/")
+
+        logger.info(f"Copied {files_copied} INP files to temp OPT directories")
 
     def put_key(self, inp_file: Path, key: str, value: str, selector: str | None = None) -> bool:
         """Set a key value in an INP file.
@@ -433,12 +460,15 @@ class BPERunner:
         # BSW INP format: KEY 1  "value" or KEY 1  value
         # Pattern to match: KEY followed by number, then quoted value
         # Example: SESSION_CHAR 1  "0"  or  MODJULDATE 1  "60567.5"
-        pattern = rf'^(\s*{re.escape(key)}\s+\d+\s+)"[^"]*"'
+        # Use [ \t]+ instead of \s+ to avoid matching across lines
+        pattern = rf'^(\s*{re.escape(key)}[ \t]+\d+[ \t]+)"[^"]*"'
 
-        # Keep value as-is, wrap in quotes
-        replacement = rf'\g<1>"{value}"'
+        # Use function-based replacement to avoid regex special character issues
+        # Values like $(ORB)_$YYYSS+0 contain $ which can be misinterpreted
+        def replace_quoted(m: re.Match) -> str:
+            return m.group(1) + f'"{value}"'
 
-        new_content, count = re.subn(pattern, replacement, content, flags=re.MULTILINE)
+        new_content, count = re.subn(pattern, replace_quoted, content, flags=re.MULTILINE)
 
         if count > 0:
             # Also update the selector comment if provided
@@ -446,21 +476,41 @@ class BPERunner:
             if selector is not None:
                 # Pattern: after KEY line and ## widget line(s), find "  # NAME" line
                 selector_pattern = rf'(^\s*{re.escape(key)}\s+\d+\s+"[^"]*"\n(?:\s+##[^\n]*\n)+)\s+#\s+\S+'
-                selector_replacement = rf'\g<1>  # {selector}'
-                new_content = re.sub(selector_pattern, selector_replacement, new_content, flags=re.MULTILINE)
+                def replace_selector(m: re.Match) -> str:
+                    return m.group(1) + f'  # {selector}'
+                new_content = re.sub(selector_pattern, replace_selector, new_content, flags=re.MULTILINE)
             inp_file.write_text(new_content)
             return True
 
         # Try pattern without quotes in original (less common)
-        pattern = rf'^(\s*{re.escape(key)}\s+\d+\s+)(\S+)'
-        replacement = rf'\g<1>"{value}"'
-        new_content, count = re.subn(pattern, replacement, content, flags=re.MULTILINE)
+        # Use [ \t]+ instead of \s+ to avoid matching across lines
+        pattern = rf'^(\s*{re.escape(key)}[ \t]+\d+[ \t]+)(\S+)'
+
+        def replace_unquoted(m: re.Match) -> str:
+            return m.group(1) + f'"{value}"'
+
+        new_content, count = re.subn(pattern, replace_unquoted, content, flags=re.MULTILINE)
 
         if count > 0:
             if selector is not None:
                 selector_pattern = rf'(^\s*{re.escape(key)}\s+\d+\s+"[^"]*"\n(?:\s+##[^\n]*\n)+)\s+#\s+\S+'
-                selector_replacement = rf'\g<1>  # {selector}'
-                new_content = re.sub(selector_pattern, selector_replacement, new_content, flags=re.MULTILINE)
+                def replace_selector2(m: re.Match) -> str:
+                    return m.group(1) + f'  # {selector}'
+                new_content = re.sub(selector_pattern, replace_selector2, new_content, flags=re.MULTILINE)
+            inp_file.write_text(new_content)
+            return True
+
+        # Try pattern for key with count but no value (e.g., "VMF_FILES 0" with no value)
+        # This handles keys that were previously disabled (count=0) and now have count>0
+        # When adding a value, always set count to 1 to enable the feature
+        pattern = rf'^(\s*{re.escape(key)}[ \t]+)(\d+)$'
+
+        def add_value(m: re.Match) -> str:
+            return m.group(1) + '1' + f'  "{value}"'
+
+        new_content, count = re.subn(pattern, add_value, content, flags=re.MULTILINE)
+
+        if count > 0:
             inp_file.write_text(new_content)
             return True
 
@@ -504,17 +554,17 @@ class BPERunner:
 
     def customize_inp_files(
         self,
-        pan_dir: Path,
+        temp_opt_dir: Path,
         bsw_options: dict[str, dict[str, dict[str, str]]],
         variable_substitutions: dict[str, str] | None = None,
     ) -> int:
-        """Customize INP files based on BSW options from XML.
+        """Customize INP files based on BSW options from YAML/XML.
 
-        Mimics the Perl XML::Smart parsing and putKey loop.
-        Files are in $U/PAN/ directory (flat structure).
+        Modifies INP files in the temp OPT directories so Bernese uses
+        our customized values instead of the original OPT files.
 
         Args:
-            pan_dir: PAN directory containing INP files
+            temp_opt_dir: Temp OPT directory (temp_user_area / "OPT")
             bsw_options: Nested dict of opt_dir -> inp_file -> key -> value
             variable_substitutions: Variable substitutions (opt_* prefixed)
 
@@ -526,8 +576,8 @@ class BPERunner:
 
         for opt_dir, inp_files in bsw_options.items():
             for inp_name, keys in inp_files.items():
-                # INP files are flat in PAN directory (not in subdirs)
-                inp_file = pan_dir / f"{inp_name}.INP"
+                # INP files are in OPT subdirectories: OPT/{opt_dir}/{inp_name}.INP
+                inp_file = temp_opt_dir / opt_dir / f"{inp_name}.INP"
 
                 if not inp_file.exists():
                     logger.debug(f"INP file not found: {inp_file}")
@@ -544,7 +594,63 @@ class BPERunner:
                     if self.put_key(inp_file, key, str(value)):
                         keys_set += 1
 
+                        # Special handling for VMF_FILES: also set count to 1 when path is provided
+                        # The INP format is: VMF_FILES <count> "<path>"
+                        # When count=0, VMF is disabled. We need count=1 to enable it.
+                        if key == "VMF_FILES" and value and str(value).strip():
+                            self.set_key_count(inp_file, "VMF_FILES", 1)
+                            logger.debug(f"Enabled VMF_FILES (count=1) in {inp_file}")
+
         return keys_set
+
+    def _create_mw_copies(self, obs_dir: Path) -> int:
+        """Create PZH/PZO copies of CZH/CZO files for Melbourne-Wuebbena AR.
+
+        SAVCOD=1 creates only CZH/CZO files (combined code+phase observations).
+        Melbourne-Wuebbena linear combination requires paired phase (PZH/PZO)
+        and code (CZH/CZO) files. We copy the files (not symlink) because GPSEST
+        detects symlinks and treats them as duplicates, resulting in 0 observations.
+
+        Args:
+            obs_dir: Path to campaign OBS directory
+
+        Returns:
+            Number of files copied
+        """
+        import shutil
+
+        if not obs_dir.exists():
+            logger.debug(f"OBS directory does not exist: {obs_dir}")
+            return 0
+
+        files_copied = 0
+
+        # Copy CZH files to PZH
+        for czh_file in obs_dir.glob("*.CZH"):
+            pzh_file = czh_file.with_suffix(".PZH")
+            if not pzh_file.exists():
+                try:
+                    shutil.copy2(czh_file, pzh_file)
+                    logger.debug(f"Copied: {czh_file.name} -> {pzh_file.name}")
+                    files_copied += 1
+                except OSError as e:
+                    logger.warning(f"Failed to copy {czh_file} to {pzh_file}: {e}")
+
+        # Copy CZO files to PZO
+        for czo_file in obs_dir.glob("*.CZO"):
+            pzo_file = czo_file.with_suffix(".PZO")
+            if not pzo_file.exists():
+                try:
+                    shutil.copy2(czo_file, pzo_file)
+                    logger.debug(f"Copied: {czo_file.name} -> {pzo_file.name}")
+                    files_copied += 1
+                except OSError as e:
+                    logger.warning(f"Failed to copy {czo_file} to {pzo_file}: {e}")
+
+        if files_copied > 0:
+            logger.info(f"Copied {files_copied} CZ files to PZ for Melbourne-Wuebbena AR")
+
+        return files_copied
 
     def run(
         self,
@@ -597,6 +703,10 @@ class BPERunner:
             # Step 1: Ensure campaign has essential files (SESSIONS.SES, etc.)
             self.ensure_campaign_essentials(campaign_dir)
 
+            # NOTE: PZH/PZO copies for Melbourne-Wuebbena AR are now created by
+            # the PPPIARAP script, which runs AFTER RXOBV3 creates CZH/CZO files
+            # and BEFORE PPPIAR_P needs them for MW ambiguity resolution.
+
             # Step 2: Add campaign to MENU_CMP.INP
             self.add_campaign(config.campaign)
 
@@ -605,17 +715,23 @@ class BPERunner:
             pan_dir = temp_u / "PAN"
             work_dir = temp_u / "WORK"
 
-            # Step 4: Copy INP files from OPT to temp PAN directory
+            # Step 4: Copy INP files from OPT to temp OPT directories
+            # This allows us to customize INP files without modifying the originals
+            temp_opt = temp_u / "OPT"
             if opt_dirs:
-                self.copy_opt_to_pan(temp_u, opt_dirs, prod_mode)
+                self.copy_opt_to_temp(temp_u, opt_dirs, prod_mode)
 
-            # Also copy essential MENU*.INP files from user PAN
+            # Copy ALL panel files from user PAN to temp PAN
+            # PUTKEYW modifies panel files in $U/PAN, so they must exist there
+            # Not just MENU*.INP - also program panels like RESRMS.INP, GPSXTR.INP, etc.
             user_pan = self.env.user_dir / "PAN"
             u_orig = str(self.env.user_dir)
-            for menu_file in ["MENU.INP", "MENU_VAR.INP", "MENU_PGM.INP", "MENU_EXT.INP", "MENU_CMP.INP", "RUNBPE.INP", "NEWCAMP.INP", "USER.CPU"]:
-                src = user_pan / menu_file
-                if src.exists():
-                    shutil.copy2(src, pan_dir / menu_file)
+            if user_pan.exists():
+                for src in user_pan.glob("*.INP"):
+                    shutil.copy2(src, pan_dir / src.name)
+                # Also copy .CPU files
+                for src in user_pan.glob("*.CPU"):
+                    shutil.copy2(src, pan_dir / src.name)
 
             # Fix paths in MENU.INP to use original user directory
             # The menu.INP file has references like ${U}/PAN/MENU_CMP.INP that
@@ -647,12 +763,12 @@ class BPERunner:
             self.put_key(pan_dir / "MENU.INP", "MODJULDATE", str(mjd))
             self.put_key(pan_dir / "MENU.INP", "SESSION_TABLE", f"${{P}}/{config.campaign}/GEN/SESSIONS.SES")
 
-            # Step 6: Customize INP files from bsw_options
+            # Step 6: Customize INP files from bsw_options in temp OPT directories
             if bsw_options:
                 keys_set = self.customize_inp_files(
-                    pan_dir, bsw_options, variable_substitutions
+                    temp_opt, bsw_options, variable_substitutions
                 )
-                logger.info(f"Customized {keys_set} INP keys")
+                logger.info(f"Customized {keys_set} INP keys in temp OPT")
 
             # Step 7: Configure RUNBPE.INP with BPE settings (like startBPE::run)
             runbpe_inp = pan_dir / "RUNBPE.INP"
@@ -683,8 +799,11 @@ class BPERunner:
                 self.put_key(runbpe_inp, "MODULO_SESS", str(config.modulo_sessions))
                 self.put_key(runbpe_inp, "NEXTSESS", str(config.next_session))
                 self.put_key(runbpe_inp, "TASKID", config.task_id)
-                self.put_key(runbpe_inp, "SYSOUT", sysout_path)
-                self.put_key(runbpe_inp, "STATUS", status_path)
+                # SYSOUT and STATUS need selectors to update the "# NAME" comment
+                # The selector is the base name without path or extension
+                self.put_key(runbpe_inp, "SYSOUT", sysout_path, selector=config.sysout)
+                status_base = config.status.replace(".RUN", "").replace(".SUM", "")
+                self.put_key(runbpe_inp, "STATUS", status_path, selector=status_base)
                 self.put_key(runbpe_inp, "DEBUG", "1" if config.debug else "0")
                 self.put_key(runbpe_inp, "NOCLEAN", "1" if config.no_clean else "0")
                 self.put_key(runbpe_inp, "BPE_MAXTIME", str(config.max_time))
@@ -716,6 +835,7 @@ class BPERunner:
             result = subprocess.run(
                 [str(menu_exe), str(pan_dir / "MENU.INP"), str(setvar_file)],
                 env=exec_env,
+                stdin=subprocess.DEVNULL,  # Prevent stdin blocking
                 capture_output=True,
                 text=True,
                 timeout=60,
@@ -738,9 +858,12 @@ class BPERunner:
             # immediately. We need to wait for BPE completion by monitoring output.
             output_file = campaign_dir / "BPE" / f"{config.sysout}.OUT"
             status_file = campaign_dir / "BPE" / f"{config.status}"
+            logger.debug(f"Campaign directory: {campaign_dir}")
+            logger.debug(f"BPE output file will be: {output_file}")
 
             # Clear any existing output file to detect new output
             if output_file.exists():
+                logger.debug(f"Removing existing output file: {output_file}")
                 output_file.unlink()
 
             # menu.sh expects: menu.sh "$MENU_INP" "$RUNBPE_MEN"
@@ -749,6 +872,7 @@ class BPERunner:
             proc = subprocess.Popen(
                 [str(menu_exe), str(pan_dir / "MENU.INP"), str(runbpe_men)],
                 env=exec_env,
+                stdin=subprocess.DEVNULL,  # Prevent stdin blocking
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,

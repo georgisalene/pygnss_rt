@@ -63,6 +63,7 @@ class ProductCategory(str, Enum):
     BIA = "bia"
     ION = "ion"
     IEP = "iep"
+    VMF3 = "vmf3"
 
 
 # =============================================================================
@@ -190,6 +191,7 @@ class ProcessingConfig:
     dcb: ProductConfig = field(default_factory=ProductConfig)
     bia: ProductConfig = field(default_factory=ProductConfig)
     ion: ProductConfig = field(default_factory=ProductConfig)
+    vmf3: ProductConfig = field(default_factory=lambda: ProductConfig(enabled=True))  # VMF3 enabled by default
 
     # Data sources
     data_sources: list[DataSourceConfig] = field(default_factory=list)
@@ -960,6 +962,7 @@ class PPPProductArgs:
     proc_ion: ProcProductConfig = field(default_factory=lambda: ProcProductConfig(enabled=False))
     proc_bia: ProcProductConfig = field(default_factory=lambda: ProcProductConfig(enabled=False))
     proc_dcb: ProcProductConfig = field(default_factory=lambda: ProcProductConfig(enabled=False))
+    proc_vmf3: ProcProductConfig = field(default_factory=lambda: ProcProductConfig(enabled=True))  # VMF3 enabled by default
 
     ftp_config_xml: Path | None = None  # ftpConfig.xml path
     data_dir: Path | None = None  # Root data directory
@@ -1221,10 +1224,13 @@ class PPPProductDownloader:
         """Generate VMF3 grid filenames for a processing day.
 
         VMF3 requires 5 files: H00, H06, H12, H18 of current day
-        and H00 of next day.
+        and H00 of next day. Uses VMF3_ naming convention from TU Wien.
+
+        TU Wien VMF3 URL structure:
+        https://vmf.geo.tuwien.ac.at/trop_products/GRID/5x5/VMF3/VMF3_OP/{year}/VMF3_YYYYMMDD.H00
 
         Returns:
-            List of VMF3 filenames
+            List of VMF3 filenames (without path)
         """
         if not self.config.gnss_date:
             return []
@@ -1237,11 +1243,11 @@ class PPPProductDownloader:
 
         files = []
 
-        # Current day files
+        # Current day files (VMF3_ naming for TU Wien 5x5 grid)
         for hour in ["00", "06", "12", "18"]:
             files.append(f"VMF3_{year}{month:02d}{day:02d}.H{hour}")
 
-        # Next day 00 file
+        # Next day 00 file (needed for interpolation at end of day)
         from datetime import timedelta
         next_day = dt + timedelta(days=1)
         files.append(f"VMF3_{next_day.year}{next_day.month:02d}{next_day.day:02d}.H00")
@@ -1762,10 +1768,22 @@ class PPPProductDownloader:
         destination: Path | None = None,
         source_dir: Path | None = None,
     ) -> list[ProductDownloadResult]:
-        """Download VMF3 troposphere grid files.
+        """Download VMF3 troposphere grid files from TU Wien.
 
-        VMF3 files are usually stored locally and just need to be copied.
+        Downloads VMF3 files from:
+        https://vmf.geo.tuwien.ac.at/trop_products/GRID/5x5/VMF3/VMF3_OP/{year}/
+
+        If source_dir is provided, will try local copy first before downloading.
+
+        Args:
+            destination: Destination directory for VMF3 files
+            source_dir: Optional local source directory (checked first)
+
+        Returns:
+            List of ProductDownloadResult for each file
         """
+        import requests
+
         if not self.config.gnss_date:
             return [ProductDownloadResult(
                 status=DownloadStatus.UNKNOWN_ERROR,
@@ -1776,11 +1794,15 @@ class PPPProductDownloader:
         dest_dir = destination or self.orb_dir
         self._ensure_dir(dest_dir)
 
+        # VMF3 base URL from TU Wien (5x5 degree grid)
+        vmf3_base_url = "https://vmf.geo.tuwien.ac.at/trop_products/GRID/5x5/VMF3/VMF3_OP"
+
         results = []
 
         for filename in filenames:
             local_path = dest_dir / filename
 
+            # Check if already exists locally
             if local_path.exists():
                 results.append(ProductDownloadResult(
                     status=DownloadStatus.SUCCESS,
@@ -1789,23 +1811,30 @@ class PPPProductDownloader:
                 ))
                 continue
 
-            # VMF3 files need to be copied from local source
+            # Extract year from filename (VMF3_YYYYMMDD.Hhh)
+            file_year = int(filename[5:9])
+
+            # Try local source first if provided
             if source_dir:
                 gd = self.config.gnss_date
-                year = gd.datetime.year
                 doy = gd.doy
 
-                # Extract date from filename for proper directory
-                source_path = source_dir / str(year) / f"{doy:03d}" / (filename + ".gz")
+                source_path = source_dir / str(file_year) / f"{doy:03d}" / (filename + ".gz")
+                if not source_path.exists():
+                    source_path = source_dir / str(file_year) / filename
 
                 if source_path.exists():
                     import shutil
-                    shutil.copy(source_path, dest_dir / (filename + ".gz"))
-                    import subprocess
-                    subprocess.run(
-                        ["gunzip", "-f", str(dest_dir / (filename + ".gz"))],
-                        capture_output=True,
-                    )
+                    if source_path.suffix == ".gz":
+                        shutil.copy(source_path, dest_dir / (filename + ".gz"))
+                        import subprocess
+                        subprocess.run(
+                            ["gunzip", "-f", str(dest_dir / (filename + ".gz"))],
+                            capture_output=True,
+                        )
+                    else:
+                        shutil.copy(source_path, local_path)
+
                     if local_path.exists():
                         results.append(ProductDownloadResult(
                             status=DownloadStatus.SUCCESS,
@@ -1813,6 +1842,30 @@ class PPPProductDownloader:
                             source="local_copy",
                         ))
                         continue
+
+            # Download from TU Wien HTTPS
+            url = f"{vmf3_base_url}/{file_year}/{filename}"
+            ignss_print(MessageType.INFO, f"Downloading VMF3: {filename}")
+
+            try:
+                response = requests.get(url, timeout=60)
+                if response.status_code == 200:
+                    with open(local_path, 'wb') as f:
+                        f.write(response.content)
+
+                    if local_path.exists():
+                        ignss_print(MessageType.INFO, f"Downloaded VMF3: {filename}")
+                        results.append(ProductDownloadResult(
+                            status=DownloadStatus.SUCCESS,
+                            local_path=local_path,
+                            remote_path=url,
+                            source="VMF3_TU_Wien",
+                        ))
+                        continue
+                else:
+                    logger.warning(f"VMF3 download failed: HTTP {response.status_code} for {url}")
+            except requests.RequestException as e:
+                logger.warning(f"VMF3 download error: {e}")
 
             results.append(ProductDownloadResult(
                 status=DownloadStatus.NOT_FOUND,
@@ -1874,12 +1927,13 @@ class PPPProductDownloader:
         # Download CRD file
         results["crd"] = self.download_crd(sta_dest, crd_source)
 
-        # Download VMF3 files
-        vmf_results = self.download_vmf3(sta_dest, vmf_source)
-        results["vmf3"] = vmf_results[0] if vmf_results else ProductDownloadResult(
-            status=DownloadStatus.NOT_FOUND,
-            error_message="No VMF3 files",
-        )
+        # Download VMF3 files (troposphere mapping functions from TU Wien)
+        if self.config.vmf3.enabled:
+            vmf_results = self.download_vmf3(sta_dest, vmf_source)
+            results["vmf3"] = vmf_results[0] if vmf_results else ProductDownloadResult(
+                status=DownloadStatus.NOT_FOUND,
+                error_message="No VMF3 files",
+            )
 
         # Log summary
         success_count = sum(1 for r in results.values() if isinstance(r, ProductDownloadResult) and r.success)

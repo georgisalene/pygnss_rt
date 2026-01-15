@@ -65,6 +65,8 @@ class CDDISSession:
     3. Following redirects through the Earthdata Login portal
 
     Replicates the behavior of the old Perl FTP.pm edl_preauth_cddis() function.
+
+    Also provides directory listing caching to speed up batch downloads.
     """
 
     _instance: "CDDISSession | None" = None
@@ -74,6 +76,8 @@ class CDDISSession:
         self._authenticated = False
         self._auth_url = "https://urs.earthdata.nasa.gov"
         self._cddis_url = "https://cddis.nasa.gov"
+        # Cache for directory listings: {dir_url: {station_upper: (file_url, country_code)}}
+        self._dir_cache: dict[str, dict[str, tuple[str, str]]] = {}
 
     @classmethod
     def get_session(cls) -> requests.Session:
@@ -166,6 +170,41 @@ class CDDISSession:
             if cls._instance.session:
                 cls._instance.session.close()
             cls._instance = None
+
+    @classmethod
+    def get_dir_cache(cls) -> dict[str, dict[str, tuple[str, str]]]:
+        """Get the directory listing cache."""
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance._dir_cache
+
+    @classmethod
+    def cache_directory(cls, dir_url: str, station_files: dict[str, tuple[str, str]]) -> None:
+        """Cache directory listing for a URL.
+
+        Args:
+            dir_url: Directory URL
+            station_files: Dict of {station_upper: (file_url, country_code)}
+        """
+        if cls._instance is None:
+            cls._instance = cls()
+        cls._instance._dir_cache[dir_url] = station_files
+
+    @classmethod
+    def get_cached_station(cls, dir_url: str, station: str) -> tuple[str | None, str]:
+        """Get cached station file URL if available.
+
+        Args:
+            dir_url: Directory URL
+            station: 4-char station ID
+
+        Returns:
+            Tuple of (file_url, country_code) or (None, "") if not cached
+        """
+        if cls._instance is None:
+            return None, ""
+        cache = cls._instance._dir_cache.get(dir_url, {})
+        return cache.get(station.upper(), (None, ""))
 
 
 class RINEXType(str, Enum):
@@ -472,7 +511,7 @@ class StationDownloader:
         providers: dict[str, ProviderConfig] | None = None,
         max_retries: int = 3,
         retry_delay: float = 5.0,
-        parallel_downloads: int = 4,
+        parallel_downloads: int = 8,
         verbose: bool = False,
         flat_structure: bool = False,
         use_yaml_config: bool = True,
@@ -485,7 +524,7 @@ class StationDownloader:
             providers: Provider configurations (uses defaults if None)
             max_retries: Maximum retry attempts per provider
             retry_delay: Delay between retries in seconds
-            parallel_downloads: Number of parallel download threads
+            parallel_downloads: Number of parallel download threads (default: 8)
             verbose: Enable verbose output
             flat_structure: If True, save files directly to download_dir
                             without subdirectories. Use for BSW campaigns.
@@ -760,6 +799,8 @@ class StationDownloader:
         CDDIS uses RINEX 3 naming with country codes that vary per station.
         This method searches the directory listing for a matching file.
 
+        Uses caching to avoid repeated HTTP requests for the same directory.
+
         Args:
             station: 4-char station ID
             year: Year
@@ -773,41 +814,66 @@ class StationDownloader:
         """
         import re
 
+        # Build directory URL
+        if rinex_type == RINEXType.DAILY:
+            yy = year % 100
+            dir_url = f"https://cddis.nasa.gov/archive/gnss/data/daily/{year}/{doy:03d}/{yy:02d}d/"
+        else:
+            dir_url = f"https://cddis.nasa.gov/archive/gnss/data/hourly/{year}/{doy:03d}/{hour:02d}/"
+
+        station_upper = station.upper()
+
+        # Check cache first
+        cached_url, cached_cc = CDDISSession.get_cached_station(dir_url, station)
+        if cached_url:
+            return cached_url, cached_cc
+
+        # Check if directory was already fetched but station not found
+        dir_cache = CDDISSession.get_dir_cache()
+        if dir_url in dir_cache:
+            # Directory was cached but station not in it
+            if self.verbose:
+                print(f"  {station}: not in cached directory listing")
+            return None, ""
+
         try:
             session = CDDISSession.get_session()
-
-            # Build directory URL
-            if rinex_type == RINEXType.DAILY:
-                yy = year % 100
-                dir_url = f"https://cddis.nasa.gov/archive/gnss/data/daily/{year}/{doy:03d}/{yy:02d}d/"
-            else:
-                dir_url = f"https://cddis.nasa.gov/archive/gnss/data/hourly/{year}/{doy:03d}/{hour:02d}/"
 
             # Get directory listing
             response = session.get(dir_url, timeout=60)
             if response.status_code != 200:
+                # Cache empty dict to avoid re-fetching
+                CDDISSession.cache_directory(dir_url, {})
                 return None, ""
 
-            # Find matching files (station name is case-insensitive in RINEX3)
-            station_upper = station.upper()
-
+            # Parse ALL station files from directory and cache them
             # Pattern: SSSS00CCC_R_... where SSSS is station, CCC is country code
-            # Match both .crx.gz and .rnx.gz variants
-            # Capture the country code (3 chars after 00)
-            pattern = rf'href="({station_upper}00(\w{{3}})_R_[^"]+\.(?:crx|rnx)\.gz)\s*"'
-            matches = re.findall(pattern, response.text, re.IGNORECASE)
+            pattern = r'href="(([A-Z0-9]{4})00(\w{3})_R_[^"]+\.(?:crx|rnx)\.gz)\s*"'
+            all_matches = re.findall(pattern, response.text, re.IGNORECASE)
 
-            if matches:
-                # Prefer 30S sampling rate, then any
-                for filename, country_code in matches:
-                    if "_30S_" in filename:
-                        return f"{dir_url}{filename.strip()}", country_code.upper()
-                # Fall back to first match
-                return f"{dir_url}{matches[0][0].strip()}", matches[0][1].upper()
+            # Build cache: {station_upper: (full_url, country_code)}
+            station_files: dict[str, tuple[str, str]] = {}
+            for filename, sta_id, country_code in all_matches:
+                sta_upper = sta_id.upper()
+                full_url = f"{dir_url}{filename.strip()}"
+                cc_upper = country_code.upper()
+
+                # Prefer 30S sampling rate over others
+                existing = station_files.get(sta_upper)
+                if existing is None or "_30S_" in filename:
+                    station_files[sta_upper] = (full_url, cc_upper)
+
+            # Cache the entire directory listing
+            CDDISSession.cache_directory(dir_url, station_files)
 
             if self.verbose:
+                print(f"  Cached {len(station_files)} stations from {dir_url}")
+
+            # Now look up our station
+            result = station_files.get(station_upper, (None, ""))
+            if result[0] is None and self.verbose:
                 print(f"  No match found for {station} in {dir_url}")
-            return None, ""
+            return result
 
         except Exception as e:
             if self.verbose:
@@ -1179,6 +1245,34 @@ class StationDownloader:
 
         return self._download_batch(tasks, providers)
 
+    def _prefetch_cddis_directories(
+        self,
+        tasks: list[DownloadTask],
+    ) -> None:
+        """Prefetch CDDIS directory listings for all unique directories.
+
+        This fetches and caches directory listings BEFORE starting parallel
+        downloads, ensuring each directory is fetched only once.
+
+        Args:
+            tasks: List of download tasks
+        """
+        # Find unique directories that need to be fetched
+        unique_dirs: set[tuple[int, int, int | None, RINEXType]] = set()
+        for task in tasks:
+            unique_dirs.add((task.year, task.doy, task.hour, task.rinex_type))
+
+        if not unique_dirs:
+            return
+
+        if self.verbose:
+            print(f"  Prefetching {len(unique_dirs)} CDDIS directory listing(s)...")
+
+        # Prefetch directories (use first station just to trigger cache population)
+        for year, doy, hour, rinex_type in unique_dirs:
+            # This will fetch and cache the entire directory listing
+            self._search_cddis_directory("AAAA", year, doy, hour, rinex_type)
+
     def _download_batch(
         self,
         tasks: list[DownloadTask],
@@ -1195,6 +1289,14 @@ class StationDownloader:
         """
         if not tasks:
             return []
+
+        # Pre-fetch CDDIS directory listings to populate cache
+        # This avoids race conditions and repeated fetches during parallel downloads
+        if len(tasks) > 1:
+            # Check if CDDIS is a potential provider
+            cddis_providers = [p for p in self.providers.keys() if p.startswith("CDDIS")]
+            if cddis_providers:
+                self._prefetch_cddis_directories(tasks)
 
         results = []
 

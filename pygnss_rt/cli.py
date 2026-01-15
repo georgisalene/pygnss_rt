@@ -275,7 +275,7 @@ def download(
 
 
 @cli.command()
-@click.argument("xml_file", type=click.Path(exists=True, path_type=Path))
+@click.argument("station_file", type=click.Path(exists=True, path_type=Path))
 @click.option(
     "--network", "-n",
     type=str,
@@ -295,25 +295,28 @@ def download(
 @click.pass_context
 def stations(
     ctx: click.Context,
-    xml_file: Path,
+    station_file: Path,
     network: str | None,
     nrt_only: bool,
     format: str,
 ) -> None:
-    """List stations from XML configuration.
+    """List stations from station configuration file (XML or YAML).
 
     Examples:
 
-        # List all IGS20 stations
-        pygnss-rt stations info/IGS20rh.xml -n IGS20
+        # List all IGS20 stations from YAML
+        pygnss-rt stations station_data/IGS20gh.yaml -n IGS20
+
+        # List from XML (legacy)
+        pygnss-rt stations station_data/IGS20rh.xml -n IGS20
 
         # Export to CSV
-        pygnss-rt stations info/IGS20rh.xml -f csv > stations.csv
+        pygnss-rt stations station_data/IGS20gh.yaml -f csv > stations.csv
     """
     from pygnss_rt.stations.station import StationManager
 
     manager = StationManager()
-    manager.load_xml(xml_file)
+    manager.load(station_file)  # Auto-detects XML or YAML
 
     station_list = manager.get_stations(
         network=network,
@@ -405,11 +408,11 @@ def ztd2iwv(
     from pygnss_rt.stations.station import StationManager
     from pygnss_rt.utils.dates import GNSSDate
 
-    # Load stations if provided
+    # Load stations if provided (supports XML or YAML)
     station_manager = None
     if station_xml:
         station_manager = StationManager()
-        station_manager.load_xml(station_xml)
+        station_manager.load(station_xml)  # Auto-detects XML or YAML
 
     # Read ZTD data
     ztd_data = read_ztd_file(ztd_file)
@@ -708,6 +711,11 @@ def _download_met_files(
     is_flag=True,
     help="Show what would be done without executing",
 )
+@click.option(
+    "--debug",
+    is_flag=True,
+    help="Enable debug logging for BPE execution",
+)
 @click.pass_context
 def daily_ppp(
     ctx: click.Context,
@@ -722,6 +730,7 @@ def daily_ppp(
     skip_data: bool,
     skip_dcm: bool,
     dry_run: bool,
+    debug: bool,
 ) -> None:
     """Run daily PPP processing for a GNSS network.
 
@@ -765,8 +774,18 @@ def daily_ppp(
     )
     from pygnss_rt.utils.dates import GNSSDate
 
+    # Enable debug logging if requested
+    if debug:
+        import logging
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s [%(levelname)-8s] %(name)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        click.echo("[DEBUG MODE ENABLED]")
+
     config_path = ctx.obj.get("config")
-    verbose = ctx.obj.get("verbose", False)
+    verbose = ctx.obj.get("verbose", False) or debug
 
     # Parse dates
     start = None
@@ -2299,7 +2318,8 @@ def download_sitelogs(
 @click.option(
     "--doy", "-d",
     type=int,
-    help="Day of year",
+    multiple=True,
+    help="Day of year (single value or range: -d START -d END)",
 )
 @click.option(
     "--cron",
@@ -2329,16 +2349,37 @@ def download_sitelogs(
     is_flag=True,
     help="Show what would be done without executing",
 )
+@click.option(
+    "--flat/--no-flat",
+    default=True,
+    help="Use flat directory structure (yyyy/doy/FIN_*.CRD). Use --no-flat for network archives",
+)
+@click.option(
+    "--window",
+    type=int,
+    nargs=2,
+    default=(51, 22),
+    help="Averaging window as START END days before target (default: 51 22)",
+)
+@click.option(
+    "--min-records",
+    type=int,
+    default=7,
+    help="Minimum records per station (default: 7)",
+)
 @click.pass_context
 def daily_crd(
     ctx: click.Context,
     year: int | None,
-    doy: int | None,
+    doy: tuple[int, ...],
     cron: bool,
     latency: int,
     output_dir: Path,
     ppp_root: Path,
     dry_run: bool,
+    flat: bool,
+    window: tuple[int, int],
+    min_records: int,
 ) -> None:
     """Generate daily NRT coordinates for NRDDP processing.
 
@@ -2358,8 +2399,11 @@ def daily_crd(
         # Run in CRON mode (auto-detect date)
         pygnss-rt daily-crd --cron
 
-        # Process specific date
+        # Process specific date (single DOY)
         pygnss-rt daily-crd --year 2024 --doy 260
+
+        # Process a range of days
+        pygnss-rt daily-crd --year 2025 -d 357 -d 359
 
         # Custom output directory
         pygnss-rt daily-crd --cron -o /path/to/nrtCoord
@@ -2405,16 +2449,33 @@ def daily_crd(
         ppp_root=actual_ppp_root,
         networks=networks,
         latency_hours=latency,
+        use_flat_structure=flat,
+        window_start_days=window[0],
+        window_end_days=window[1],
+        min_records=min_records,
     )
 
     click.echo(f"Output directory: {actual_output_dir}")
     click.echo(f"PPP archive root: {actual_ppp_root}")
+    if flat:
+        click.echo("Mode: Flat structure (FIN_*.CRD)")
+
+    # Parse DOY range (supports single value or range)
+    doy_start, doy_end = None, None
+    if doy:
+        if len(doy) == 1:
+            doy_start = doy_end = doy[0]
+        elif len(doy) >= 2:
+            doy_start, doy_end = doy[0], doy[1]
 
     if cron:
         click.echo(f"Mode: CRON (latency: {latency} hours)")
     else:
-        if year and doy:
-            click.echo(f"Date: {year}/{doy:03d}")
+        if year and doy_start is not None:
+            if doy_start == doy_end:
+                click.echo(f"Date: {year}/{doy_start:03d}")
+            else:
+                click.echo(f"Date range: {year}/{doy_start:03d} - {year}/{doy_end:03d}")
         else:
             click.echo("Error: Either --cron or both --year and --doy are required")
             sys.exit(1)
@@ -2428,7 +2489,10 @@ def daily_crd(
             proc_time = now - timedelta(hours=latency)
             click.echo(f"Would process: {proc_time.year}/{proc_time.timetuple().tm_yday:03d}")
         else:
-            click.echo(f"Would process: {year}/{doy:03d}")
+            if doy_start == doy_end:
+                click.echo(f"Would process: {year}/{doy_start:03d}")
+            else:
+                click.echo(f"Would process: {year}/{doy_start:03d} to {year}/{doy_end:03d}")
         click.echo(f"Would collect coordinates from {len(networks)} networks")
         click.echo("Would generate DNR and ANR CRD files")
         return
@@ -2438,22 +2502,48 @@ def daily_crd(
 
     if cron:
         result = processor.process_cron()
+        # Report single result
+        click.echo()
+        if result.success:
+            click.echo("SUCCESS")
+            click.echo(f"  Stations: {result.n_stations}")
+            click.echo(f"  Rejected: {result.n_rejected}")
+            click.echo(f"  DNR file: {result.dnr_file}")
+            click.echo(f"  ANR file: {result.anr_file}")
+            click.echo(f"  Processing time: {result.processing_time:.1f}s")
+        else:
+            click.echo("FAILED")
+            click.echo(f"  Error: {result.error_message}")
+            sys.exit(1)
     else:
-        result = processor.process(year=year, doy=doy)
+        # Process range of DOYs
+        results = []
+        for current_doy in range(doy_start, doy_end + 1):
+            click.echo(f"Processing {year}/{current_doy:03d}...")
+            result = processor.process(year=year, doy=current_doy)
+            results.append((current_doy, result))
 
-    # Report result
-    click.echo()
-    if result.success:
-        click.echo("SUCCESS")
-        click.echo(f"  Stations: {result.n_stations}")
-        click.echo(f"  Rejected: {result.n_rejected}")
-        click.echo(f"  DNR file: {result.dnr_file}")
-        click.echo(f"  ANR file: {result.anr_file}")
-        click.echo(f"  Processing time: {result.processing_time:.1f}s")
-    else:
-        click.echo("FAILED")
-        click.echo(f"  Error: {result.error_message}")
-        sys.exit(1)
+        # Report results
+        click.echo()
+        click.echo("=" * 60)
+        click.echo("SUMMARY")
+        click.echo("=" * 60)
+
+        n_success = sum(1 for _, r in results if r.success)
+        n_failed = len(results) - n_success
+
+        for current_doy, result in results:
+            status = "OK" if result.success else "FAILED"
+            if result.success:
+                click.echo(f"  {year}/{current_doy:03d}: {status} - {result.n_stations} stations")
+            else:
+                click.echo(f"  {year}/{current_doy:03d}: {status} - {result.error_message}")
+
+        click.echo()
+        click.echo(f"Total: {n_success} succeeded, {n_failed} failed")
+
+        if n_failed > 0:
+            sys.exit(1)
 
 
 @cli.command("convert-date")
