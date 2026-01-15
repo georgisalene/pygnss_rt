@@ -868,7 +868,7 @@ bern_options:
       LEAST: '3.0'
       MOST: '0.07'
       SIGMAMIN: '0.05'
-      GLORES: NEVER
+      GLORES: GNSS_BY_GNSS
       MXAQIF: '10'
       SEARWID: '0.5'
       RMSNARR: '0.03'
@@ -2133,7 +2133,7 @@ bern_options:
       AMBSTRAT: SIGMA
       USEAR_G: '1'
       USEAR_R: '1'
-      USEAR_E: ''
+      USEAR_E: '1'
       USEAR_S: ''
       USEAR_C: ''
       USEAR_J: ''
@@ -2179,7 +2179,7 @@ bern_options:
       LEAST: '6.0'
       MOST: '0.07'
       SIGMAMIN: '0.05'
-      GLORES: NEVER
+      GLORES: GNSS_BY_GNSS
       MXAQIF: '10'
       SEARWID: '0.5'
       RMSNARR: '0.03'
@@ -2468,9 +2468,9 @@ bern_options:
       OSBIND: ''
       OSBREC_G: SYSTEM
       OSBIND_G: ''
-      OSBREC_R: ''
+      OSBREC_R: SATELLITE
       OSBIND_R: ''
-      OSBREC_E: ''
+      OSBREC_E: SYSTEM
       OSBIND_E: ''
       OSBREC_C: ''
       OSBIND_C: ''
@@ -2814,7 +2814,7 @@ bern_options:
       LEAST: '6.0'
       MOST: '0.07'
       SIGMAMIN: '0.05'
-      GLORES: NEVER
+      GLORES: GNSS_BY_GNSS
       MXAQIF: '10'
       SEARWID: '0.5'
       RMSNARR: '0.03'
