@@ -723,7 +723,7 @@ bern_options:
       SYSERR: ERROR
       TITLE: 'PPP_$YYYSS+0_$(FFFF): Receiver clock synchronization'
       USE_G: '1'
-      USE_R: '0'
+      USE_R: '1'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
@@ -1741,7 +1741,7 @@ bern_options:
       SYSERR: ERROR
       TITLE: 'PPP_$YYYSS+0_$(FFFF): Receiver clock synchronization'
       USE_G: '1'
-      USE_R: '0'
+      USE_R: '1'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
@@ -2197,7 +2197,7 @@ bern_options:
       RGBOUT: ''
       TITLE: SCRIPT
       USE_G: '1'
-      USE_R: '0'
+      USE_R: '1'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
@@ -2832,7 +2832,7 @@ bern_options:
       RGBOUT: ''
       TITLE: 'PPP_$YYYSS+0_$(FFFF): COMPUTATION OF AMBIGUITY-FIXED SOLUTION'
       USE_G: '1'
-      USE_R: '0'
+      USE_R: '1'
       USE_E: '1'
       USE_S: '0'
       USE_C: '0'
