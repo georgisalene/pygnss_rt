@@ -227,7 +227,6 @@ class BPERunner:
                 current_size = output_file.stat().st_size
                 if current_size != last_size:
                     last_size = current_size
-                    logger.debug(f"Output file size changed to {current_size} bytes")
                     # Check for completion marker
                     try:
                         content = output_file.read_text()
@@ -432,7 +431,6 @@ class BPERunner:
                 dest_dir = temp_opt_root / source_dir.name
                 if not dest_dir.exists():
                     os.symlink(source_dir, dest_dir)
-                    logger.debug(f"Symlinked OPT/{source_dir.name} to temp OPT/")
 
         logger.info(f"Copied {files_copied} INP files to temp OPT directories")
 
@@ -603,6 +601,91 @@ class BPERunner:
 
         return keys_set
 
+    def substitute_bpe_user_vars(
+        self,
+        temp_opt_dir: Path,
+        temp_pan_dir: Path,
+        user_vars: dict[str, str] | None = None,
+    ) -> int:
+        """Substitute BPE user variables in INP files.
+
+        Bernese Perl scripts set variables like FL, CLUSTER, FFFF using setUserVar().
+        Since Python bypasses these scripts, we substitute them directly in INP files.
+
+        Args:
+            temp_opt_dir: Temp OPT directory with INP files
+            temp_pan_dir: Temp PAN directory with INP files
+            user_vars: Optional custom user variable values
+
+        Returns:
+            Number of substitutions made
+        """
+        # Default BPE user variable values
+        # ONLY substitute variables that are set by Perl scripts we bypass.
+        # DO NOT substitute variables handled by Perl scripts that still run:
+        #   - $(CLUSTER), $(FFFF), $(V_CLUSTER) are set by setClusterVar() in scripts
+        #     like RNXSMT_P, RXOBV3_P, CODSPP_P which still execute
+        #   - These get dynamically set to actual station IDs during processing
+        #
+        # FL: 'F' = Float (initial), 'L' = Last (after screening)
+        #     Set by PPPEDT_P.pm loop logic which we might bypass
+        defaults = {
+            "$(FL)": "L",  # Final/Last value after data screening
+            "$(PPP)": "PPP",  # Preliminary PPP solution prefix
+            "$(FIN)": "FIN",  # Final solution prefix
+            # DO NOT add $(CLUSTER), $(FFFF), $(V_CLUSTER) - handled by Perl scripts
+        }
+
+        # Merge with user-provided values
+        vars_to_sub = {**defaults, **(user_vars or {})}
+
+        substitutions = 0
+
+        # Process all INP files in temp OPT directories
+        if temp_opt_dir.exists():
+            for inp_file in temp_opt_dir.rglob("*.INP"):
+                try:
+                    content = inp_file.read_text()
+                    modified = False
+
+                    for var_name, var_value in vars_to_sub.items():
+                        if var_name in content:
+                            content = content.replace(var_name, var_value)
+                            modified = True
+                            substitutions += 1
+
+                    if modified:
+                        inp_file.write_text(content)
+                        logger.debug(f"Substituted BPE user vars in {inp_file.name}")
+
+                except Exception as e:
+                    logger.warning(f"Failed to substitute vars in {inp_file}: {e}")
+
+        # Also process INP files in temp PAN directory
+        if temp_pan_dir.exists():
+            for inp_file in temp_pan_dir.glob("*.INP"):
+                try:
+                    content = inp_file.read_text()
+                    modified = False
+
+                    for var_name, var_value in vars_to_sub.items():
+                        if var_name in content:
+                            content = content.replace(var_name, var_value)
+                            modified = True
+                            substitutions += 1
+
+                    if modified:
+                        inp_file.write_text(content)
+                        logger.debug(f"Substituted BPE user vars in {inp_file.name}")
+
+                except Exception as e:
+                    logger.warning(f"Failed to substitute vars in {inp_file}: {e}")
+
+        if substitutions > 0:
+            logger.info(f"Substituted {substitutions} BPE user variables in INP files")
+
+        return substitutions
+
     def _create_mw_copies(self, obs_dir: Path) -> int:
         """Create PZH/PZO copies of CZH/CZO files for Melbourne-Wuebbena AR.
 
@@ -769,6 +852,10 @@ class BPERunner:
                     temp_opt, bsw_options, variable_substitutions
                 )
                 logger.info(f"Customized {keys_set} INP keys in temp OPT")
+
+            # Step 6b: Substitute BPE user variables ($(FL), $(CLUSTER), etc.)
+            # These are normally set by Perl scripts using setUserVar(), but Python bypasses them
+            self.substitute_bpe_user_vars(temp_opt, pan_dir)
 
             # Step 7: Configure RUNBPE.INP with BPE settings (like startBPE::run)
             runbpe_inp = pan_dir / "RUNBPE.INP"

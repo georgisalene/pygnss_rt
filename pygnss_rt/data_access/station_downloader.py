@@ -502,7 +502,7 @@ class StationDownloader:
     """Downloads RINEX observation data for GNSS stations.
 
     Supports multiple providers with automatic fallback, retry logic,
-    and parallel downloads.
+    and parallel downloads. Also supports reading from local directories.
     """
 
     def __init__(
@@ -516,6 +516,8 @@ class StationDownloader:
         flat_structure: bool = False,
         use_yaml_config: bool = True,
         config_path: str | Path | None = None,
+        local_rinex_dir: str | Path | None = None,
+        local_only: bool = False,
     ):
         """Initialize station downloader.
 
@@ -530,8 +532,19 @@ class StationDownloader:
                             without subdirectories. Use for BSW campaigns.
             use_yaml_config: If True and providers is None, load from YAML
             config_path: Path to YAML config (uses default if None)
+            local_rinex_dir: Directory containing local RINEX files.
+                             When set, this directory is checked first before
+                             attempting network downloads. Supports multiple
+                             naming conventions (RINEX 2/3, Bernese, compressed).
+            local_only: If True, only use local files (no network downloads).
+                        Requires local_rinex_dir to be set.
         """
         self.download_dir = Path(download_dir)
+        self.local_rinex_dir = Path(local_rinex_dir) if local_rinex_dir else None
+        self.local_only = local_only
+
+        if local_only and not self.local_rinex_dir:
+            raise ValueError("local_only=True requires local_rinex_dir to be set")
 
         # Load providers: explicit > YAML > defaults
         if providers is not None:
@@ -685,6 +698,127 @@ class StationDownloader:
             subdir = "hourly"
 
         return self.download_dir / subdir / str(year) / f"{doy:03d}" / filename
+
+    def _find_local_rinex(
+        self,
+        station: str,
+        year: int,
+        doy: int,
+        hour: int | None = None,
+        rinex_type: RINEXType = RINEXType.DAILY,
+    ) -> tuple[Path | None, str]:
+        """Search for RINEX file in local directory.
+
+        Searches for files matching the station/date in multiple naming conventions:
+        - RINEX 3: SSSS00CCC_R_YYYYDDD0000_01D_30S_MO.crx.gz (or .rnx.gz)
+        - RINEX 2: ssssddds.yyo (or compressed: .gz, .Z)
+        - Bernese: SSSS00CCC_YYYYDDDs.RXO
+
+        Also checks subdirectories organized by year/doy if present.
+
+        Args:
+            station: 4-char station ID
+            year: Year
+            doy: Day of year
+            hour: Hour (None for daily)
+            rinex_type: RINEX type (daily/hourly)
+
+        Returns:
+            Tuple of (path_to_file, country_code) or (None, "") if not found
+        """
+        if not self.local_rinex_dir or not self.local_rinex_dir.exists():
+            return None, ""
+
+        station_upper = station.upper()
+        station_lower = station.lower()
+        yy = year % 100
+
+        # Session character for hourly files
+        if rinex_type == RINEXType.DAILY:
+            session_char = "0"
+            session_char_rnx3 = "0000"
+            duration = "01D"
+        else:
+            session_char = chr(ord('a') + (hour or 0))
+            session_char_rnx3 = f"{hour or 0:02d}00"
+            duration = "01H"
+
+        # Build list of possible filename patterns
+        patterns = []
+
+        # RINEX 3 patterns (with wildcard for country code)
+        # Format: SSSS00CCC_R_YYYYDDD0000_01D_30S_MO.crx.gz (R=RINEX, S=streaming)
+        # Support both _R_ and _S_ data source indicators
+        for data_src in ['R', 'S']:
+            patterns.extend([
+                f"{station_upper}00???_{data_src}_{year}{doy:03d}{session_char_rnx3}_{duration}_30S_MO.crx.gz",
+                f"{station_upper}00???_{data_src}_{year}{doy:03d}{session_char_rnx3}_{duration}_30S_MO.rnx.gz",
+                f"{station_upper}00???_{data_src}_{year}{doy:03d}{session_char_rnx3}_{duration}_30S_MO.crx",
+                f"{station_upper}00???_{data_src}_{year}{doy:03d}{session_char_rnx3}_{duration}_30S_MO.rnx",
+                # Also try without sampling rate
+                f"{station_upper}00???_{data_src}_{year}{doy:03d}{session_char_rnx3}_{duration}_??S_MO.crx.gz",
+                f"{station_upper}00???_{data_src}_{year}{doy:03d}{session_char_rnx3}_{duration}_??S_MO.rnx.gz",
+            ])
+
+        # Bernese 5.4 format: SSSS00CCC_YYYYDDDs.RXO
+        patterns.extend([
+            f"{station_upper}00???_{year}{doy:03d}{session_char}.RXO",
+            f"{station_upper}00???_{year}{doy:03d}{session_char}.rxo",
+        ])
+
+        # RINEX 2 patterns
+        # Daily: ssssddds.yyo or SSSSDDDS.YYO
+        # Hourly: ssssdddh.yyo (h = a-x for hour 0-23)
+        patterns.extend([
+            f"{station_lower}{doy:03d}{session_char}.{yy:02d}o",
+            f"{station_lower}{doy:03d}{session_char}.{yy:02d}o.gz",
+            f"{station_lower}{doy:03d}{session_char}.{yy:02d}o.Z",
+            f"{station_upper}{doy:03d}{session_char}.{yy:02d}O",
+            f"{station_upper}{doy:03d}{session_char}.{yy:02d}O.gz",
+            f"{station_upper}{doy:03d}{session_char}.{yy:02d}O.Z",
+            # Also try 'd' extension for RINEX daily
+            f"{station_lower}{doy:03d}{session_char}.{yy:02d}d",
+            f"{station_lower}{doy:03d}{session_char}.{yy:02d}d.gz",
+            f"{station_lower}{doy:03d}{session_char}.{yy:02d}d.Z",
+        ])
+
+        # Directories to search (in order of preference)
+        search_dirs = [
+            self.local_rinex_dir,
+            self.local_rinex_dir / str(year),
+            self.local_rinex_dir / str(year) / f"{doy:03d}",
+            self.local_rinex_dir / f"{doy:03d}",
+            self.local_rinex_dir / "daily" if rinex_type == RINEXType.DAILY else self.local_rinex_dir / "hourly",
+            self.local_rinex_dir / "daily" / str(year) / f"{doy:03d}" if rinex_type == RINEXType.DAILY else None,
+            self.local_rinex_dir / "hourly" / str(year) / f"{doy:03d}" if rinex_type == RINEXType.HOURLY else None,
+        ]
+        search_dirs = [d for d in search_dirs if d and d.exists()]
+
+        # Search for matching files
+        import fnmatch
+
+        for search_dir in search_dirs:
+            try:
+                files_in_dir = list(search_dir.iterdir())
+            except PermissionError:
+                continue
+
+            for pattern in patterns:
+                for file_path in files_in_dir:
+                    if fnmatch.fnmatch(file_path.name, pattern):
+                        # Extract country code from RINEX3/Bernese filename if present
+                        country_code = ""
+                        if "00" in file_path.name and "_" in file_path.name:
+                            # Try to extract CCC from SSSS00CCC pattern
+                            parts = file_path.name.split("_")
+                            if parts and len(parts[0]) >= 9:
+                                country_code = parts[0][6:9].upper()
+
+                        if self.verbose:
+                            print(f"  Found local: {file_path.name} (country: {country_code or 'unknown'})")
+                        return file_path, country_code
+
+        return None, ""
 
     def _decompress_rinex(
         self,
@@ -1072,6 +1206,56 @@ class StationDownloader:
                 if self.verbose:
                     print(f"  {task.station_id}: cached file too small ({file_size} bytes), re-downloading")
                 local_path.unlink(missing_ok=True)
+
+        # Check local directory for RINEX files before network download
+        if self.local_rinex_dir:
+            local_file, country_code = self._find_local_rinex(
+                task.station_id, task.year, task.doy, task.hour, task.rinex_type
+            )
+            if local_file:
+                start_time = time.time()
+                try:
+                    # Ensure target directory exists
+                    local_path.parent.mkdir(parents=True, exist_ok=True)
+
+                    # Check if file needs decompression/conversion
+                    if local_file.suffix in ('.gz', '.Z') or local_file.name.endswith('.crx'):
+                        # Need to decompress - copy to temp location first
+                        temp_file = local_path.parent / local_file.name
+                        if temp_file != local_file:
+                            shutil.copy2(local_file, temp_file)
+                        # Decompress to target path
+                        if self._decompress_rinex(temp_file, local_path):
+                            result.success = True
+                            result.local_path = local_path
+                            result.file_size = local_path.stat().st_size
+                            result.provider_used = f"local:{country_code}" if country_code else "local"
+                            result.download_time = time.time() - start_time
+                            if self.verbose:
+                                print(f"  {task.station_id}: copied from local ({local_file.name})")
+                            return result
+                    else:
+                        # Direct copy for uncompressed files
+                        shutil.copy2(local_file, local_path)
+                        result.success = True
+                        result.local_path = local_path
+                        result.file_size = local_path.stat().st_size
+                        result.provider_used = f"local:{country_code}" if country_code else "local"
+                        result.download_time = time.time() - start_time
+                        if self.verbose:
+                            print(f"  {task.station_id}: copied from local ({local_file.name})")
+                        return result
+                except Exception as e:
+                    if self.verbose:
+                        print(f"  {task.station_id}: failed to copy local file: {e}")
+                    # Fall through to network download if not local_only
+
+        # If local_only mode and no local file found, return failure
+        if self.local_only:
+            result.error = f"Local file not found for {task.station_id} and local_only=True"
+            if self.verbose:
+                print(f"  {task.station_id}: {result.error}")
+            return result
 
         start_time = time.time()
         country_code = ""  # Will be populated from CDDIS search

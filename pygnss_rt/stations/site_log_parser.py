@@ -1088,13 +1088,31 @@ class SiteLogParser:
         return info
 
     def _validate_station_id(self, data: SiteLogData) -> None:
-        """Validate and fix station ID."""
+        """Validate and fix station ID.
+
+        Handles cases where four_character_id is numeric (internal code)
+        by extracting station ID from filename instead.
+        """
         si = data.site_identification
 
-        # Prefer 4-char ID, fall back to first 4 of 9-char ID
-        if len(si.four_character_id) == 4:
+        # Check if four_character_id is valid (4 chars and not purely numeric)
+        if len(si.four_character_id) == 4 and not si.four_character_id.isdigit():
             return
 
+        # If four_character_id is numeric, try to extract from filename
+        # Filename format: ssss00CCC_YYYYMMDD.log (e.g., merz00DEU_20240715.log)
+        if si.four_character_id.isdigit() and data.source_file:
+            import re
+            from pathlib import Path
+            filename = Path(data.source_file).stem  # e.g., "merz00DEU_20240715"
+            # Extract first 4 characters as station ID
+            match = re.match(r'^([a-zA-Z]{4})', filename)
+            if match:
+                si.four_character_id = match.group(1).upper()
+                logger.info(f"Extracted station ID from filename: {si.four_character_id}")
+                return
+
+        # Fall back to first 4 of 9-char ID
         if len(si.nine_character_id) >= 4:
             si.four_character_id = si.nine_character_id[:4].upper()
             logger.info(f"Using first 4 chars of nine_character_id: {si.four_character_id}")

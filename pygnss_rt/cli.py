@@ -716,6 +716,22 @@ def _download_met_files(
     is_flag=True,
     help="Enable debug logging for BPE execution",
 )
+@click.option(
+    "--local-rinex-dir",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    help="Local directory containing RINEX files (checked before network download)",
+)
+@click.option(
+    "--local-only",
+    is_flag=True,
+    help="Only use local RINEX files, no network downloads (requires --local-rinex-dir)",
+)
+@click.option(
+    "--min-stations",
+    type=float,
+    default=0.5,
+    help="Minimum station success rate (0.0-1.0, default: 0.5 = 50%)",
+)
 @click.pass_context
 def daily_ppp(
     ctx: click.Context,
@@ -731,6 +747,9 @@ def daily_ppp(
     skip_dcm: bool,
     dry_run: bool,
     debug: bool,
+    local_rinex_dir: Path | None,
+    local_only: bool,
+    min_stations: float,
 ) -> None:
     """Run daily PPP processing for a GNSS network.
 
@@ -841,6 +860,18 @@ def daily_ppp(
     if exclude_list:
         click.echo(f"Excluded: {', '.join(exclude_list)}")
 
+    # Validate and display local RINEX options
+    if local_only and not local_rinex_dir:
+        click.echo("Error: --local-only requires --local-rinex-dir to be specified")
+        sys.exit(1)
+
+    if local_rinex_dir:
+        click.echo(f"Local RINEX: {local_rinex_dir}")
+        if local_only:
+            click.echo(f"  Mode: LOCAL ONLY (no network downloads)")
+        else:
+            click.echo(f"  Mode: Local first, then network fallback")
+
     click.echo()
 
     # Initialize processor
@@ -867,6 +898,9 @@ def daily_ppp(
             skip_dcm=skip_dcm,
             dry_run=dry_run,
             verbose=verbose,
+            local_rinex_dir=local_rinex_dir,
+            local_only=local_only,
+            min_stations_pct=min_stations,
         )
 
         # Run processing
@@ -2050,6 +2084,235 @@ def update_sta(
         sys.exit(1)
 
 
+@cli.command("check-blq")
+@click.option(
+    "--output", "-o",
+    type=click.Path(path_type=Path),
+    help="Save ocean loading format to file",
+)
+@click.option(
+    "--verbose", "-v",
+    is_flag=True,
+    help="Show detailed output",
+)
+@click.pass_context
+def check_blq(ctx: click.Context, output: Path | None, verbose: bool) -> None:
+    """Check BLQ (ocean loading) file coverage for all stations.
+
+    Compares stations defined in YAML configuration files against entries
+    in BLQ files and reports any missing stations.
+
+    Missing stations are output in a format suitable for the Chalmers
+    Ocean Loading Provider (http://holt.oso.chalmers.se/loading/).
+
+    Examples:
+
+        # Check for missing BLQ entries
+        python3 cli.py check-blq
+
+        # Save output to file for ocean loading website
+        python3 cli.py check-blq -o missing_stations.txt
+    """
+    from pygnss_rt.stations.blq_checker import BLQChecker
+
+    checker = BLQChecker()
+    missing = checker.find_missing_stations()
+
+    # Print report
+    checker.print_report(missing, verbose=verbose)
+
+    if missing:
+        # Print format for ocean loading website
+        checker.print_ocean_loading_format(missing)
+
+        # Save to file if requested
+        if output:
+            ocean_format = checker.get_ocean_loading_format(missing)
+            output.write_text(ocean_format)
+            click.echo(f"\nSaved ocean loading format to: {output}")
+            click.echo("Upload this file to http://holt.oso.chalmers.se/loading/")
+
+        # Instructions
+        click.echo("\n" + "=" * 70)
+        click.echo("INSTRUCTIONS")
+        click.echo("=" * 70)
+        click.echo("""
+1. Go to http://holt.oso.chalmers.se/loading/
+2. Copy the station list above into the 'station list' input box
+3. Select options:
+   - Ocean model: FES2014b (recommended)
+   - Output format: BLQ
+   - CMC: Yes (center of mass correction)
+4. Submit and download the result
+5. Append the output to your BLQ file:
+   pygnss_rt/station_data/IGS20_54.BLQ
+""")
+        sys.exit(1)  # Exit with error if stations are missing
+    else:
+        click.echo("\nAll stations have BLQ entries!")
+
+
+@cli.command("add-stations")
+@click.argument("input_file", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--target", "-t",
+    type=str,
+    required=True,
+    help="Target YAML file name (e.g., eurefgh.yaml) or full path",
+)
+@click.option(
+    "--network", "-n",
+    type=str,
+    default="EUREF",
+    help="Primary network name (default: EUREF)",
+)
+@click.option(
+    "--provider", "-p",
+    type=str,
+    default="EUREF",
+    help="Data provider (default: EUREF)",
+)
+@click.option(
+    "--type", "station_type",
+    type=str,
+    default="EUREF",
+    help="Station type (default: EUREF)",
+)
+@click.option(
+    "--nrt/--no-nrt",
+    default=True,
+    help="Enable NRT processing (default: True)",
+)
+@click.option(
+    "--dry-run", "-d",
+    is_flag=True,
+    help="Show what would be added without modifying files",
+)
+@click.option(
+    "--list-targets", "-l",
+    is_flag=True,
+    help="List available target YAML files",
+)
+@click.pass_context
+def add_stations(
+    ctx: click.Context,
+    input_file: Path,
+    target: str,
+    network: str,
+    provider: str,
+    station_type: str,
+    nrt: bool,
+    dry_run: bool,
+    list_targets: bool,
+) -> None:
+    """Add new stations from input file to YAML station configuration.
+
+    INPUT_FILE should contain station data in one of these formats:
+
+    \b
+    1. Simple format (one station per line):
+       STATION_ID  X  Y  Z
+
+    \b
+    2. Extended format (with long ID mapping):
+       LONG_NAME_MAP = {
+           station_id  LONG_ID00XXX
+       }
+       STATION_ID  X  Y  Z
+
+    \b
+    3. YAML format:
+       stations:
+         - id: xxxx
+           long_id: XXXX00XXX
+           coordinates: {x: ..., y: ..., z: ...}
+
+    Examples:
+
+        # List available target YAML files
+        python3 cli.py add-stations input.txt --target dummy --list-targets
+
+        # Add stations to eurefgh.yaml
+        python3 cli.py add-stations new_stations.txt --target eurefgh.yaml
+
+        # Dry run to see what would be added
+        python3 cli.py add-stations new_stations.txt --target eurefgh.yaml --dry-run
+
+        # Add to IGS network with custom settings
+        python3 cli.py add-stations new_sta.txt -t stationsgh.yaml -n IGS -p IGS --type IGS
+    """
+    from pygnss_rt.stations.station_adder import StationAdder
+
+    adder = StationAdder()
+
+    # List targets if requested
+    if list_targets:
+        click.echo("\nAvailable YAML station files:")
+        click.echo("=" * 50)
+        yaml_files = adder.list_yaml_files()
+        for path in yaml_files:
+            existing = len(adder.get_existing_stations(path))
+            click.echo(f"  {path.name:<25} ({existing} stations)")
+        return
+
+    # Parse input file
+    try:
+        new_stations = adder.parse_input_file(input_file)
+    except Exception as e:
+        click.echo(f"Error parsing input file: {e}", err=True)
+        sys.exit(1)
+
+    if not new_stations:
+        click.echo("No stations found in input file", err=True)
+        sys.exit(1)
+
+    click.echo(f"\nParsed {len(new_stations)} stations from {input_file.name}:")
+    click.echo("-" * 60)
+    click.echo(f"{'Station':<8} {'Long ID':<12} {'Country':<15} {'X':>14} {'Y':>14} {'Z':>14}")
+    click.echo("-" * 60)
+    for stn in new_stations:
+        country = stn.country_info["name"][:15]
+        click.echo(f"{stn.id:<8} {stn.long_id:<12} {country:<15} {stn.x:>14.4f} {stn.y:>14.4f} {stn.z:>14.4f}")
+
+    # Add stations
+    try:
+        num_added, added, skipped = adder.add_stations(
+            input_file=input_file,
+            target_yaml=target,
+            primary_net=network,
+            provider=provider,
+            station_type=station_type,
+            use_nrt=nrt,
+            dry_run=dry_run,
+        )
+    except FileNotFoundError as e:
+        click.echo(f"\nError: {e}", err=True)
+        click.echo("\nUse --list-targets to see available YAML files")
+        sys.exit(1)
+
+    # Report results
+    click.echo(f"\n{'=' * 60}")
+    if dry_run:
+        click.echo("DRY RUN - No changes made")
+    click.echo(f"{'=' * 60}")
+
+    click.echo(f"\nTarget: {target}")
+    click.echo(f"Network: {network}")
+    click.echo(f"Added: {num_added} stations")
+
+    if added:
+        click.echo(f"  New: {', '.join(added)}")
+    if skipped:
+        click.echo(f"  Skipped (already exist): {', '.join(skipped)}")
+
+    if num_added > 0 and not dry_run:
+        click.echo(f"\nStations successfully added to {target}")
+        click.echo("\nNext steps:")
+        click.echo("  1. Run 'python3 cli.py check-blq' to check for missing BLQ entries")
+        click.echo("  2. Generate BLQ entries at http://holt.oso.chalmers.se/loading/")
+        click.echo("  3. Add stations to STA file if needed")
+
+
 @cli.command("parse-sitelogs")
 @click.argument("directory", type=click.Path(exists=True, path_type=Path))
 @click.option(
@@ -2307,6 +2570,243 @@ def download_sitelogs(
         click.echo("Errors:")
         for err in result.errors[:10]:
             click.echo(f"  - {err}")
+
+
+@cli.command("download-m3g")
+@click.option(
+    "--stations", "-s",
+    type=str,
+    required=False,
+    help="Comma-separated list of 9-char station IDs (e.g., BASC00LUX,ECH200LUX)",
+)
+@click.option(
+    "--country", "-c",
+    type=str,
+    help="3-letter country code for predefined station lists (e.g., LUX)",
+)
+@click.option(
+    "--output-dir", "-o",
+    type=click.Path(path_type=Path),
+    default=Path("site_logs"),
+    help="Output directory for downloaded files",
+)
+@click.option(
+    "--sta-output",
+    type=click.Path(path_type=Path),
+    help="Generate STA file from downloaded logs",
+)
+@click.option(
+    "--merge-sta",
+    type=click.Path(path_type=Path, exists=True),
+    help="Merge into existing STA file",
+)
+@click.option(
+    "--format", "-f",
+    type=click.Choice(["log", "xml"]),
+    default="log",
+    help="Download format (log=ASCII, xml=GeodesyML)",
+)
+@click.pass_context
+def download_m3g(
+    ctx: click.Context,
+    stations: str | None,
+    country: str | None,
+    output_dir: Path,
+    sta_output: Path | None,
+    merge_sta: Path | None,
+    format: str,
+) -> None:
+    """Download site logs from gnss-metadata.eu (M3G).
+
+    Downloads IGS site logs from the European GNSS metadata portal.
+    Can generate or update Bernese STA files automatically.
+
+    Examples:
+
+    \b
+        # Download specific stations
+        pygnss-rt download-m3g -s BASC00LUX,ECH200LUX -o ./site_logs
+
+        # Download all Luxembourg stations (predefined list)
+        pygnss-rt download-m3g -c LUX -o ./site_logs
+
+        # Download and generate STA file
+        pygnss-rt download-m3g -c LUX -o ./site_logs --sta-output LUXEMBOURG.STA
+
+        # Download and merge into existing STA file
+        pygnss-rt download-m3g -s BASC00LUX --merge-sta IGS20_54.STA
+    """
+    from pygnss_rt.stations.gnss_metadata_eu import (
+        GNSSMetadataDownloader,
+        LUXEMBOURG_STATIONS,
+        EUREF_CORE_STATIONS,
+    )
+    from pygnss_rt.stations.site_log_parser import parse_site_log
+    from pygnss_rt.stations.sta_file_writer import write_sta_file
+
+    verbose = ctx.obj.get("verbose", False)
+
+    click.echo("M3G Site Log Download (gnss-metadata.eu)")
+    click.echo("=" * 50)
+
+    # Determine station list
+    station_list = []
+    if stations:
+        station_list = [s.strip().upper() for s in stations.split(",")]
+    elif country:
+        country = country.upper()
+        if country == "LUX":
+            station_list = LUXEMBOURG_STATIONS
+            click.echo(f"Using predefined Luxembourg stations: {len(station_list)}")
+        elif country == "EUREF":
+            station_list = EUREF_CORE_STATIONS
+            click.echo(f"Using EUREF core stations: {len(station_list)}")
+        else:
+            click.echo(f"Error: No predefined list for country '{country}'")
+            click.echo("Available: LUX, EUREF")
+            click.echo("Or provide specific stations with -s option")
+            sys.exit(1)
+    else:
+        click.echo("Error: Provide --stations or --country")
+        sys.exit(1)
+
+    click.echo(f"Stations to download: {', '.join(station_list)}")
+    click.echo(f"Output directory: {output_dir}")
+    click.echo()
+
+    # Download
+    downloader = GNSSMetadataDownloader()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    results = downloader.download_stations(station_list, output_dir, format=format)
+
+    # Report results
+    success = sum(1 for p in results.values() if p is not None)
+    failed = len(results) - success
+    click.echo(f"Downloaded: {success}/{len(results)}")
+    if failed > 0:
+        click.echo(f"Failed: {failed}")
+        for sta, path in results.items():
+            if path is None:
+                click.echo(f"  - {sta}")
+
+    # Parse downloaded logs
+    parsed_data = []
+    for station_id, log_path in results.items():
+        if log_path and log_path.exists():
+            try:
+                data = parse_site_log(log_path)
+                if data and data.station_id:
+                    parsed_data.append(data)
+                    if verbose:
+                        click.echo(f"Parsed: {data.station_id} - {data.site_identification.site_name}")
+            except Exception as e:
+                click.echo(f"Parse error {log_path}: {e}")
+
+    # Generate STA file if requested
+    if sta_output and parsed_data:
+        click.echo()
+        click.echo(f"Generating STA file: {sta_output}")
+        count = write_sta_file(sta_output, parsed_data, title=f"M3G Download {datetime.now():%Y-%m-%d}")
+        click.echo(f"Wrote {count} stations to STA file")
+
+    # Merge into existing STA if requested
+    if merge_sta and parsed_data:
+        click.echo()
+        click.echo(f"Merging into: {merge_sta}")
+        from pygnss_rt.stations.gnss_metadata_eu import download_and_add_to_sta
+        # We already downloaded, so just add the parsed data
+        from pygnss_rt.stations.sta_file_writer import STAFileWriter
+
+        # Read existing STA to check for duplicates
+        try:
+            existing_content = merge_sta.read_text(encoding='utf-8')
+        except UnicodeDecodeError:
+            existing_content = merge_sta.read_text(encoding='latin-1')
+        existing_ids = set()
+        for line in existing_content.split('\n'):
+            import re
+            if re.match(r'^[A-Z0-9]{4}\s+001\s+\d{4}', line):
+                station_name = line[:4].strip().upper()
+                existing_ids.add(station_name)
+
+        # Filter out duplicates
+        new_stations = [s for s in parsed_data if s.station_id.upper() not in existing_ids]
+        if new_stations:
+            # Simple append approach - add to existing file
+            writer = STAFileWriter(use_domes=False)
+            stations_info = writer._build_station_info(new_stations)
+
+            # Append TYPE 001 and TYPE 002 entries
+            lines = existing_content.split('\n')
+
+            # Find insertion points
+            type002_start = -1
+            type003_start = -1
+            for i, line in enumerate(lines):
+                if line.startswith("TYPE 002:"):
+                    type002_start = i
+                if line.startswith("TYPE 003:"):
+                    type003_start = i
+
+            if type002_start > 0 and type003_start > 0:
+                # Insert TYPE 001 entries before TYPE 002
+                new_type001 = []
+                for station in stations_info:
+                    name = station.station_name_no_domes
+                    old_name = f"{station.station_id.lower()}*"
+                    new_type001.append(
+                        f"{name:<16}      001  {'':19}  {'':19}  {old_name.upper():<16}      "
+                        f"{'M3G download':<24}"
+                    )
+
+                # Insert TYPE 002 entries before TYPE 003
+                new_type002 = []
+                for station in stations_info:
+                    name = station.station_name_no_domes
+                    for event in station.events:
+                        start = event.start_date
+                        end = event.end_date
+                        start_str = f"{start.year:4d} {start.month:02d} {start.day:02d} " \
+                                   f"{start.hour:02d} {start.minute:02d} {start.second:02d}"
+                        if end.year >= 2099:
+                            end_str = " " * 19
+                        else:
+                            end_str = f"{end.year:4d} {end.month:02d} {end.day:02d} " \
+                                     f"{end.hour:02d} {end.minute:02d} {end.second:02d}"
+
+                        line = f"{name:<16}      001  "
+                        line += f"{start_str}  "
+                        line += f"{end_str}  "
+                        line += f"{event.receiver_type:<20}  "
+                        line += f"{event.receiver_serial:>20}  "
+                        line += f"{event.receiver_serial[-6:]:>6}  "
+                        line += f"{event.antenna_type:<20}  "
+                        line += f"{event.antenna_serial:>20}  "
+                        line += f"{event.antenna_serial[-6:]:>6}  "
+                        line += f"{event.north_ecc:8.4f}  "
+                        line += f"{event.east_ecc:8.4f}  "
+                        line += f"{event.up_ecc:8.4f}  "
+                        line += f"{event.site_name:<22}  "
+                        line += "M3G download"
+                        new_type002.append(line)
+
+                # Reconstruct file
+                lines = lines[:type002_start-1] + new_type001 + lines[type002_start-1:]
+                # Recalculate type003_start
+                type003_start += len(new_type001)
+                for i, line in enumerate(lines):
+                    if line.startswith("TYPE 003:"):
+                        type003_start = i
+                        break
+
+                lines = lines[:type003_start-1] + new_type002 + lines[type003_start-1:]
+
+                merge_sta.write_text('\n'.join(lines))
+                click.echo(f"Added {len(new_stations)} new stations")
+            else:
+                click.echo("Error: Could not find TYPE sections in existing STA file")
+        else:
+            click.echo("All stations already exist in STA file")
 
 
 @cli.command("daily-crd")
