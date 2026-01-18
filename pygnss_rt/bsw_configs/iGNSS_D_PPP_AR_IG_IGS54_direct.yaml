@@ -536,7 +536,7 @@ bern_options:
       RADOME: '1'
       CORRAD: '1'
       DOANTVER: '1'
-      ANTVER: SKIP
+      ANTVER: WARNING
       ANTMETH: ''
       FRQVER: WARNING
       ROUNDOT: DONT_ROUND
@@ -573,9 +573,9 @@ bern_options:
       FLG005: '999'
       TSTANAM: WARNING
       TRYFILE: '1'
-      TANTTYP: SKIP
+      TANTTYP: NO_CHECK
       TANTNUM: NO_CHECK
-      TANTPOS: SKIP
+      TANTPOS: NO_CHECK
       TMRKTYP: WARNING
       TRCVTYP: WARNING
       TRCVNUM: WARNING
@@ -1949,7 +1949,7 @@ bern_options:
       RADOME: '1'
       CORRAD: '0'
       DOANTVER: '1'
-      ANTVER: SKIP
+      ANTVER: WARNING
       ANTMETH: ''
       FRQVER: WARNING
       ROUNDOT: DONT_ROUND
@@ -1986,9 +1986,9 @@ bern_options:
       FLG005: '999'
       TSTANAM: WARNING
       TRYFILE: '1'
-      TANTTYP: SKIP
+      TANTTYP: NO_CHECK
       TANTNUM: NO_CHECK
-      TANTPOS: SKIP
+      TANTPOS: NO_CHECK
       TMRKTYP: WARNING
       TRCVTYP: WARNING
       TRCVNUM: WARNING
