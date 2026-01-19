@@ -82,6 +82,60 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Custom CSS for scrollable tabs
+st.markdown("""
+<style>
+/* Make tabs scrollable horizontally */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: #00d4ff #1a1a2e;
+    padding-bottom: 10px;
+}
+
+/* Webkit scrollbar styling */
+.stTabs [data-baseweb="tab-list"]::-webkit-scrollbar {
+    height: 8px;
+}
+
+.stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-track {
+    background: #1a1a2e;
+    border-radius: 4px;
+}
+
+.stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb {
+    background: #00d4ff;
+    border-radius: 4px;
+}
+
+.stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb:hover {
+    background: #00a3cc;
+}
+
+/* Make individual tabs not wrap */
+.stTabs [data-baseweb="tab"] {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Add scroll hint gradient on right side */
+.stTabs {
+    position: relative;
+}
+
+/* Hint text for scrolling */
+.scroll-hint {
+    font-size: 12px;
+    color: #00d4ff;
+    text-align: right;
+    margin-bottom: 5px;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Custom CSS
 st.markdown("""
 <style>
@@ -100,9 +154,9 @@ st.markdown("""
 
 
 def get_database():
-    """Get database connection (not cached to avoid DuckDB lock issues)"""
+    """Get database connection in read-only mode for concurrent access"""
     db = QualityDatabase(DB_PATH)
-    db.connect()
+    db.connect(read_only=True)
     return db
 
 
@@ -134,6 +188,33 @@ def main():
         refresh_interval = st.slider(
             "Refresh interval (seconds)",
             min_value=30, max_value=300, value=60
+        )
+
+        st.divider()
+
+        # Page Navigation
+        st.subheader("🧭 Navigation")
+        page_options = {
+            "📊 Overview": 0,
+            "📈 Coordinate Repeatability": 1,
+            "📉 RMS Analysis": 2,
+            "🌡️ ZTD Monitor": 3,
+            "🎯 Ambiguity Resolution": 4,
+            "🛰️ Satellite Tracking": 5,
+            "⚙️ Processing Stats": 6,
+            "🔗 Sat. Ambiguity PRN": 7,
+            "📡 Obs. Residuals": 8,
+            "📶 Data Availability": 9,
+            "🚫 Outlier Statistics": 10,
+            "🌬️ Trop. Gradients": 11,
+            "⏱️ Receiver Clocks": 12,
+            "📊 Station Completeness": 13,
+        }
+        selected_page = st.selectbox(
+            "Jump to page",
+            options=list(page_options.keys()),
+            index=0,
+            key='page_nav'
         )
 
         st.divider()
@@ -181,8 +262,11 @@ def main():
     try:
         db = get_database()
 
+        # Scroll hint for tabs
+        st.markdown('<p style="text-align: right; font-size: 12px; color: #00d4ff; margin-bottom: -10px;">Scroll tabs right for more options (Trop. Gradients, Receiver Clocks, Station Completeness) →</p>', unsafe_allow_html=True)
+
         # Create tabs
-        tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14 = st.tabs([
             "📊 Overview",
             "📈 Coordinate Repeatability",
             "📉 RMS Analysis",
@@ -195,7 +279,8 @@ def main():
             "📶 Data Availability",
             "🚫 Outlier Statistics",
             "🌬️ Trop. Gradients",
-            "⏱️ Receiver Clocks"
+            "⏱️ Receiver Clocks",
+            "📊 Station Completeness"
         ])
 
         # TAB 1: Overview
@@ -2630,6 +2715,263 @@ def main():
                         st.info("Please select at least one station.")
                 else:
                     st.info(f"No receiver clock data for DOY {clk_doy}. Clock data is parsed from RINEX CLK files (FIN_*.CLK).")
+
+        # ========================================
+        # TAB 14: Station Data Completeness
+        # ========================================
+        with tab14:
+            st.header("Station Data Completeness")
+            st.markdown("""
+            Monitor station-level data completeness showing:
+            - **Expected vs Actual Observations**: Compare theoretical maximum with actual processed observations
+            - **Data Gaps Timeline**: Visualize when stations have missing data
+            - **Rejection Statistics**: Track percentage of observations rejected during quality screening
+            """)
+
+            # Controls
+            col1, col2 = st.columns(2)
+            with col1:
+                comp_view = st.radio(
+                    "View Mode",
+                    ["Single Day", "Multi-Day Timeline"],
+                    key='completeness_view'
+                )
+
+            # Get data from ZTD (as proxy for data completeness)
+            if comp_view == "Single Day":
+                with col2:
+                    comp_doy = st.number_input(
+                        "Select DOY",
+                        min_value=1, max_value=366,
+                        value=end_doy,
+                        key='comp_doy'
+                    )
+
+                # Compute completeness from ZTD data
+                completeness_data = db.compute_station_completeness_from_ztd(year, comp_doy)
+
+                if completeness_data:
+                    # Convert to dataframe
+                    df_comp = pd.DataFrame([{
+                        'station_id': c.station_id,
+                        'completeness_pct': c.completeness_pct,
+                        'gap_hours': c.gap_hours,
+                        'gap_count': c.gap_count,
+                        'first_epoch': c.first_epoch,
+                        'last_epoch': c.last_epoch,
+                        'quality_flag': c.quality_flag,
+                        'has_full_day': c.has_full_day
+                    } for c in completeness_data])
+
+                    # Summary metrics
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("Total Stations", len(df_comp))
+                    with col2:
+                        good_count = len(df_comp[df_comp['quality_flag'] == 'GOOD'])
+                        st.metric("Good Quality", good_count, delta=f"{good_count/len(df_comp)*100:.0f}%")
+                    with col3:
+                        partial_count = len(df_comp[df_comp['quality_flag'] == 'PARTIAL'])
+                        st.metric("Partial Data", partial_count)
+                    with col4:
+                        poor_count = len(df_comp[df_comp['quality_flag'] == 'POOR'])
+                        st.metric("Poor Quality", poor_count, delta=f"-{poor_count}" if poor_count > 0 else "0", delta_color="inverse")
+
+                    st.divider()
+
+                    # Quality flag colors
+                    quality_colors = {'GOOD': '#26de81', 'PARTIAL': '#ffa502', 'POOR': '#ff4757'}
+
+                    # 1. Completeness bar chart
+                    st.subheader("Data Completeness by Station")
+                    df_sorted = df_comp.sort_values('completeness_pct', ascending=True)
+                    fig_comp = px.bar(
+                        df_sorted,
+                        x='completeness_pct',
+                        y='station_id',
+                        color='quality_flag',
+                        color_discrete_map=quality_colors,
+                        orientation='h',
+                        title=f'Station Data Completeness - DOY {comp_doy}',
+                        labels={'completeness_pct': 'Completeness (%)', 'station_id': 'Station', 'quality_flag': 'Quality'}
+                    )
+                    fig_comp.add_vline(x=95, line_dash="dash", line_color="#26de81", annotation_text="95% threshold")
+                    fig_comp.add_vline(x=70, line_dash="dash", line_color="#ffa502", annotation_text="70% threshold")
+                    apply_colorful_style(fig_comp)
+                    fig_comp.update_layout(height=max(400, len(df_comp) * 25))
+                    st.plotly_chart(fig_comp, use_container_width=True)
+
+                    # 2. Hourly data heatmap (timeline view)
+                    st.subheader("Hourly Data Availability Heatmap")
+
+                    # Get hourly ZTD data for the day
+                    ztd_data = []
+                    for station in df_comp['station_id'].tolist():
+                        ztd_rows = db.get_ztd(station, year, comp_doy)
+                        for row in ztd_rows:
+                            # Valid if ZTD sigma < 100mm (0.1m)
+                            valid = 1 if row.get('ztd_rms', 1) < 0.1 else 0
+                            ztd_data.append({
+                                'station_id': station,
+                                'hour': row.get('hour', 0),
+                                'valid': valid
+                            })
+
+                    if ztd_data:
+                        df_ztd = pd.DataFrame(ztd_data)
+
+                        # Create pivot table for heatmap
+                        pivot = df_ztd.pivot_table(index='station_id', columns='hour', values='valid', aggfunc='first', fill_value=0)
+
+                        # Ensure all hours 0-23 are present
+                        for h in range(24):
+                            if h not in pivot.columns:
+                                pivot[h] = 0
+                        pivot = pivot.reindex(columns=range(24))
+
+                        fig_heatmap = go.Figure(data=go.Heatmap(
+                            z=pivot.values,
+                            x=[f'{h:02d}:00' for h in range(24)],
+                            y=pivot.index.tolist(),
+                            colorscale=[[0, '#ff4757'], [1, '#26de81']],
+                            showscale=False,
+                            hovertemplate='Station: %{y}<br>Hour: %{x}<br>Status: %{customdata}<extra></extra>',
+                            customdata=[['Gap' if v == 0 else 'Valid' for v in row] for row in pivot.values]
+                        ))
+                        fig_heatmap.update_layout(
+                            title=f'Hourly Data Availability - DOY {comp_doy} (Green=Valid, Red=Gap)',
+                            xaxis_title='Hour (UTC)',
+                            yaxis_title='Station',
+                            height=max(400, len(pivot) * 25)
+                        )
+                        apply_colorful_style(fig_heatmap)
+                        st.plotly_chart(fig_heatmap, use_container_width=True)
+
+                    # 3. Gap statistics
+                    st.subheader("Data Gap Statistics")
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        # Pie chart of quality distribution
+                        quality_counts = df_comp['quality_flag'].value_counts().reset_index()
+                        quality_counts.columns = ['Quality', 'Count']
+                        fig_pie = px.pie(
+                            quality_counts,
+                            values='Count',
+                            names='Quality',
+                            color='Quality',
+                            color_discrete_map=quality_colors,
+                            title='Quality Distribution'
+                        )
+                        apply_colorful_style(fig_pie)
+                        st.plotly_chart(fig_pie, use_container_width=True)
+
+                    with col2:
+                        # Histogram of gap hours
+                        fig_gaps = px.histogram(
+                            df_comp,
+                            x='gap_hours',
+                            nbins=24,
+                            title='Distribution of Gap Hours',
+                            labels={'gap_hours': 'Hours of Missing Data', 'count': 'Number of Stations'},
+                            color_discrete_sequence=['#ff6b6b']
+                        )
+                        apply_colorful_style(fig_gaps)
+                        st.plotly_chart(fig_gaps, use_container_width=True)
+
+                    # 4. Detailed table
+                    st.subheader("Station Completeness Details")
+                    df_display = df_comp[['station_id', 'completeness_pct', 'gap_hours', 'gap_count',
+                                         'first_epoch', 'last_epoch', 'quality_flag']].copy()
+                    df_display.columns = ['Station', 'Completeness (%)', 'Gap Hours', 'Gap Count',
+                                         'First Hour', 'Last Hour', 'Quality']
+
+                    # Add observation count from processing stats
+                    stats = db.get_stats(year=year)
+                    stats_dict = {s['station_id']: s['num_observations'] for s in stats if s['doy'] == comp_doy}
+                    df_display['Observations'] = df_display['Station'].map(stats_dict).fillna(0).astype(int)
+
+                    st.dataframe(
+                        df_display.style.format({
+                            'Completeness (%)': '{:.1f}',
+                            'Gap Hours': '{:.0f}',
+                            'First Hour': '{:.0f}',
+                            'Last Hour': '{:.0f}'
+                        }).background_gradient(subset=['Completeness (%)'], cmap='RdYlGn', vmin=0, vmax=100),
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                else:
+                    st.info(f"No ZTD data available for DOY {comp_doy}.")
+
+            else:  # Multi-Day Timeline
+                st.subheader("Multi-Day Data Completeness Timeline")
+
+                # Get timeline data
+                timeline_data = db.get_data_gaps_timeline(year, start_doy, end_doy)
+
+                if timeline_data:
+                    df_timeline = pd.DataFrame(timeline_data)
+
+                    # Calculate completeness per station per day
+                    comp_summary = df_timeline.groupby(['station_id', 'doy']).agg({
+                        'status': lambda x: (x == 'valid').sum() / len(x) * 100 if len(x) > 0 else 0
+                    }).reset_index()
+                    comp_summary.columns = ['station_id', 'doy', 'completeness']
+
+                    # Create heatmap
+                    if len(comp_summary) > 0:
+                        pivot = comp_summary.pivot_table(index='station_id', columns='doy',
+                                                        values='completeness', aggfunc='first', fill_value=0)
+
+                        fig_timeline = go.Figure(data=go.Heatmap(
+                            z=pivot.values,
+                            x=[f'DOY {d}' for d in pivot.columns],
+                            y=pivot.index.tolist(),
+                            colorscale='RdYlGn',
+                            colorbar=dict(title='Completeness %'),
+                            hovertemplate='Station: %{y}<br>%{x}<br>Completeness: %{z:.1f}%<extra></extra>'
+                        ))
+                        fig_timeline.update_layout(
+                            title=f'Station Data Completeness Timeline (DOY {start_doy}-{end_doy})',
+                            xaxis_title='Day of Year',
+                            yaxis_title='Station',
+                            height=max(400, len(pivot) * 25)
+                        )
+                        apply_colorful_style(fig_timeline)
+                        st.plotly_chart(fig_timeline, use_container_width=True)
+
+                        # Summary statistics over period
+                        st.subheader("Period Summary Statistics")
+                        period_stats = comp_summary.groupby('station_id').agg({
+                            'completeness': ['mean', 'min', 'max', 'std']
+                        }).reset_index()
+                        period_stats.columns = ['Station', 'Mean %', 'Min %', 'Max %', 'Std %']
+                        period_stats['Quality'] = period_stats['Mean %'].apply(
+                            lambda x: 'GOOD' if x >= 95 else ('PARTIAL' if x >= 70 else 'POOR')
+                        )
+
+                        st.dataframe(
+                            period_stats.style.format({
+                                'Mean %': '{:.1f}',
+                                'Min %': '{:.1f}',
+                                'Max %': '{:.1f}',
+                                'Std %': '{:.2f}'
+                            }).background_gradient(subset=['Mean %'], cmap='RdYlGn', vmin=0, vmax=100),
+                            use_container_width=True,
+                            hide_index=True
+                        )
+
+                        # Stations with issues
+                        problematic = period_stats[period_stats['Quality'] != 'GOOD']
+                        if len(problematic) > 0:
+                            st.warning(f"**{len(problematic)} station(s) with data quality issues:**")
+                            for _, row in problematic.iterrows():
+                                st.markdown(f"- **{row['Station']}**: {row['Mean %']:.1f}% mean completeness ({row['Quality']})")
+                    else:
+                        st.info("No completeness data available for the selected period.")
+                else:
+                    st.info(f"No ZTD data available for DOY {start_doy}-{end_doy}.")
 
     except Exception as e:
         st.error(f"Database connection error: {e}")

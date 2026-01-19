@@ -166,6 +166,30 @@ class ReceiverClock:
     created_at: Optional[datetime] = None
 
 
+@dataclass
+class StationDataCompleteness:
+    """Station-level data completeness and availability statistics"""
+    station_id: str
+    year: int
+    doy: int
+    # Expected observations based on 24h, 30s sampling, ~30 satellites
+    expected_obs: int  # Expected observations (theoretical max)
+    actual_obs: int  # Actual observations used in processing
+    rejected_obs: int  # Observations rejected during screening
+    # Completeness metrics
+    completeness_pct: float  # actual_obs / expected_obs * 100
+    rejection_pct: float  # rejected_obs / (actual_obs + rejected_obs) * 100
+    # Data gaps
+    first_epoch: Optional[float] = None  # First epoch with data (hours since 00:00)
+    last_epoch: Optional[float] = None  # Last epoch with data (hours since 00:00)
+    gap_hours: Optional[float] = None  # Total hours of missing data
+    gap_count: Optional[int] = None  # Number of distinct data gaps
+    # Quality indicators
+    has_full_day: bool = True  # True if data spans full 24 hours
+    quality_flag: str = 'GOOD'  # 'GOOD', 'PARTIAL', 'POOR'
+    created_at: Optional[datetime] = None
+
+
 class QualityDatabase:
     """DuckDB database connection and operations for quality monitoring"""
 
@@ -185,13 +209,19 @@ class QualityDatabase:
 
         self.db_path = db_path
         self._conn = None
+        self._read_only = False
 
-    def connect(self):
-        """Establish database connection"""
+    def connect(self, read_only: bool = False):
+        """Establish database connection
+
+        Args:
+            read_only: If True, open in read-only mode for concurrent access
+        """
         if self._conn is None:
             # Create parent directory if needed
             Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
-            self._conn = duckdb.connect(self.db_path)
+            self._read_only = read_only
+            self._conn = duckdb.connect(self.db_path, read_only=read_only)
         return self._conn
 
     def close(self):
@@ -378,6 +408,30 @@ class QualityDatabase:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_station_res_constellation ON station_residuals(constellation)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_data_avail_constellation ON data_availability(constellation)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_receiver_clocks_station ON receiver_clocks(station_id)")
+
+        # Station Data Completeness table (station-level data availability)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS station_data_completeness (
+                station_id VARCHAR NOT NULL,
+                year INTEGER NOT NULL,
+                doy INTEGER NOT NULL,
+                expected_obs INTEGER NOT NULL,
+                actual_obs INTEGER NOT NULL,
+                rejected_obs INTEGER NOT NULL,
+                completeness_pct DOUBLE NOT NULL,
+                rejection_pct DOUBLE NOT NULL,
+                first_epoch DOUBLE,
+                last_epoch DOUBLE,
+                gap_hours DOUBLE,
+                gap_count INTEGER,
+                has_full_day BOOLEAN DEFAULT TRUE,
+                quality_flag VARCHAR DEFAULT 'GOOD',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY(station_id, year, doy)
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_sdc_station ON station_data_completeness(station_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_sdc_quality ON station_data_completeness(quality_flag)")
 
         print(f"Quality monitoring tables created in {self.db_path}")
 
@@ -821,3 +875,183 @@ class QualityDatabase:
         """, [year, doy]).fetchdf()
 
         return result['station_id'].tolist() if len(result) > 0 else []
+
+    def insert_station_completeness(self, sc: 'StationDataCompleteness'):
+        """Insert or update station data completeness statistics"""
+        conn = self.connect()
+
+        conn.execute("""
+            INSERT OR REPLACE INTO station_data_completeness
+                (station_id, year, doy, expected_obs, actual_obs, rejected_obs,
+                 completeness_pct, rejection_pct, first_epoch, last_epoch,
+                 gap_hours, gap_count, has_full_day, quality_flag)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, [sc.station_id, sc.year, sc.doy, sc.expected_obs, sc.actual_obs,
+              sc.rejected_obs, sc.completeness_pct, sc.rejection_pct,
+              sc.first_epoch, sc.last_epoch, sc.gap_hours, sc.gap_count,
+              sc.has_full_day, sc.quality_flag])
+
+    def get_station_completeness(self, year: Optional[int] = None,
+                                  doy: Optional[int] = None,
+                                  station_id: Optional[str] = None,
+                                  start_doy: Optional[int] = None,
+                                  end_doy: Optional[int] = None) -> list[dict]:
+        """Query station data completeness statistics"""
+        conn = self.connect()
+
+        query = "SELECT * FROM station_data_completeness WHERE 1=1"
+        params = []
+
+        if year:
+            query += " AND year = ?"
+            params.append(year)
+        if doy:
+            query += " AND doy = ?"
+            params.append(doy)
+        if station_id:
+            query += " AND station_id = ?"
+            params.append(station_id)
+        if start_doy:
+            query += " AND doy >= ?"
+            params.append(start_doy)
+        if end_doy:
+            query += " AND doy <= ?"
+            params.append(end_doy)
+
+        query += " ORDER BY station_id, year, doy"
+
+        result = conn.execute(query, params).fetchdf()
+        return result.to_dict('records')
+
+    def compute_station_completeness_from_ztd(self, year: int, doy: int,
+                                               expected_obs_per_hour: int = 450) -> list['StationDataCompleteness']:
+        """
+        Compute station data completeness from ZTD hourly data.
+
+        This estimates data completeness by checking which hours have valid ZTD estimates.
+        A station with all 24 hours present has full coverage.
+
+        Args:
+            year: Year
+            doy: Day of year
+            expected_obs_per_hour: Expected observations per hour (~30 sats * 120 epochs @ 30s)
+
+        Returns:
+            List of StationDataCompleteness objects
+        """
+        conn = self.connect()
+
+        # Get all ZTD data for this day with validity check
+        result = conn.execute("""
+            SELECT
+                station_id,
+                hour,
+                ztd_rms,
+                CASE WHEN ztd_rms < 0.1 THEN 1 ELSE 0 END as valid_hour
+            FROM ztd_hourly
+            WHERE year = ? AND doy = ?
+            ORDER BY station_id, hour
+        """, [year, doy]).fetchdf()
+
+        if len(result) == 0:
+            return []
+
+        # Get processing stats for observation counts
+        stats = conn.execute("""
+            SELECT station_id, num_observations
+            FROM processing_stats
+            WHERE year = ? AND doy = ?
+        """, [year, doy]).fetchdf()
+
+        stats_dict = {}
+        if len(stats) > 0:
+            stats_dict = dict(zip(stats['station_id'], stats['num_observations']))
+
+        completeness_list = []
+
+        for station_id in result['station_id'].unique():
+            station_data = result[result['station_id'] == station_id]
+            hours_present = set(station_data['hour'].tolist())
+            valid_hours = station_data[station_data['valid_hour'] == 1]['hour'].tolist()
+
+            # Calculate metrics
+            actual_obs = stats_dict.get(station_id, len(valid_hours) * expected_obs_per_hour)
+            expected_obs = 24 * expected_obs_per_hour  # Full day
+
+            # Find gaps
+            all_hours = set(range(24))
+            missing_hours = all_hours - hours_present
+
+            first_epoch = min(hours_present) if hours_present else None
+            last_epoch = max(hours_present) if hours_present else None
+
+            # Count gap hours and distinct gaps
+            gap_hours = len(missing_hours)
+            gap_count = 0
+            if missing_hours:
+                sorted_missing = sorted(missing_hours)
+                gap_count = 1
+                for i in range(1, len(sorted_missing)):
+                    if sorted_missing[i] - sorted_missing[i-1] > 1:
+                        gap_count += 1
+
+            # Quality metrics
+            completeness_pct = (len(valid_hours) / 24.0) * 100 if valid_hours else 0
+            has_full_day = (first_epoch == 0 and last_epoch == 23 and gap_hours == 0)
+
+            # Quality flag
+            if completeness_pct >= 95:
+                quality_flag = 'GOOD'
+            elif completeness_pct >= 70:
+                quality_flag = 'PARTIAL'
+            else:
+                quality_flag = 'POOR'
+
+            completeness_list.append(StationDataCompleteness(
+                station_id=station_id,
+                year=year,
+                doy=doy,
+                expected_obs=expected_obs,
+                actual_obs=actual_obs,
+                rejected_obs=0,  # Will be updated from screening data if available
+                completeness_pct=completeness_pct,
+                rejection_pct=0.0,
+                first_epoch=first_epoch,
+                last_epoch=last_epoch,
+                gap_hours=gap_hours,
+                gap_count=gap_count,
+                has_full_day=has_full_day,
+                quality_flag=quality_flag
+            ))
+
+        return completeness_list
+
+    def get_data_gaps_timeline(self, year: int, start_doy: int, end_doy: int,
+                               station_id: Optional[str] = None) -> list[dict]:
+        """
+        Get timeline data showing data gaps for stations.
+
+        Returns data suitable for Gantt-style visualization showing
+        when each station has valid data vs gaps.
+        """
+        conn = self.connect()
+
+        query = """
+            SELECT
+                z.station_id,
+                z.doy,
+                z.hour,
+                CASE WHEN z.ztd_rms < 0.1 THEN 'valid' ELSE 'gap' END as status
+            FROM ztd_hourly z
+            WHERE z.year = ? AND z.doy BETWEEN ? AND ?
+        """
+        params = [year, start_doy, end_doy]
+
+        if station_id:
+            query += " AND z.station_id = ?"
+            params.append(station_id)
+
+        query += " ORDER BY z.station_id, z.doy, z.hour"
+
+        result = conn.execute(query, params).fetchdf()
+        return result.to_dict('records')
