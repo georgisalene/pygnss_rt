@@ -1,0 +1,680 @@
+# Station configuration converted from RGPrh.xml
+# Stations: 68
+#
+# Fields:
+#   id: 4-character station ID (lowercase)
+#   domes: DOMES number
+#   name: Full station name
+#   primary_net: Primary network (IGS20, EUREF, etc.)
+#   type: Station type (core, EUREF, OS active, etc.)
+#   use_nrt: NRT processing enabled (true/false)
+#   coordinates: ECEF coordinates (x, y, z in meters)
+
+metadata:
+  source_file: RGPrh.xml
+  ref_epoch: '2015-01-01 00:00:00'
+  datum: IGS20_0
+
+stations:
+  - id: avra
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4217979.52, y: -100361.381, z: 4767378.259}
+  - id: bmhg
+    domes: 19833M001
+    name: Beaumont-Hague
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4134870.0, y: -132083.0, z: 4838514.0}
+  - id: bvoi
+    domes: XXXXXXXXX
+    name: Beauvois
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4073307.646, y: 159230.523, z: 4889249.007}
+  - id: caen
+    domes: 19994M001
+    name: Caen
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4177021.0, y: -33327.0, z: 4803950.0}
+  - id: chtg
+    domes: XXXXXXXXX
+    name: Cherbourg
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4135853.953, y: -118088.138, z: 4837806.005}
+  - id: crei
+    domes: 10016M001
+    name: Creil
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4166410.0, y: 182771.0, z: 4809803.0}
+  - id: cubx
+    domes: 10013M001
+    name: Bordeaux
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4527704.77, y: -44759.69, z: 4477073.19}
+  - id: dglg
+    domes: 10017M002
+    name: Armbouts Capell
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4019247.0, y: 164574.0, z: 4933144.0}
+  - id: dipl
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4224046.571, y: -153115.631, z: 4760605.198}
+  - id: dipp
+    domes: 19628M001
+    name: Dieppe
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4113188.0, y: 77861.0, z: 4857761.0}
+  - id: dolb
+    domes: 18690M001
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4227892.0, y: -128004.0, z: 4757894.0}
+  - id: dunq
+    domes: 19670M001
+    name: Dunkerque
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4014479.8023, y: 165919.0668, z: 4936949.6631}
+  - id: eglt
+    domes: 10032M001
+    name: Egletons
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4483373.6221, y: 160636.5879, z: 4519408.978}
+  - id: entz
+    domes: 10014M002
+    name: Entzheim
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4192710.4435, y: 562399.2294, z: 4757685.9972}
+  - id: epr2
+    domes: XXXXXXXXX
+    name: Epron
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4174225.028, y: -26693.14, z: 4806407.942}
+  - id: eqh2
+    domes: 19932M002
+    name: Equihen
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4048144.054, y: 110780.924, z: 4911158.822}
+  - id: fou2
+    domes: XXXXXXXXX
+    name: Foucarmont
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4119896.152, y: 113693.316, z: 4851656.055}
+  - id: fran
+    domes: 19648M001
+    name: Le Harve
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4152301.91, y: 12607.185, z: 4825244.177}
+  - id: guip
+    domes: XXXXXXXXX
+    name: Gulpavas
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 226392.952, y: -326080.505, z: 4749929.147}
+  - id: lann
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4207154.773, y: -252354.553, z: 4771255.061}
+  - id: lbtm
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4232182.793, y: -184776.746, z: 4752316.079}
+  - id: lcst
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4184817.257, y: -22369.699, z: 4797309.659}
+  - id: leto
+    domes: 19882M001
+    name: Le Tourquet
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4062329.0, y: 114824.0, z: 4899383.0}
+  - id: lppz
+    domes: XXXXXXXXX
+    name: Lampaul Plourarzel
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4224156.467, y: -351772.309, z: 4750009.345}
+  - id: lsie
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4179950.918, y: 19021.266, z: 4801619.56}
+  - id: man2
+    domes: 10091M002
+    name: Le Mans
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4274276.05, y: 11584.22, z: 4718385.97}
+  - id: plgn
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4219521.474, y: -274667.415, z: 4759261.32}
+  - id: plmg
+    domes: 18662M001
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4202753.0, y: -231708.0, z: 4776174.0}
+  - id: plst
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4237320.832, y: -180312.769, z: 4747978.909}
+  - id: puyv
+    domes: 10065M001
+    name: Le Puy en Velay
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4504322.0986, y: 305405.2462, z: 4491277.3983}
+  - id: prr2
+    domes: 18693M002
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4175265.0, y: -103281.0, z: 4804443.0}
+  - id: renn
+    domes: 10047M001
+    name: Rennes
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4264988.79, y: -124148.98, z: 4725020.27}
+  - id: rotg
+    domes: 19938M001
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4205957.8, y: -291581.038, z: 4770000.561}
+  - id: scoa
+    domes: 10088M002
+    name: Ciboure
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4639940.60343, y: -136225.12127, z: 4359552.3084}
+  - id: stbr
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4228886.489, y: -203375.71, z: 4754509.187}
+  - id: stlo
+    domes: 19852M001
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4181970.0, y: -77014.0, z: 4799216.0}
+  - id: tanc
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4152483.017, y: 32940.034, z: 4824974.273}
+  - id: thor
+    domes: 10049M001
+    name: Thorigne
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4415020.75, y: -19105.75, z: 4587818.4}
+  - id: vlpl
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4206157.616, y: -90606.838, z: 4778085.426}
+  - id: ypor
+    domes: 19883M001
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4130167.94, y: 23140.65, z: 4844107.67}
+  - id: vlgn
+    domes: XXXXXXXXX
+    name: Valognes
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4148099.0, y: -108023.0, z: 4827663.0}
+  - id: kone
+    domes: XXXXXXXXX
+    name: Concarneau
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4276913.0, y: -291752.0, z: 4706935.0}
+  - id: ildg
+    domes: XXXXXXXXX
+    name: Groix
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4297272.323, y: 258760.324, z: 4690371.678}
+  - id: lpas
+    domes: XXXXXXXXX
+    name: Le Palais
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4323277.0, y: -239757.0, z: 4667640.0}
+  - id: sarz
+    domes: XXXXXXXXX
+    name: Sarzeau
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4309876.0, y: -208511.0, z: 4681398.0}
+  - id: herb
+    domes: XXXXXXXXX
+    name: Herbignac
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4318113.0, y: -175076.0, z: 4675186.0}
+  - id: nmtr
+    domes: XXXXXXXXX
+    name: Noirmoutier
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4353565.0, y: -170563.0, z: 4642571.0}
+  - id: joi2
+    domes: XXXXXXXXX
+    name: Port Joinville
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4376976.6, y: -179929.1, z: 4620330.2}
+  - id: sees
+    domes: XXXXXXXXX
+    name: Sees
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4226614.796, y: 12629.076, z: 4760950.316}
+  - id: gorn
+    domes: XXXXXXXXX
+    name: Gorron
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4241216.0, y: -59777.0, z: 4747643.0}
+  - id: doul
+    domes: XXXXXXXXX
+    name: Doullens
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4090657.653, y: 168022.055, z: 4874445.316}
+  - id: beug
+    domes: XXXXXXXXX
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4091682.201, y: 205622.344, z: 4872227.29}
+  - id: chln
+    domes: XXXXXXXXX
+    name: Chaulnes
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4119217.145, y: 201578.994, z: 4849271.584}
+  - id: amns
+    domes: XXXXXXXXX
+    name: Amiens
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4116794.62, y: 160911.767, z: 4852749.987}
+  - id: beav
+    domes: XXXXXXXXX
+    name: Beauvais-Tille
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4152163.006, y: 152444.12, z: 4823073.874}
+  - id: vnte
+    domes: XXXXXXXXX
+    name: Venette
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4151126.774, y: 201562.698, z: 4822156.38}
+  - id: busi
+    domes: XXXXXXXXX
+    name: Busigny
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4097586.361, y: 248371.375, z: 4865369.116}
+  - id: chpo
+    domes: XXXXXXXXX
+    name: Chateau Porcien
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4135792.509, y: 308402.396, z: 4829620.178}
+  - id: brmz
+    domes: XXXXXXXXX
+    name: Breil-sur-Merize
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4275555.299, y: 35633.391, z: 4717101.793}
+  - id: chbr
+    domes: XXXXXXXXX
+    name: Chateaubriant
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4298046.332, y: -104125.914, z: 4695682.225}
+  - id: gie1
+    domes: XXXXXXXXX
+    name: Gien
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4302664.569, y: 209046.16, z: 4688133.548}
+  - id: sbl2
+    domes: XXXXXXXXX
+    name: Sable sur Sarthe
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4288527.335, y: -24713.989, z: 4705378.789}
+  - id: frtt
+    domes: XXXXXXXXX
+    name: Frettes
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4282028.6, y: 417314.6, z: 4693296.6}
+  - id: aval
+    domes: XXXXXXXXX
+    name: Avallon
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4307494.0, y: 294812.0, z: 4679277.0}
+  - id: gron
+    domes: XXXXXXXXX
+    name: Gron
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4344300.0, y: 205496.0, z: 4650009.0}
+  - id: ilbo
+    domes: XXXXXXXXX
+    name: Ile Bouchard
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4347492.0, y: 31706.0, z: 4651268.0}
+  - id: covi
+    domes: XXXXXXXXX
+    name: Cosse-le-Vivien
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4280577.163, y: -68187.794, z: 4712187.497}
+  - id: jarg
+    domes: XXXXXXXXX
+    name: Jargeau
+    primary_net: RGP
+    provider: IGN
+    type: active
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4284263.0, y: 158641.0, z: 4706727.0}

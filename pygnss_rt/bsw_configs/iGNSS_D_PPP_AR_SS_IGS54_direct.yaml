@@ -377,8 +377,8 @@ bern_options:
       TIMFRAME: GPS
       MXPOTDEG: '12'
       MXOCTI: '8'
-      CMCYN_O: '0'
-      CMCYN_A: '0'
+      CMCYN_O: '1'
+      CMCYN_A: '1'
       ANTOFF: '0'
       SATSELECT: ALL_SATELLITES
       USE_G: '1'
@@ -888,7 +888,7 @@ bern_options:
       FREQUENCY: L3
       PCC4MWGF: ''
       MINEL: opt_MINEL
-      SAMPLE: '300'
+      SAMPLE: '180'
       CORRINTV: '100'
       SODSEL: 'NO'
       WINDOW: '0'
@@ -896,7 +896,7 @@ bern_options:
       ELVWGT: COSZ
       NORRES: NORMALIZED
       CORREL: CORRECT
-      MINELEO: '0'
+      MINELEO: '3'
       LEOEDW: NONE
       RADIO1_1: '1'
       SESSION_YEAR1: $Y+0
@@ -1370,7 +1370,7 @@ bern_options:
       CAMPAIGN: ''
       TITLE: 'PPP_$YYYSS+0_$(FFFF)_$(FL): Residual statistics'
       FREQ: L3
-      SAMPL: '300'
+      SAMPL: '180'
       DOBIGRES: '1'
       BIGRES: '0.004'
       DOBIGRES2: '1'
@@ -1838,7 +1838,7 @@ bern_options:
       STAFIX: ''
       IUSFLG: '0'
       MINEL: opt_MINEL
-      MINELEO: '0'
+      MINELEO: '3'
       MNCONT: '301'
       MXHOLE: '61'
       IPRNT1: SUMMARY
@@ -2204,8 +2204,8 @@ bern_options:
       USE_J: '0'
       FREQUENCY: MELWUEBB
       PCC4MWGF: NEVER
-      MINEL: '5'
-      SAMPLE: '300'
+      MINEL: '10'
+      SAMPLE: '180'
       CORRINTV: '100'
       SODSEL: 'NO'
       WINDOW: '0'
@@ -2213,7 +2213,7 @@ bern_options:
       ELVWGT: COSZ
       NORRES: NORMALIZED
       CORREL: BASELINE
-      MINELEO: '0'
+      MINELEO: '3'
       LEOEDW: NONE
       RADIO1_1: '1'
       SESSION_YEAR1: $Y+0
@@ -2840,7 +2840,7 @@ bern_options:
       FREQUENCY: L3
       PCC4MWGF: NEVER
       MINEL: opt_MINEL
-      SAMPLE: '300'
+      SAMPLE: '180'
       CORRINTV: '100'
       SODSEL: 'NO'
       WINDOW: '0'
@@ -2848,7 +2848,7 @@ bern_options:
       ELVWGT: COSZ
       NORRES: NORMALIZED
       CORREL: CORRECT
-      MINELEO: '0'
+      MINELEO: '3'
       LEOEDW: NONE
       RADIO1_1: '1'
       SESSION_YEAR1: $Y+0
@@ -3353,7 +3353,7 @@ bern_options:
       CAMPAIGN: ''
       TITLE: 'PPP_$YYYSS+0: Collecting residual statistics'
       FREQ: L3
-      SAMPL: '300'
+      SAMPL: '180'
       DOBIGRES: '0'
       BIGRES: ''
       DOBIGRES2: '0'
@@ -3410,7 +3410,7 @@ bern_options:
       CAMPAIGN: ''
       TITLE: 'PPP_$YYYSS+0: Collecting residual statistics'
       FREQ: L3
-      SAMPL: '300'
+      SAMPL: '180'
       DOBIGRES: '0'
       BIGRES: ''
       DOBIGRES2: '0'

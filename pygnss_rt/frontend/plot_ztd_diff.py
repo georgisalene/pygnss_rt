@@ -160,22 +160,26 @@ def collect_ztd_data(
 def compute_differences(
     dd_data: List[Tuple[datetime, float, float]],
     pppar_data: List[Tuple[datetime, float, float]],
-) -> List[Tuple[datetime, float]]:
+) -> List[Tuple[datetime, float, float, float, float]]:
     """
     Compute PPP-AR minus DD differences at matching epochs.
 
-    Returns list of (datetime, diff_mm)
+    Returns list of (datetime, diff_mm, dd_std_mm, pp_std_mm, diff_std_mm)
     """
     # Build lookup for DD data by datetime
-    dd_lookup: Dict[datetime, float] = {}
-    for dt, ztd, _ in dd_data:
-        dd_lookup[dt] = ztd
+    dd_lookup: Dict[datetime, Tuple[float, float]] = {}
+    for dt, ztd, std in dd_data:
+        dd_lookup[dt] = (ztd, std)
 
     diffs = []
-    for dt, ztd, _ in pppar_data:
+    for dt, ztd, std in pppar_data:
         if dt in dd_lookup:
-            diff = ztd - dd_lookup[dt]
-            diffs.append((dt, diff))
+            dd_ztd, dd_std = dd_lookup[dt]
+            diff = ztd - dd_ztd
+            # Propagated error: sqrt(sigma_dd^2 + sigma_pp^2)
+            import math
+            diff_std = math.sqrt(dd_std**2 + std**2)
+            diffs.append((dt, diff, dd_std, std, diff_std))
 
     return diffs
 
@@ -184,57 +188,92 @@ def plot_ztd_comparison(
     station: str,
     dd_data: List[Tuple[datetime, float, float]],
     pppar_data: List[Tuple[datetime, float, float]],
-    diffs: List[Tuple[datetime, float]],
+    diffs: List[Tuple[datetime, float, float, float, float]],
     save_path: Optional[str] = None,
 ):
-    """Create a 3-panel plot: DD ZTD, PPP-AR ZTD, and differences"""
+    """Create a 3-panel plot: DD ZTD with error bars, PPP-AR ZTD with error bars, and differences with error bars"""
+    import math
 
-    fig, axes = plt.subplots(3, 1, figsize=(14, 10), sharex=True,
+    fig, axes = plt.subplots(3, 1, figsize=(14, 11), sharex=True,
                               gridspec_kw={'height_ratios': [2, 2, 1.5]})
     fig.suptitle(f'ZTD Comparison: DD vs PPP-AR GRE — Station {station}',
                  fontsize=14, fontweight='bold')
 
-    # Panel 1: Both ZTD time series
+    # Panel 1: Both ZTD time series with error bands
     ax1 = axes[0]
     if dd_data:
         dd_times = [d[0] for d in dd_data]
         dd_ztd = [d[1] for d in dd_data]
+        dd_std = [d[2] for d in dd_data]
         ax1.plot(dd_times, dd_ztd, 'b-', linewidth=0.8, alpha=0.8, label='DD (F10)')
+        ax1.fill_between(dd_times,
+                          [z - s for z, s in zip(dd_ztd, dd_std)],
+                          [z + s for z, s in zip(dd_ztd, dd_std)],
+                          color='blue', alpha=0.15)
     if pppar_data:
         pp_times = [d[0] for d in pppar_data]
         pp_ztd = [d[1] for d in pppar_data]
+        pp_std = [d[2] for d in pppar_data]
         ax1.plot(pp_times, pp_ztd, 'r-', linewidth=0.8, alpha=0.8, label='PPP-AR GRE (FIN)')
+        ax1.fill_between(pp_times,
+                          [z - s for z, s in zip(pp_ztd, pp_std)],
+                          [z + s for z, s in zip(pp_ztd, pp_std)],
+                          color='red', alpha=0.15)
 
     ax1.set_ylabel('ZTD [mm]')
     ax1.legend(loc='upper right')
     ax1.grid(True, alpha=0.3)
-    ax1.set_title('Zenith Total Delay')
+    ax1.set_title('Zenith Total Delay (shaded = 1\u03c3 formal error)')
 
-    # Panel 2: Zoomed overlay (to see differences)
+    # Mean formal errors for stats box
+    if dd_data and pppar_data:
+        import statistics as st
+        mean_dd_std = st.mean(dd_std)
+        mean_pp_std = st.mean(pp_std)
+        ax1.text(0.02, 0.95,
+                 f'DD  mean \u03c3: {mean_dd_std:.2f} mm\nPPP mean \u03c3: {mean_pp_std:.2f} mm',
+                 transform=ax1.transAxes, fontsize=8, verticalalignment='top',
+                 fontfamily='monospace',
+                 bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
+
+    # Panel 2: Zoomed overlay with error bars
     ax2 = axes[1]
     if dd_data:
-        ax2.plot(dd_times, dd_ztd, 'b-', linewidth=1.0, alpha=0.7, label='DD')
+        ax2.errorbar(dd_times, dd_ztd, yerr=dd_std,
+                      fmt='-', color='blue', linewidth=0.8, alpha=0.7,
+                      elinewidth=0.4, ecolor='blue', capsize=0,
+                      label='DD (F10)')
     if pppar_data:
-        ax2.plot(pp_times, pp_ztd, 'r--', linewidth=1.0, alpha=0.7, label='PPP-AR GRE')
+        ax2.errorbar(pp_times, pp_ztd, yerr=pp_std,
+                      fmt='--', color='red', linewidth=0.8, alpha=0.7,
+                      elinewidth=0.4, ecolor='red', capsize=0,
+                      label='PPP-AR GRE (FIN)')
     ax2.set_ylabel('ZTD [mm]')
     ax2.legend(loc='upper right')
     ax2.grid(True, alpha=0.3)
-    ax2.set_title('ZTD Overlay (zoomed)')
+    ax2.set_title('ZTD Overlay with Error Bars (1\u03c3)')
 
-    # Auto-zoom to show differences
+    # Auto-zoom
     if dd_data and pppar_data:
         all_ztd = dd_ztd + pp_ztd
-        mid = (max(all_ztd) + min(all_ztd)) / 2
         span = max(all_ztd) - min(all_ztd)
-        margin = max(span * 0.1, 5)  # At least 5mm margin
+        margin = max(span * 0.1, 5)
         ax2.set_ylim(min(all_ztd) - margin, max(all_ztd) + margin)
 
-    # Panel 3: Differences
+    # Panel 3: Differences with propagated error bars
     ax3 = axes[2]
     if diffs:
         diff_times = [d[0] for d in diffs]
         diff_vals = [d[1] for d in diffs]
-        ax3.plot(diff_times, diff_vals, 'k.-', linewidth=0.6, markersize=2, alpha=0.8)
+        diff_stds = [d[4] for d in diffs]  # propagated error
+
+        ax3.errorbar(diff_times, diff_vals, yerr=diff_stds,
+                      fmt='.-', color='black', linewidth=0.5, markersize=2,
+                      elinewidth=0.4, ecolor='gray', capsize=0, alpha=0.7)
+        ax3.fill_between(diff_times,
+                          [v - s for v, s in zip(diff_vals, diff_stds)],
+                          [v + s for v, s in zip(diff_vals, diff_stds)],
+                          color='gray', alpha=0.2)
         ax3.axhline(y=0, color='gray', linestyle='--', linewidth=0.5)
 
         # Statistics
@@ -242,22 +281,24 @@ def plot_ztd_comparison(
         mean_diff = statistics.mean(diff_vals)
         std_diff = statistics.stdev(diff_vals) if len(diff_vals) > 1 else 0
         rms_diff = (sum(v**2 for v in diff_vals) / len(diff_vals)) ** 0.5
+        mean_formal = statistics.mean(diff_stds)
 
         ax3.axhline(y=mean_diff, color='red', linestyle=':', linewidth=0.8,
                      label=f'Mean: {mean_diff:.2f} mm')
 
-        stats_text = (f'Mean: {mean_diff:.2f} mm\n'
-                      f'Std:  {std_diff:.2f} mm\n'
-                      f'RMS:  {rms_diff:.2f} mm\n'
-                      f'N:    {len(diff_vals)} epochs')
+        stats_text = (f'Mean:   {mean_diff:+.2f} mm\n'
+                      f'Std:     {std_diff:.2f} mm\n'
+                      f'RMS:     {rms_diff:.2f} mm\n'
+                      f'\u03c3 diff: {mean_formal:.2f} mm\n'
+                      f'N:       {len(diff_vals)} epochs')
         ax3.text(0.02, 0.95, stats_text, transform=ax3.transAxes,
-                 fontsize=9, verticalalignment='top', fontfamily='monospace',
+                 fontsize=8, verticalalignment='top', fontfamily='monospace',
                  bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
 
-    ax3.set_ylabel('PPP-AR − DD [mm]')
+    ax3.set_ylabel('PPP-AR \u2212 DD [mm]')
     ax3.set_xlabel('Date (2025)')
     ax3.grid(True, alpha=0.3)
-    ax3.set_title('ZTD Difference (PPP-AR GRE minus DD)')
+    ax3.set_title('ZTD Difference (PPP-AR GRE minus DD) with propagated 1\u03c3 error')
 
     # Format x-axis
     ax3.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))

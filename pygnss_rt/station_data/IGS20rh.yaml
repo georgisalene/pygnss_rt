@@ -1,0 +1,3026 @@
+# Station configuration converted from IGS20rh.xml
+# Stations: 304
+#
+# Fields:
+#   id: 4-character station ID (lowercase)
+#   domes: DOMES number
+#   name: Full station name
+#   primary_net: Primary network (IGS20, EUREF, etc.)
+#   type: Station type (core, EUREF, OS active, etc.)
+#   use_nrt: NRT processing enabled (true/false)
+#   coordinates: ECEF coordinates (x, y, z in meters)
+
+metadata:
+  source_file: IGS20rh.xml
+  ref_epoch: '2015-01-01 00:00:00'
+  datum: IGS20_0
+
+stations:
+  - id: abmf
+    domes: 97103M001
+    name: Aeroport du Raizet -LE
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Guadeloupe) [GP]"
+    iso: FRA
+    coordinates: {x: 2919785.75385, y: -5383745.01048, z: 1774604.78666}
+  - id: abpo
+    domes: 33302M001
+    name: Ambohimpanompo, Madaga
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Madagascar) [MG]"
+    iso: MDG
+    coordinates: {x: 4097216.59347, y: 4429119.12329, z: -2065771.25068}
+  - id: adis
+    domes: 31502M001
+    name: Addis Ababa University
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Ethiopia) [ET]"
+    iso: ETH
+    coordinates: {x: 4913652.66175, y: 3945922.74923, z: 995383.42039}
+  - id: aira
+    domes: 21742S001
+    name: Aira
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3530185.74062, y: 4118797.25333, z: 3344036.78612}
+  - id: ajac
+    domes: 10077M005
+    name: Ajaccio
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4696989.28044, y: 723994.65707, z: 4239678.65111}
+  - id: albh
+    domes: 40129M003
+    name: Albert Head
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -2341333.05821, y: -3539049.53029, z: 4745791.28126}
+  - id: algo
+    domes: 40104M002
+    name: ALGO CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 918129.21638, y: -4346071.30582, z: 4561977.89215}
+  - id: alic
+    domes: 50137M001
+    name: Alice Springs AU012
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4052052.54575, y: 4212836.01288, z: -2545104.86164}
+  - id: alrt
+    domes: 40162M001
+    name: Alert
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 388042.47687, y: -740382.43609, z: 6302001.94774}
+  - id: amc2
+    domes: 40472S004
+    name: Alternate Master Clock
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -1248596.34181, y: -4819428.20818, z: 3976505.94574}
+  - id: ankr
+    domes: 20805M002
+    name: Ankara / Turkey
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Turkey) [TR]"
+    iso: TUR
+    coordinates: {x: 4121948.44676, y: 2652187.87522, z: 4069023.8337}
+  - id: antc
+    domes: 41713S001
+    name: Los Angeles
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Chile) [CL]"
+    iso: CHL
+    coordinates: {x: 1608538.9944, y: -4816370.08532, z: -3847798.31864}
+  - id: areq
+    domes: 42202M005
+    name: Arequipa Laser Station
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Peru) [PE]"
+    iso: PER
+    coordinates: {x: 1942826.49788, y: -5804070.21155, z: -1796894.04626}
+  - id: artu
+    domes: 12362M001
+    name: Arti
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 1843956.47862, y: 3016203.20373, z: 5291261.77089}
+  - id: aruc
+    domes: 12312M002
+    name: Aruch-Yerevan
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Armenia) []"
+    iso: ARM
+    coordinates: {x: 3500416.75892, y: 3390432.7014, z: 4103027.59965}
+  - id: ascg
+    domes: 30602M004
+    name: Ascensio
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Saint Helena, Ascension and Tristan da Cunha) [SH]"
+    iso: GBR
+    coordinates: {x: 6121151.5727, y: -1563978.92727, z: -872615.36259}
+  - id: aspa
+    domes: 50503S006
+    name: American Samoa Power A
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -6100260.21426, y: -996502.90707, z: -1567977.44486}
+  - id: auck
+    domes: 50209M001
+    name: Whangaparaoa No 3
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -5105681.42199, y: 461564.00665, z: -3782181.16444}
+  - id: badg
+    domes: 12338M002
+    name: Badary
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -838281.93058, y: 3865777.32617, z: 4987624.5897}
+  - id: baie
+    domes: 40151M001
+    name: BAIE RACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1546823.14339, y: -3879765.18477, z: 4804185.13615}
+  - id: bake
+    domes: 40152M001
+    name: BAKE CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -289834.18945, y: -2756501.13355, z: 5725162.33975}
+  - id: bako
+    domes: 23101M002
+    name: BAKOSURTANAL
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Indonesia) [ID]"
+    iso: IDN
+    coordinates: {x: -1836969.35828, y: 6065616.98371, z: -716257.89672}
+  - id: barh
+    domes: 49927S001
+    name: Bar Harbor
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1693644.68661, y: -4239067.58708, z: 4439567.28971}
+  - id: bhr4
+    domes: 24901S002
+    name: Bahrain NGA colocated
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Bahrain) [BH]"
+    iso: BHR
+    coordinates: {x: 3633910.31253, y: 4425277.83871, z: 2799863.16429}
+  - id: bjco
+    domes: 32701M001
+    name: Cotonou
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Benin) [BJ]"
+    iso: BEN
+    coordinates: {x: 6333076.46952, y: 270973.66208, z: 704552.17459}
+  - id: bjfs
+    domes: 21601M001
+    name: Beijing Fangshan / Chi
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2148744.39656, y: 4426641.20084, z: 4044655.84256}
+  - id: boav
+    domes: 41636M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: BRA
+    coordinates: {x: 3117452.18293, y: -5555487.86974, z: 314480.92408}
+  - id: bor1
+    domes: 12205M002
+    name: BOROWIEC
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Poland) [PL]"
+    iso: POL
+    coordinates: {x: 3738358.29113, y: 1148173.86562, z: 5021815.85753}
+  - id: braz
+    domes: 41606M001
+    name: Brasilia
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 4115014.07697, y: -4550641.62235, z: -1741443.83948}
+  - id: brew
+    domes: 40473M001
+    name: Brewster VLBA
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2112007.29322, y: -3705351.82676, z: 4726827.07071}
+  - id: brft
+    domes: 41602M002
+    name: Fortaleza 2005
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 4985393.51013, y: -3954993.46474, z: -428426.58202}
+  - id: brmu
+    domes: 42501S004
+    name: Bermuda
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 2304703.34087, y: -4874817.17131, z: 3395187.01969}
+  - id: brst
+    domes: 10004M004
+    name: Brest
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4231162.46587, y: -332746.50188, z: 4745131.02562}
+  - id: brux
+    domes: 13101M010
+    name: Brussels
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Belgium) [BE]"
+    iso: BEL
+    coordinates: {x: 4027881.44625, y: 306998.66251, z: 4919498.96914}
+  - id: bshm
+    domes: 20705M001
+    name: Binyamin Shmuter Memor
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Israel) [IL]"
+    iso: ISR
+    coordinates: {x: 4395951.26368, y: 3080707.18492, z: 3433498.19772}
+  - id: bucu
+    domes: 11401M001
+    name: Bucuresti / Romania
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Romania) [RO]"
+    iso: ROU
+    coordinates: {x: 4093760.69395, y: 2007793.98368, z: 4445130.07458}
+  - id: cas1
+    domes: 66011M001
+    name: Casey
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: -901776.14088, y: 2409383.26751, z: -5816748.51123}
+  - id: ccj2
+    domes: 21732M002
+    name: CHICHIJIMA-A
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -4490605.26462, y: 3483894.90063, z: 2884928.27341}
+  - id: cebr
+    domes: 13408M001
+    name: Cebreros
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 4846664.87565, y: -370195.10237, z: 4116929.57798}
+  - id: cedu
+    domes: 50138M001
+    name: Ceduna
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -3753472.9881, y: 3912741.02124, z: -3347959.95142}
+  - id: chan
+    domes: 21611M002
+    name: CHANGCHUN
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2674427.51713, y: 3757143.12333, z: 4391521.57678}
+  - id: chpi
+    domes: 41609M003
+    name: Cachoeira Paulista
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 4164613.89729, y: -4162456.9521, z: -2445028.69364}
+  - id: chti
+    domes: 50242M001
+    name: Chatham Island
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4607856.10846, y: -272375.54713, z: -4386954.30488}
+  - id: chum
+    domes: 25601M001
+    name: Chumysh
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Kazakhstan) [KZ]"
+    iso: KAZ
+    coordinates: {x: 1228950.52247, y: 4508079.97117, z: 4327868.52321}
+  - id: chur
+    domes: 40128M002
+    name: CHUR CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -236439.04572, y: -3307616.91569, z: 5430049.3037}
+  - id: ckis
+    domes: 50213M003
+    name: Cook Islands
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Cook Islands) [CK]"
+    iso: NZL
+    coordinates: {x: -5583182.49993, y: -2054143.00369, z: -2292166.37767}
+  - id: cksv
+    domes: 23606M002
+    name: Tainan
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Taiwan) [TW]"
+    iso: TWN
+    coordinates: {x: -2956619.27852, y: 5075902.16784, z: 2476625.57071}
+  - id: cnmr
+    domes: 50512M001
+    name: Mariana Island
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -5087757.79718, y: 3465029.00256, z: 1664653.81506}
+  - id: coco
+    domes: 50127M001
+    name: Cocos
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -741950.8382, y: 6190961.69603, z: -1337767.65483}
+  - id: coyq
+    domes: 41715S001
+    name: Coyhaique
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Chile) [CL]"
+    iso: CHL
+    coordinates: {x: 1391587.21798, y: -4255574.53871, z: -4527925.8812}
+  - id: cpvg
+    domes: 39601M001
+    name: CAP-VERT
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Cape Verde) [CV]"
+    iso: CPV
+    coordinates: {x: 5626883.43607, y: -2380932.45169, z: 1824483.91364}
+  - id: crao
+    domes: 12337M002
+    name: Crimean Astrophysical
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Ukraine) [UA]"
+    iso: UKR
+    coordinates: {x: 3783896.90481, y: 2551404.57133, z: 4441264.36913}
+  - id: cro1
+    domes: 43201M001
+    name: St. Croix VLBA
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Virgin Islands, U.S.) [VI]"
+    iso: USA
+    coordinates: {x: 2607771.3058, y: -5488076.61379, z: 1932767.90781}
+  - id: cusv
+    domes: 21904S001
+    name: Chulalongkorn
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Thailand) [TH]"
+    iso: THA
+    coordinates: {x: -1132914.8646, y: 6092528.56897, z: 1504633.21272}
+  - id: cztg
+    domes: 91301M002
+    name: CROZET ARCHIPELAGO (PO
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(French Southern Territories) [TF]"
+    iso: FRA
+    coordinates: {x: 2719994.82359, y: 3463392.64058, z: -4598612.95358}
+  - id: daej
+    domes: 23902M002
+    name: DAEJEON
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(South Korea) [KR]"
+    iso: KOR
+    coordinates: {x: -3120042.26632, y: 4084614.75772, z: 3764026.82989}
+  - id: dakr
+    domes: 34108M001
+    name: Dakar
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Senegal) [SN]"
+    iso: SEN
+    coordinates: {x: 5886533.48461, y: -1849181.53825, z: 1610300.48869}
+  - id: darw
+    domes: 50134M001
+    name: Darwin AU014
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4091359.44044, y: 4684606.49535, z: -1408579.41495}
+  - id: dav1
+    domes: 66010M001
+    name: Davis
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 486854.57668, y: 2285099.20126, z: -5914955.71379}
+  - id: dgar
+    domes: 30802M001
+    name: Diego Garcia Island
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 1916268.99518, y: 6029977.63746, z: -801719.58063}
+  - id: djig
+    domes: 39901M005
+    name: Djibouti
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Djibouti) [DJ]"
+    iso: DJI
+    coordinates: {x: 4583086.06911, y: 4250982.55791, z: 1266243.10672}
+  - id: dlf1
+    domes: 13502M009
+    name: Delft
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3924697.70382, y: 301125.18989, z: 5001905.29362}
+  - id: drag
+    domes: 20710S001
+    name: Metzoki dragot
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Israel) [IL]"
+    iso: ISR
+    coordinates: {x: 4432980.4558, y: 3149432.23154, z: 3322110.64647}
+  - id: drao
+    domes: 40105M002
+    name: Dominion Radio Astroph
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -2059164.95451, y: -3621108.403, z: 4814432.25952}
+  - id: dubo
+    domes: 40137M001
+    name: DUBO CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -417603.87038, y: -4064529.82723, z: 4881432.14106}
+  - id: dum1
+    domes: 91501M001
+    name: Dumont d'Urville
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: -1940883.7508, y: 1628483.11897, z: -5833718.11376}
+  - id: dyng
+    domes: 12602M006
+    name: DIONYSOS
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Greece) [GR]"
+    iso: GRC
+    coordinates: {x: 4595220.02934, y: 2039434.13219, z: 3912625.95563}
+  - id: ebre
+    domes: 13410M001
+    name: Ebre
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 4833520.03988, y: 41537.30405, z: 4147461.66532}
+  - id: faa1
+    domes: 92201M012
+    name: Tahiti-Faaa
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(French Polynesia) [PF]"
+    iso: FRA
+    coordinates: {x: -5247393.43829, y: -3076866.67672, z: -1911521.18937}
+  - id: fair
+    domes: 40408M001
+    name: Gilmore Creek Observat
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2281621.84615, y: -1453595.90149, z: 5756961.75249}
+  - id: falk
+    domes: 80602M001
+    name: Stanley, Falkland Isla
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Falkland Islands) [FK]"
+    iso: FLK
+    coordinates: {x: 2106811.37624, y: -3355170.71714, z: -4981786.27719}
+  - id: flin
+    domes: 40135M001
+    name: FLIN CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -766174.75103, y: -3611375.35709, z: 5184056.21679}
+  - id: flrs
+    domes: 31907M001
+    name: Santa Cruz das Flores
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Portugal) [PT]"
+    iso: PRT
+    coordinates: {x: 4221529.9932, y: -2549242.31805, z: 4031398.36329}
+  - id: func
+    domes: 13911S001
+    name: Funchal
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Portugal) [PT]"
+    iso: PRT
+    coordinates: {x: 5143339.24257, y: -1563412.58094, z: 3421191.718}
+  - id: gamb
+    domes: 92301M003
+    name: Rikitea
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(French Polynesia) [PF]"
+    iso: FRA
+    coordinates: {x: -4147126.96616, y: -4152222.03461, z: -2490033.03895}
+  - id: glps
+    domes: 42005M002
+    name: Galapagos Permanent St
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Ecuador) [EC]"
+    iso: ECU
+    coordinates: {x: -33801.15399, y: -6377516.52143, z: -82154.28484}
+  - id: glsv
+    domes: 12356M001
+    name: Kiev/Golosiiv
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Ukraine) [UA]"
+    iso: UKR
+    coordinates: {x: 3512888.75543, y: 2068980.02027, z: 4888903.28388}
+  - id: gode
+    domes: 40451M123
+    name: GGAO (Greenbelt)
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1130773.59559, y: -4831253.57183, z: 3994200.44531}
+  - id: godn
+    domes: XXXXXXXXX
+    name: GGAO NORTH DEEP DRILL
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1130760.82615, y: -4831298.67779, z: 3994155.18117}
+  - id: gold
+    domes: 40405S031
+    name: Goldstone Deep Space T
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2353614.43145, y: -4641385.28971, z: 3676976.38111}
+  - id: goug
+    domes: 30608M001
+    name: Gough Is
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Saint Helena, Ascension and Tristan da Cunha) [SH]"
+    iso: GBR
+    coordinates: {x: 4795578.81864, y: -835299.19752, z: -4107633.80874}
+  - id: gras
+    domes: 10002M006
+    name: Observatoire de Calern
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4581690.76666, y: 556115.02749, z: 4389360.91221}
+  - id: graz
+    domes: 11001M002
+    name: Graz-Lustbuehel
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Austria) [AT]"
+    iso: AUT
+    coordinates: {x: 4194423.65048, y: 1162702.87219, z: 4647245.5183}
+  - id: guam
+    domes: 50501M002
+    name: USGS Guam Observatory
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Guam) [GU]"
+    iso: USA
+    coordinates: {x: -5071312.69578, y: 3568363.60273, z: 1488904.37907}
+  - id: guao
+    domes: 21612M003
+    name: GPS station,
+    primary_net: IGS14
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: 228378.6882, y: 4631946.90371, z: 4367028.52996}
+  - id: guat
+    domes: 40901S001
+    name: Guatemala
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Guatemala) [GT]"
+    iso: GTM
+    coordinates: {x: -56063.53991, y: -6174978.64438, z: 1596665.28494}
+  - id: hers
+    domes: 13212M007
+    name: Herstmonceux
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4033469.97187, y: 23673.05474, z: 4924301.40928}
+  - id: hksl
+    domes: 23015M001
+    name: Siu Lang Shui
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2393382.91755, y: 5393860.99758, z: 2412592.23214}
+  - id: hlfx
+    domes: 40120M001
+    name: HLFX CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 2018905.60905, y: -4069070.51641, z: 4462415.47535}
+  - id: hnlc
+    domes: 49970S001
+    name: Honolulu Tide Gauge
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -5506798.85951, y: -2240048.90766, z: 2302720.73699}
+  - id: hnus
+    domes: 30322M001
+    name: HERMANUS
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 4973168.84543, y: 1734085.52627, z: -3585434.04161}
+  - id: hob2
+    domes: 50116M004
+    name: Hobart AU016
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -3950072.06167, y: 2522415.32769, z: -4311637.62063}
+  - id: hofn
+    domes: 10204M002
+    name: Hoefn / Iceland
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Iceland) [IS]"
+    iso: ISL
+    coordinates: {x: 2679689.95427, y: -727951.06337, z: 5722789.47898}
+  - id: holm
+    domes: 40148M001
+    name: Holman
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -983072.19936, y: -1867623.68282, z: 5998639.53913}
+  - id: hrao
+    domes: 30302M004
+    name: Hartebeesthoek RAO
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5085352.44996, y: 2668396.03753, z: -2768731.37491}
+  - id: hyde
+    domes: 22307M001
+    name: National Geophysical R
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(India) [IN]"
+    iso: IND
+    coordinates: {x: 1208444.1586, y: 5966806.00068, z: 1897077.21089}
+  - id: iisc
+    domes: 22306M002
+    name: Indian Institute of Sc
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(India) [IN]"
+    iso: IND
+    coordinates: {x: 1337936.02453, y: 6070317.12445, z: 1427877.129}
+  - id: invk
+    domes: 40150M001
+    name: Inuvik
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -1628432.30993, y: -1714393.07362, z: 5903844.63089}
+  - id: iqal
+    domes: 40194M001
+    name: IQAL CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1036000.91798, y: -2631455.56, z: 5697819.69}
+  - id: irkj
+    domes: 12313M002
+    name: Irkutsk
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -968328.83931, y: 3794426.50968, z: 5018167.21559}
+  - id: irkt
+    domes: 12313M001
+    name: IRKUTSK
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -968332.65755, y: 3794425.40286, z: 5018167.697}
+  - id: isba
+    domes: 20308M001
+    name: Iraq Sury Baghdad
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Iraq) [IQ]"
+    iso: IRQ
+    coordinates: {x: 3808364.69109, y: 3734430.18616, z: 3485693.61382}
+  - id: ispa
+    domes: 41703M007
+    name: Easter Island (Isla de
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Chile) [CL]"
+    iso: CHL
+    coordinates: {x: -1881703.02483, y: -5359979.91668, z: -2890599.29451}
+  - id: ista
+    domes: 20807M001
+    name: Istanbul / Turkey
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Turkey) [TR]"
+    iso: TUR
+    coordinates: {x: 4208830.12391, y: 2334850.43046, z: 4171267.3592}
+  - id: jfng
+    domes: 21602M006
+    name: JIUFENG
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2279828.92233, y: 5004706.5091, z: 3219777.43653}
+  - id: joze
+    domes: 12204M001
+    name: JOZEFOSLAW
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Poland) [PL]"
+    iso: POL
+    coordinates: {x: 3664939.98189, y: 1409154.01463, z: 5009571.46294}
+  - id: karr
+    domes: 50139M001
+    name: Karratha AU013
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2713833.05285, y: 5303935.11191, z: -2269514.02838}
+  - id: kat1
+    domes: 59968M001
+    name: Katherine
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4147413.64281, y: 4581462.65563, z: -1573359.37109}
+  - id: kely
+    domes: 43005M002
+    name: Kellyville (Kangerluss
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Greenland) [GL]"
+    iso: GRL
+    coordinates: {x: 1575558.89919, y: -1941827.9817, z: 5848076.58001}
+  - id: kerg
+    domes: 91201M002
+    name: Kerguelen Islands
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(French Southern Territories) [TF]"
+    iso: FRA
+    coordinates: {x: 1406337.22012, y: 3918161.10116, z: -4816167.38127}
+  - id: kiri
+    domes: 50305M001
+    name: Kiribati
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Kiribati) [KI]"
+    iso: KIR
+    coordinates: {x: -6327822.37195, y: 785604.84426, z: 149769.39755}
+  - id: kiru
+    domes: 10403M002
+    name: Kiruna
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 2251420.6293, y: 862817.33811, z: 5885476.80847}
+  - id: kmnm
+    domes: 23608M001
+    name: Kinmen
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Taiwan) [TW]"
+    iso: TWN
+    coordinates: {x: -2761838.01838, y: 5110347.10015, z: 2625150.90745}
+  - id: kokb
+    domes: 40424M004
+    name: Kokee Park Geophysical
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -5543838.28881, y: -2054586.12517, z: 2387810.28192}
+  - id: kouc
+    domes: 92727S001
+    name: Koumac
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(New Caledonia) [NC]"
+    iso: FRA
+    coordinates: {x: -5751223.0318, y: 1617967.32594, z: -2225743.41087}
+  - id: koug
+    domes: 97301M402
+    name: KOUROU
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(French Guiana) [GF]"
+    iso: FRA
+    coordinates: {x: 3855263.3221, y: -5049732.00554, z: 563040.46415}
+  - id: kour
+    domes: 97301M210
+    name: Kourou
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(French Guiana) [GF]"
+    iso: FRA
+    coordinates: {x: 3839591.35508, y: -5059567.58553, z: 579957.16282}
+  - id: krgg
+    domes: 91201M007
+    name: Kerguelen Islands
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(French Southern Territories) [TF]"
+    iso: FRA
+    coordinates: {x: 1406336.20771, y: 3918154.60522, z: -4816172.87521}
+  - id: ksu1
+    domes: 49240M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: USA
+    coordinates: {x: -570504.63361, y: -4923591.01205, z: 4001208.47493}
+  - id: lae1
+    domes: 51002M001
+    name: University of Technolo
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Papua New Guinea) [PG]"
+    iso: PNG
+    coordinates: {x: -5312857.29507, y: 3451107.6629, z: -736321.96863}
+  - id: laut
+    domes: 50804M002
+    name: Fiji CGPS
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Fiji) [FJ]"
+    iso: FJI
+    coordinates: {x: -6075194.63173, y: 270923.82315, z: -1917189.20943}
+  - id: lck4
+    domes: 22305M005
+    name: Lucknow(Uttar Pradesh)
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(India) [IN]"
+    iso: IND
+    coordinates: {x: 894678.45744, y: 5620595.01672, z: 2869567.44157}
+  - id: lhaz
+    domes: 21613M002
+    name: Lhasa / Tibet / China
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -106941.90761, y: 5549269.8089, z: 3139215.14427}
+  - id: lmmf
+    domes: 97205M001
+    name: Aeroport Aime CESAIRE-
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Martinique) [MQ]"
+    iso: FRA
+    coordinates: {x: 2993387.35915, y: -5399363.88569, z: 1596748.09127}
+  - id: lpal
+    domes: 81701M001
+    name: La Palma
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 5326646.23861, y: -1719826.07716, z: 3052043.83843}
+  - id: lpgs
+    domes: 41510M001
+    name: La Plata
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Argentina) [AR]"
+    iso: ARG
+    coordinates: {x: 2780102.99118, y: -4437419.01341, z: -3629404.40786}
+  - id: lroc
+    domes: 10023M001
+    name: LA ROCHELLE
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4424632.4467, y: -94175.04277, z: 4577544.19222}
+  - id: m0se
+    domes: 12772M001
+    name: Rome - The 'Moses' of
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4642432.33146, y: 1028629.61181, z: 4236854.35968}
+  - id: mac1
+    domes: 50135M001
+    name: Macquarie Island
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -3464038.82935, y: 1334173.13129, z: -5169223.96632}
+  - id: maju
+    domes: 51501M001
+    name: Majuro
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Marshall Islands) [MH]"
+    iso: MHL
+    coordinates: {x: -6257572.18969, y: 950333.14553, z: 785215.44604}
+  - id: mal2
+    domes: 33201M003
+    name: Malindi
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Kenya) [KE]"
+    iso: KEN
+    coordinates: {x: 4865385.52805, y: 4110717.39141, z: -331137.46135}
+  - id: mar6
+    domes: 10405M002
+    name: Maartsbo
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 2998189.28146, y: 931451.92125, z: 5533398.81628}
+  - id: mas1
+    domes: 31303M002
+    name: Maspalomas
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 5439192.17319, y: -1522055.30276, z: 2953454.99808}
+  - id: mate
+    domes: 12734M008
+    name: Matera
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4641949.3738, y: 1393045.61528, z: 4133287.60704}
+  - id: maui
+    domes: 40445S008
+    name: Haleakala, Maui
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -5466069.01782, y: -2404327.45713, z: 2242127.75989}
+  - id: maw1
+    domes: 66004M001
+    name: Mawson
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 1111287.20108, y: 2168911.20922, z: -5874493.60034}
+  - id: mbar
+    domes: 33901M001
+    name: Mbarara
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Uganda) [UG]"
+    iso: UGA
+    coordinates: {x: 5482951.19352, y: 3260442.75937, z: -66519.70566}
+  - id: mchl
+    domes: 59905M001
+    name: Mitchell
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4857858.76525, y: 3018464.41263, z: -2814983.47593}
+  - id: mcil
+    domes: 21789S001
+    name: MINAMITORISHIMA
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -5227187.71925, y: 2551880.96417, z: 2607618.16243}
+  - id: mcm4
+    domes: 66001M003
+    name: McMurdo GPS Station
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: -1311703.08284, y: 310814.88391, z: -6213255.13537}
+  - id: mdo1
+    domes: 40442M012
+    name: McDonald Observatory S
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -1329998.8984, y: -5328393.35551, z: 3236504.10378}
+  - id: mdvj
+    domes: 12309M005
+    name: Mendeleevo
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 2845455.86535, y: 2160954.3649, z: 5265993.28228}
+  - id: medi
+    domes: 12711M003
+    name: Medicina(BO)
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4461400.56348, y: 919593.76936, z: 4449504.88078}
+  - id: meli
+    domes: 19379M001
+    name: Melilla
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: MAR
+    coordinates: {x: 5205628.11175, y: -268410.74801, z: 3663428.532}
+  - id: met3
+    domes: 10503M010
+    name: Metsahovi
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Finland) [FI]"
+    iso: FIN
+    coordinates: {x: 2892584.01223, y: 1311799.54017, z: 5512619.84357}
+  - id: mets
+    domes: 10503S011
+    name: METSAHOVI
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Finland) [FI]"
+    iso: FIN
+    coordinates: {x: 2892570.61363, y: 1311843.58462, z: 5512634.22102}
+  - id: mikl
+    domes: 12335M001
+    name: Mykolaiv
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Ukraine) [UA]"
+    iso: UKR
+    coordinates: {x: 3698553.78954, y: 2308676.16927, z: 4639769.58784}
+  - id: mizu
+    domes: 21702M002
+    name: Mizusawa
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3857169.64958, y: 3108693.7129, z: 4004040.65944}
+  - id: mkea
+    domes: 40477M001
+    name: Mauna Kea
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -5464105.34465, y: -2495165.76473, z: 2148291.51158}
+  - id: mobs
+    domes: 50182M001
+    name: Melbourne Observatory
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4130636.56453, y: 2894953.12299, z: -3890530.47212}
+  - id: monp
+    domes: 40497M004
+    name: Monument Peak
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2386247.40042, y: -4802359.12589, z: 3444902.38174}
+  - id: mqzg
+    domes: 50214M001
+    name: McQueens Valley
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4580569.73894, y: 590466.1586, z: -4384379.80468}
+  - id: mro1
+    domes: 59913M001
+    name: Murchison Radio Observ
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2556629.815, y: 5097138.25912, z: -2848385.04716}
+  - id: nain
+    domes: 40164M001
+    name: Nain
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1671836.47292, y: -3103473.31928, z: 5297671.30943}
+  - id: nama
+    domes: 20103M001
+    name: Namas
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Saudi Arabia) [SA]"
+    iso: SAU
+    coordinates: {x: 4476294.81566, y: 4036794.71177, z: 2086353.30469}
+  - id: nano
+    domes: 40138M001
+    name: Nanoose
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -2335726.92155, y: -3451608.35069, z: 4812009.90183}
+  - id: naur
+    domes: 50701M001
+    name: Nauru
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Nauru) [NR]"
+    iso: NRU
+    coordinates: {x: -6212554.97294, y: 1442787.34232, z: -61006.46548}
+  - id: nico
+    domes: 14302M001
+    name: Nicosia-Athalassa
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Cyprus) [CY]"
+    iso: CYP
+    coordinates: {x: 4359415.53522, y: 2874117.17809, z: 3650777.95179}
+  - id: nist
+    domes: 49507M002
+    name: NIST antenna at NIST
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -1288398.45417, y: -4721696.92904, z: 4078625.36868}
+  - id: nisu
+    domes: 49507M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: USA
+    coordinates: {x: -1288363.78831, y: -4721684.21027, z: 4078659.32223}
+  - id: nium
+    domes: 50210M001
+    name: Niue Meteorological Se
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Niue) [NU]"
+    iso: NZL
+    coordinates: {x: -5937160.81555, y: -1054675.47995, z: -2071386.17084}
+  - id: nklg
+    domes: 32809M002
+    name: N'KOLTANG (GABON)
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Gabon) [GA]"
+    iso: GAB
+    coordinates: {x: 6287385.72913, y: 1071574.75131, z: 39133.095}
+  - id: nlib
+    domes: 40465M001
+    name: North Liberty VLBA sit
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -130934.76241, y: -4762291.70522, z: 4226854.62413}
+  - id: nnor
+    domes: 50181M001
+    name: New Norcia
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2414152.14996, y: 4907778.59508, z: -3270644.4571}
+  - id: not1
+    domes: 12717M004
+    name: Noto-Radioastronomy 1
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4934546.05356, y: 1321265.18489, z: 3806456.26774}
+  - id: noto
+    domes: 12717M003
+    name: Noto-Radioastronomy St
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4934528.3339, y: 1321262.53054, z: 3806479.79222}
+  - id: noum
+    domes: 92701M003
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: FRA
+    coordinates: {x: -5739971.88858, y: 1387563.37223, z: -2402122.76129}
+  - id: novj
+    domes: 12367M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: RUS
+    coordinates: {x: 452288.28922, y: 3635913.15994, z: 5203396.77278}
+  - id: novm
+    domes: 12367M002
+    name: Novosibirsk, SNIIM
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 452260.83324, y: 3635877.57841, z: 5203453.3299}
+  - id: nrc1
+    domes: 40114M001
+    name: NRC1 CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1112777.03969, y: -4341475.88624, z: 4522955.85357}
+  - id: nril
+    domes: 12364M001
+    name: Complex Magnetic-Ionos
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 64536.96792, y: 2253782.89519, z: 5946363.50625}
+  - id: nrmd
+    domes: 92701M005
+    name: NORMANDIE
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(New Caledonia) [NC]"
+    iso: FRA
+    coordinates: {x: -5743538.01535, y: 1380503.95973, z: -2397896.23011}
+  - id: nssp
+    domes: 12312M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: ARM
+    coordinates: {x: 3478646.34215, y: 3418805.96529, z: 4097987.3684}
+  - id: ntus
+    domes: 22601M001
+    name: Nanyang Technological
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Singapore) [SG]"
+    iso: SGP
+    coordinates: {x: -1508023.12594, y: 6195576.57054, z: 148799.40179}
+  - id: nurk
+    domes: 34001M001
+    name: Kigali - National Univ
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Rwanda) [RW]"
+    iso: RWA
+    coordinates: {x: 5516756.51262, y: 3196624.9547, z: -215027.14909}
+  - id: nyal
+    domes: 10317M001
+    name: Ny-Alesund
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Norway) [NO]"
+    iso: NOR
+    coordinates: {x: 1202430.39004, y: 252626.78264, z: 6237767.71891}
+  - id: ohi2
+    domes: 66008M005
+    name: O'Higgins / Antarctica
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 1525812.05495, y: -2432478.2325, z: -5676165.5658}
+  - id: ohi3
+    domes: 66008M006
+    name: O'Higgins / Antarctica
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 1525809.2228, y: -2432478.7439, z: -5676166.26085}
+  - id: ohig
+    domes: 66008M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: ATA
+    coordinates: {x: 1525872.81312, y: -2432481.3368, z: -5676146.0765}
+  - id: onsa
+    domes: 10402M004
+    name: ONSALA
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 3370658.39792, y: 711877.28307, z: 5349787.0485}
+  - id: orid
+    domes: 15601M001
+    name: Ohrid / Macedonia
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Macedonia) [MK]"
+    iso: MKD
+    coordinates: {x: 4498451.54448, y: 1708267.18183, z: 4173591.94978}
+  - id: ous2
+    domes: 50212M002
+    name: Dunedin
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4387890.99704, y: 733420.77371, z: -4555176.13195}
+  - id: p043
+    domes: 49226M001
+    name: Newcastle
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -1128701.78483, y: -4465270.58706, z: 4399615.91407}
+  - id: palm
+    domes: 66005M002
+    name: Palmer Station, Antarc
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 1192672.08017, y: -2450887.6757, z: -5747096.04599}
+  - id: parc
+    domes: 41716S001
+    name: Punta Arenas
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Chile) [CL]"
+    iso: CHL
+    coordinates: {x: 1255992.51703, y: -3622975.20099, z: -5079719.1933}
+  - id: pbri
+    domes: 22308M001
+    name: Port Blair(Andaman Nic
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(India) [IN]"
+    iso: IND
+    coordinates: {x: -295635.8903, y: 6240848.73173, z: 1278178.46243}
+  - id: pdel
+    domes: 31906M004
+    name: PONTA DELGADA
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Portugal) [PT]"
+    iso: PRT
+    coordinates: {x: 4551595.91016, y: -2186892.95883, z: 3883410.95543}
+  - id: penc
+    domes: 11206M006
+    name: FOMI Satellite Geodeti
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Hungary) [HU]"
+    iso: HUN
+    coordinates: {x: 4052449.30062, y: 1417681.30003, z: 4701407.20627}
+  - id: pert
+    domes: 50133M001
+    name: Perth
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2368687.80431, y: 4881316.65056, z: -3341795.22827}
+  - id: petp
+    domes: 12355M002
+    name: Institute of Volcanolo
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -3576239.75738, y: 1401003.57107, z: 5075177.39931}
+  - id: pets
+    domes: 12355M003
+    name: Petropavlovsk GSN Seis
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -3580828.40391, y: 1399698.18461, z: 5072185.05707}
+  - id: picl
+    domes: 40155M001
+    name: PICL CACS-ACP
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -11253.25575, y: -3980586.74556, z: 4967210.2805}
+  - id: pie1
+    domes: 40456M001
+    name: Pietown VLBA Site
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -1640917.04029, y: -5014781.19532, z: 3575447.04291}
+  - id: pimo
+    domes: 22003M001
+    name: Manila Observatory
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Philippines) [PH]"
+    iso: PHL
+    coordinates: {x: -3186293.66404, y: 5286624.35743, z: 1601158.35808}
+  - id: pngm
+    domes: 51006M001
+    name: Manus Island CGPS
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Papua New Guinea) [PG]"
+    iso: PNG
+    coordinates: {x: -5367942.78934, y: 3437431.82417, z: -225885.71675}
+  - id: poal
+    domes: 41616M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: BRA
+    coordinates: {x: 3467519.41927, y: -4300378.62698, z: -3177517.57067}
+  - id: pohn
+    domes: 51601M001
+    name: Pohnpei
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Federated States of Micronesia) [FM]"
+    iso: FSM
+    coordinates: {x: -5879158.403, y: 2350292.44958, z: 767748.47613}
+  - id: pol2
+    domes: 12348M001
+    name: Poligan IVTAN 2
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Kyrgyzstan) [KG]"
+    iso: KGZ
+    coordinates: {x: 1239971.09723, y: 4530790.13541, z: 4302578.85053}
+  - id: polv
+    domes: 12336M001
+    name: Poltava
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Ukraine) [UA]"
+    iso: UKR
+    coordinates: {x: 3411557.13565, y: 2348464.10627, z: 4834396.95497}
+  - id: pots
+    domes: 14106M003
+    name: Potsdam, GeoForschungs
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 3800689.48011, y: 882077.54552, z: 5028791.41693}
+  - id: pove
+    domes: 41628M001
+    name: PORTO VELHO
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 2774265.59698, y: -5662060.17122, z: -959415.80937}
+  - id: prds
+    domes: 40124M001
+    name: PRDS CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -1659603.14314, y: -3676725.78048, z: 4925493.4798}
+  - id: ptag
+    domes: 22006M005
+    name: NAMRIA Taguig Active G
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Philippines) [PH]"
+    iso: PHL
+    coordinates: {x: -3184318.71045, y: 5291065.4999, z: 1590418.24385}
+  - id: ptvl
+    domes: 51402M002
+    name: Port Vila GNSS
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Vanuatu) [VU]"
+    iso: VUT
+    coordinates: {x: -5950573.26588, y: 1230677.40382, z: -1932016.96455}
+  - id: qaq1
+    domes: 43007M001
+    name: Qaqortoq
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Greenland) [GL]"
+    iso: GRL
+    coordinates: {x: 2170941.92287, y: -2251830.01319, z: 5539988.45443}
+  - id: qiki
+    domes: 40166M001
+    name: Qikiqtarjuaq
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1069081.08089, y: -2195214.21824, z: 5872519.08593}
+  - id: quin
+    domes: 40433M004
+    name: Quincy
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2517231.3521, y: -4198595.0048, z: 4076531.18133}
+  - id: rabt
+    domes: 35001M002
+    name: Rabat, EMI
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Morocco) [MA]"
+    iso: MAR
+    coordinates: {x: 5255617.59554, y: -631745.51474, z: 3546322.69398}
+  - id: ramo
+    domes: 20703S001
+    name: Mitzpe Ramon
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Israel) [IL]"
+    iso: ISR
+    coordinates: {x: 4514721.6452, y: 3133507.98026, z: 3228024.87935}
+  - id: rbay
+    domes: 30315M001
+    name: Richardsbay
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 4739765.7716, y: 2970758.47284, z: -3054077.52644}
+  - id: rcmn
+    domes: 33203M001
+    name: RCMRD Nairobi
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Kenya) [KE]"
+    iso: KEN
+    coordinates: {x: 5101056.63287, y: 3829074.41567, z: -135016.17205}
+  - id: rdsd
+    domes: 40805M001
+    name: SantoDom_DOM2004
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Dominican Republic) [DO]"
+    iso: DOM
+    coordinates: {x: 2078678.88394, y: -5683737.26147, z: 2006886.92288}
+  - id: recf
+    domes: 41617M001
+    name: RECIFE
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 5176588.60598, y: -3618162.20145, z: -887363.72182}
+  - id: reso
+    domes: 40149M001
+    name: Resolute
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -144107.79762, y: -1683119.83609, z: 6129763.32501}
+  - id: reun
+    domes: 97401M003
+    name: La Reunion - Observato
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 3364098.98974, y: 4907944.60988, z: -2293466.74958}
+  - id: reyk
+    domes: 10202M001
+    name: Reykjavik / Iceland
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Iceland) [IS]"
+    iso: ISL
+    coordinates: {x: 2587384.09621, y: -1043033.5403, z: 5716564.10272}
+  - id: riga
+    domes: 12302M002
+    name: RIGA permanent GPS
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Latvia) [LV]"
+    iso: LVA
+    coordinates: {x: 3183899.01856, y: 1421478.63549, z: 5322810.87846}
+  - id: rio2
+    domes: 41507M006
+    name: Rio Grande
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Argentina) [AR]"
+    iso: ARG
+    coordinates: {x: 1429907.84163, y: -3495354.90521, z: -5122698.54861}
+  - id: riog
+    domes: 41507M004
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: ARG
+    coordinates: {x: 1429907.86832, y: -3495354.91033, z: -5122698.58755}
+  - id: salu
+    domes: 41640M001
+    name: Sao Luis
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 4566947.86616, y: -4443098.54277, z: -286674.61952}
+  - id: sant
+    domes: 41705M003
+    name: Santiago Tracking Stat
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Chile) [CL]"
+    iso: CHL
+    coordinates: {x: 1769693.41569, y: -5044574.23457, z: -3468320.91641}
+  - id: sask
+    domes: 40167M001
+    name: SASK CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -1106129.87713, y: -3758704.90322, z: 5016675.46784}
+  - id: savo
+    domes: 41643M001
+    name: Salvador INCRA
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 4870283.74969, y: -3864605.34797, z: -1418872.43501}
+  - id: sbok
+    domes: 30320M001
+    name: SPRINGBOK
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5279492.05112, y: 1703114.41553, z: -3139092.88105}
+  - id: sch2
+    domes: 40133M002
+    name: SCH2 CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1448636.61304, y: -3385243.76503, z: 5191047.18262}
+  - id: scor
+    domes: 43006M002
+    name: Scoresbysund
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Greenland) [GL]"
+    iso: GRL
+    coordinates: {x: 1982095.877, y: -798821.00413, z: 5989464.62531}
+  - id: scrz
+    domes: 41801M001
+    name: SANTA CRUZ DE LA SIERR
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Bolivia) [BO]"
+    iso: BOL
+    coordinates: {x: 2743005.91813, y: -5420745.27451, z: -1937117.05146}
+  - id: sctb
+    domes: 66071M001
+    name: Scott Base
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: -1311028.68186, y: 308512.54093, z: -6213390.88145}
+  - id: scub
+    domes: 40701M001
+    name: CENAIS, Santiago de Cu
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Cuba) [CU]"
+    iso: CUB
+    coordinates: {x: 1474538.03516, y: -5811243.27021, z: 2168958.86398}
+  - id: sey1
+    domes: 39801M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: SYC
+    coordinates: {x: 3602870.37741, y: 5238174.59955, z: -516275.2961}
+  - id: seyg
+    domes: 39801M004
+    name: MAHE
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Seychelles) [SC]"
+    iso: SYC
+    coordinates: {x: 3597835.99398, y: 5240884.04097, z: -516781.01338}
+  - id: sfer
+    domes: 13402M004
+    name: San Fernando
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 5105518.93734, y: -555145.70599, z: 3769803.52495}
+  - id: sgoc
+    domes: 23501M003
+    name: Surveyor General's Off
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Sri Lanka) [LK]"
+    iso: LKA
+    coordinates: {x: 1113279.90783, y: 6233644.30134, z: 760277.04663}
+  - id: shao
+    domes: 21605M002
+    name: Shanghai Observatory,
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2831733.81522, y: 4675665.82028, z: 3275369.30342}
+  - id: sin1
+    domes: 22601M003
+    name: Nanyang Technological
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Singapore) [SG]"
+    iso: SGP
+    coordinates: {x: -1507972.63365, y: 6195613.86686, z: 148488.03431}
+  - id: smst
+    domes: 21726M001
+    name: Shimosato Hydrographic
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3822373.34114, y: 3699359.97548, z: 3507585.74697}
+  - id: sofi
+    domes: 11101M002
+    name: Sofia / Bulgaria
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Bulgaria) [BG]"
+    iso: BGR
+    coordinates: {x: 4319371.91867, y: 1868687.96519, z: 4292064.02214}
+  - id: solo
+    domes: 51202M001
+    name: Solomon Islands CGPS
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Solomon Islands) [SB]"
+    iso: SLB
+    coordinates: {x: -5911340.17131, y: 2156887.57481, z: -1038663.77964}
+  - id: sthl
+    domes: 30606M003
+    name: Saint Helena
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 6104817.22756, y: -605827.91842, z: -1740738.77308}
+  - id: stj3
+    domes: 40101M005
+    name: STJ3 CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 2612588.61629, y: -3426820.6499, z: 4686773.7837}
+  - id: stjo
+    domes: 40101M001
+    name: STJO CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 2612630.91474, y: -3426807.04709, z: 4686757.95998}
+  - id: stk2
+    domes: 21731S004
+    name: SHINTOTSUKAWA-A
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3642161.29563, y: 2861487.91516, z: 4370351.30554}
+  - id: stpm
+    domes: 97501M005
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: FRA
+    coordinates: {x: 2436208.09466, y: -3634804.88908, z: 4624885.51385}
+  - id: sulp
+    domes: 12366M001
+    name: Lviv Polytechnic
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Ukraine) [UA]"
+    iso: UKR
+    coordinates: {x: 3765296.81053, y: 1677559.3573, z: 4851297.49733}
+  - id: suth
+    domes: 30314M002
+    name: Sutherland
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5041274.8846, y: 1916054.34535, z: -3397075.78319}
+  - id: sutm
+    domes: 30314M004
+    name: Sutherland
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5041190.25374, y: 1916067.33084, z: -3397189.24596}
+  - id: suwn
+    domes: 23903M001
+    name: GPS-station NGI/Suwon,
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(South Korea) [KR]"
+    iso: KOR
+    coordinates: {x: -3062023.14578, y: 4055447.8811, z: 3841818.16774}
+  - id: svtl
+    domes: 12350M001
+    name: Svetloe
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 2730155.17108, y: 1562364.87329, z: 5529989.35211}
+  - id: sydn
+    domes: 50124M003
+    name: National Measurement I
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4648240.68803, y: 2560636.4587, z: -3526318.02364}
+  - id: syog
+    domes: 66006S002
+    name: Syowa
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 1766207.91411, y: 1460290.32114, z: -5932297.66121}
+  - id: taej
+    domes: 23902M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: KOR
+    coordinates: {x: -3120423.39245, y: 4086355.2712, z: 3761769.44442}
+  - id: tcms
+    domes: 23604S002
+    name: Hsinchu
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Taiwan) [TW]"
+    iso: TWN
+    coordinates: {x: -2982783.22778, y: 4966659.97675, z: 2658809.35991}
+  - id: thtg
+    domes: 92201M016
+    name: Papeete Tahiti
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(French Polynesia) [PF]"
+    iso: FRA
+    coordinates: {x: -5246415.12166, y: -3077260.83584, z: -1913841.92942}
+  - id: thti
+    domes: 92201M009
+    name: Tahiti
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(French Polynesia) [PF]"
+    iso: FRA
+    coordinates: {x: -5246415.94355, y: -3077259.5066, z: -1913841.88014}
+  - id: thu1
+    domes: 43001M001
+    name: Thule
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Greenland) [GL]"
+    iso: GRL
+    coordinates: {x: 538981.0214, y: -1388714.87634, z: 6181005.22375}
+  - id: thu2
+    domes: 43001M002
+    name: Thule
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Greenland) [GL]"
+    iso: GRL
+    coordinates: {x: 538093.32416, y: -1389088.09673, z: 6180979.30623}
+  - id: tid1
+    domes: 50103M108
+    name: Tidbinbilla (Canberra)
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4460996.78311, y: 2682557.08456, z: -3674442.86817}
+  - id: tidb
+    domes: 50103M108
+    name: Tidbinbilla
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4460996.78398, y: 2682557.08525, z: -3674442.86898}
+  - id: tixi
+    domes: 12360M001
+    name: Seismic Station Tixi
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -1264873.3932, y: 1569455.76514, z: 6031003.40166}
+  - id: tlse
+    domes: 10003M009
+    name: Toulouse
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4627851.71159, y: 119640.20916, z: 4372993.66676}
+  - id: tnml
+    domes: 23604S001
+    name: Hsinchu
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Taiwan) [TW]"
+    iso: TWN
+    coordinates: {x: -2982779.41395, y: 4966662.50129, z: 2658805.62675}
+  - id: topl
+    domes: 41648M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: BRA
+    coordinates: {x: 4174345.60203, y: -4690236.76312, z: -1118921.24215}
+  - id: toul
+    domes: 10003M004
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: FRA
+    coordinates: {x: 4627845.90569, y: 119629.51863, z: 4372999.93444}
+  - id: tow2
+    domes: 50140M001
+    name: Townsville AU028
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -5054583.24851, y: 3275504.18683, z: -2091538.74083}
+  - id: trab
+    domes: 20808M001
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: TUR
+    coordinates: {x: 3705250.13996, y: 3084421.83403, z: 4162044.87374}
+  - id: tro1
+    domes: 10302M006
+    name: Tromsoe
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Norway) [NO]"
+    iso: NOR
+    coordinates: {x: 2102928.3096, y: 721619.55489, z: 5958196.33856}
+  - id: trom
+    domes: 10302M003
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    iso: NOR
+    coordinates: {x: 2102940.02395, y: 721569.55493, z: 5958192.24623}
+  - id: tskb
+    domes: 21730S005
+    name: Tsukuba ROGUE site
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3957199.56509, y: 3310199.30158, z: 3737711.59371}
+  - id: tubi
+    domes: 20806M001
+    name: Gebze
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Turkey) [TR]"
+    iso: TUR
+    coordinates: {x: 4211317.2177, y: 2377865.94889, z: 4144663.3837}
+  - id: tuva
+    domes: 51101M001
+    name: Tuvalu
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Tuvalu) [TV]"
+    iso: TUV
+    coordinates: {x: -6307543.78911, y: 88455.03382, z: -939277.74844}
+  - id: ufpr
+    domes: 41610M002
+    name: CURITIBA UFPR
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 3763751.6795, y: -4365113.91175, z: -2724404.54206}
+  - id: ulab
+    domes: 24201M001
+    name: Ulaanbataar
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Mongolia) [MN]"
+    iso: MNG
+    coordinates: {x: -1257408.84017, y: 4099404.33274, z: 4707992.58383}
+  - id: uldi
+    domes: 30318M001
+    name: ULUNDI
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 4796680.89661, y: 2930311.60415, z: -3005435.70413}
+  - id: unb1
+    domes: 40146S001
+    name: University of New Brun
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1761288.03468, y: -4078238.70359, z: 4561417.98916}
+  - id: unbj
+    domes: 40146M002
+    name: University of New Brun
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1761287.95572, y: -4078238.51163, z: 4561417.77832}
+  - id: unsa
+    domes: 41514M001
+    name: UNSA Salta
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Argentina) [AR]"
+    iso: ARG
+    coordinates: {x: 2412830.44242, y: -5271936.78084, z: -2652208.929}
+  - id: urum
+    domes: 21612M001
+    name: Urumqi, People Republi
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: 193030.33416, y: 4606851.27467, z: 4393311.49882}
+  - id: usud
+    domes: 21729S007
+    name: Usuda Deep Space Track
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3855263.18757, y: 3427432.35994, z: 3741020.29199}
+  - id: vacs
+    domes: 39003M001
+    name: Vacoas Meteo
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Mauritius) [MU]"
+    iso: MUS
+    coordinates: {x: 3215946.97304, y: 5047449.70882, z: -2198718.21333}
+  - id: vald
+    domes: 40156M001
+    name: VALD CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 919075.645, y: -4167766.32383, z: 4724323.61694}
+  - id: vesl
+    domes: 66009M001
+    name: Vesleskarvet
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 2009329.88661, y: -99741.48315, z: -6033158.40078}
+  - id: vis0
+    domes: 10423M001
+    name: Visby
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 3246470.09744, y: 1077900.65813, z: 5365278.19643}
+  - id: vndp
+    domes: 40420M007
+    name: Vandenberg
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2678090.44578, y: -4525437.03921, z: 3597431.90339}
+  - id: voim
+    domes: 33303M001
+    name: Ambalavao
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Madagascar) [MG]"
+    iso: MDG
+    coordinates: {x: 4054014.13293, y: 4316070.26731, z: -2365223.99751}
+  - id: warn
+    domes: 14277M002
+    name: Warnemuende
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 3658785.6474, y: 784471.03273, z: 5147870.6851}
+  - id: wgtn
+    domes: 50208M003
+    name: Wellington Airport
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4777269.72043, y: 434270.45418, z: -4189484.11138}
+  - id: whit
+    domes: 40136M001
+    name: WHIT CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -2218338.11779, y: -2201205.12455, z: 5543057.49315}
+  - id: will
+    domes: 40134M001
+    name: Williams Lake
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -2084258.32021, y: -3313873.00179, z: 5019852.98749}
+  - id: wind
+    domes: 31101M001
+    name: Windhoek
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Namibia) [NA]"
+    iso: NAM
+    coordinates: {x: 5633708.78435, y: 1732017.92406, z: -2433985.5965}
+  - id: wsrt
+    domes: 13506M005
+    name: Westerbork Synthesis R
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3828735.71575, y: 443305.11755, z: 5064884.81623}
+  - id: wtzr
+    domes: 14201M010
+    name: Wettzell / Germany
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 4075580.39017, y: 931853.96842, z: 4801568.22935}
+  - id: wuhn
+    domes: 21602M001
+    name: Wuhan
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2267749.78429, y: 5009154.26546, z: 3221290.64611}
+  - id: xmis
+    domes: 50183M001
+    name: Christmas Island
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -1696344.54587, y: 6039590.01656, z: -1149275.35648}
+  - id: yakt
+    domes: 12353M002
+    name: Seismic Station Yakuts
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -1914999.1614, y: 2308241.46885, z: 5610225.50956}
+  - id: yar1
+    domes: 50107M004
+    name: Yarragadee 1
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2389026.38583, y: 5043317.02106, z: -3078529.82146}
+  - id: yar2
+    domes: 50107M004
+    name: Yarragadee 2
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2389026.38288, y: 5043317.01716, z: -3078529.81295}
+  - id: yebe
+    domes: 13420M001
+    name: Yebes
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 4848724.6123, y: -261632.01668, z: 4123094.2756}
+  - id: yell
+    domes: 40127M003
+    name: YELL CACS-GSD
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -1224452.87188, y: -2689216.18816, z: 5633638.28494}
+  - id: yibl
+    domes: 25001M001
+    name: Yibal Oman
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Oman) [OM]"
+    iso: OMN
+    coordinates: {x: 3294552.39901, y: 4905092.51736, z: 2393579.98036}
+  - id: yssk
+    domes: 12329M003
+    name: Yuzhno-Sakhalinsk
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -3465321.07865, y: 2638269.33179, z: 4644085.34811}
+  - id: zamb
+    domes: 34601M001
+    name: Lusaka, Zambia
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: false
+    country: "(Zambia) [ZM]"
+    iso: ZMB
+    coordinates: {x: 5415352.97452, y: 2917210.09665, z: -1685888.69442}
+  - id: zeck
+    domes: 12351M001
+    name: Zelenchukskaya / Russi
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 3451174.48401, y: 3060335.58017, z: 4391955.73862}
+  - id: zim2
+    domes: 14001M008
+    name: Zimmerwald
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Switzerland) [CH]"
+    iso: CHE
+    coordinates: {x: 4331299.74061, y: 567537.50138, z: 4633133.83227}
+  - id: zimm
+    domes: 14001M004
+    name: Zimmerwald L+T 88
+    primary_net: IGS20
+    provider: IGS
+    type: core
+    use_nrt: true
+    country: "(Switzerland) [CH]"
+    iso: CHE
+    coordinates: {x: 4331296.92975, y: 567556.05813, z: 4633134.05193}

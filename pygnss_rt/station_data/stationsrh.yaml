@@ -1,0 +1,4168 @@
+# Station configuration converted from stationsrh.xml
+# Stations: 415
+#
+# Fields:
+#   id: 4-character station ID (lowercase)
+#   domes: DOMES number
+#   name: Full station name
+#   primary_net: Primary network (IGS20, EUREF, etc.)
+#   type: Station type (core, EUREF, OS active, etc.)
+#   use_nrt: NRT processing enabled (true/false)
+#   coordinates: ECEF coordinates (x, y, z in meters)
+
+metadata:
+  source_file: stationsrh.xml
+  ref_epoch: '2015-01-01 00:00:00'
+  datum: IGS20_0
+
+stations:
+  - id: aggo
+    domes: 41596M001
+    name: AGGO / Argentina
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Argentina) [AR]"
+    iso: ARG
+    coordinates: {x: 2765120.9, y: -4449250.25, z: -3626405.6}
+  - id: aira
+    domes: 21742S001
+    name: AIRA
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3530185.48879, y: 4118797.33619, z: 3344036.96348}
+  - id: ankr
+    domes: 20805M002
+    name: Ankara / Turkey
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Turkey) [TR]"
+    iso: TUR
+    coordinates: {x: 4121948.52404, y: 2652187.9021, z: 4069023.75864}
+  - id: anmg
+    domes: 22720M001
+    name: National Space Centre
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Malaysia) [MY]"
+    iso: MYS
+    coordinates: {x: -1270826.87, y: 6242631.446, z: 307792.439}
+  - id: antc
+    domes: 41713S001
+    name: Antuco
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Chile) [CL]"
+    iso: CHL
+    coordinates: {x: 1608539.56847, y: -4816369.71372, z: -3847798.53091}
+  - id: areg
+    domes: 42202M008
+    name: Arequipa
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Peru) [PE]"
+    iso: PER
+    coordinates: {x: 1942816.337, y: -5804077.1458, z: -1796884.508}
+  - id: aruc
+    domes: 12312M002
+    name: Aruch-Yerevan
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Armenia) [AM]"
+    iso: ARM
+    coordinates: {x: 3500416.7822, y: 3390432.6839, z: 4103027.5848}
+  - id: ascg
+    domes: 30602M004
+    name: Ascensio
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Saint Helena, Ascension and Tristan da Cunha) [SH]"
+    iso: GBR
+    coordinates: {x: 6121151.56085, y: -1563978.92746, z: -872615.34291}
+  - id: aspa
+    domes: 50503S006
+    name: American Samoa Power A
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -6100259.9791, y: -996503.5269, z: -1567977.752}
+  - id: azu1
+    domes: 49911M001
+    name: Azusa
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2472979.3867, y: -4671338.0652, z: 3558107.7527}
+  - id: baie
+    domes: 40151M001
+    name: BAIE RACS-GSD
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1546823.21885, y: -3879765.15751, z: 4804185.09413}
+  - id: bake
+    domes: 40152M001
+    name: BAKE CACS-GSD
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -289833.98804, y: -2756501.05923, z: 5725162.24625}
+  - id: bako
+    domes: 23101M002
+    name: BAKOSURTANAL
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Indonesia) [ID]"
+    iso: IDN
+    coordinates: {x: -1836969.1285, y: 6065617.0858, z: -716257.8103}
+  - id: bamf
+    domes: 40190M001
+    name: Bamfield
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -2420721.35215, y: -3439856.10009, z: 4778532.75974}
+  - id: bhr3
+    domes: 24901S002
+    name: Bahrain NGA colocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Bahrain) [BH]"
+    iso: BHR
+    coordinates: {x: 3633910.66, y: 4425277.759, z: 2799862.907}
+  - id: bhr4
+    domes: 24901S002
+    name: Bahrain NGA colocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Bahrain) [BH]"
+    iso: BHR
+    coordinates: {x: 3633910.66, y: 4425277.759, z: 2799862.907}
+  - id: bik0
+    domes: 12358M003
+    name: Bishkek
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Kyrgyzstan) [KG]"
+    iso: KGZ
+    coordinates: {x: 1249005.5455, y: 4513917.3461, z: 4316147.9247}
+  - id: bill
+    domes: 49916M001
+    name: Lake Skinner
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2420420.5012, y: -4737131.5508, z: 3507827.665}
+  - id: blyt
+    domes: 40479M001
+    name: Blythe
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2223206.77911, y: -4830299.79671, z: 3510587.56936}
+  - id: bnoa
+    domes: 23116M001
+    name: Benoa, Indonesia TG
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Indonesia) [ID]"
+    iso: IDN
+    coordinates: {x: -2685309.038, y: 5704009.251, z: -963466.461}
+  - id: bogi
+    domes: 12207M003
+    name: Borowa Gora
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Poland) [PL]"
+    iso: POL
+    coordinates: {x: 3633815.3431, y: 1397454.1366, z: 5035281.001}
+  - id: bogt
+    domes: 41901M001
+    name: Bogota, Colombia
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Colombia) [CO]"
+    iso: COL
+    coordinates: {x: 1744399.02626, y: -6116037.5015, z: 512731.72354}
+  - id: brun
+    domes: 22501M001
+    name: Buket Kayu Arang
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Brunei Darussalam) [BN]"
+    iso: BRN
+    coordinates: {x: -2680694.374, y: 5761268.529, z: 549016.773}
+  - id: btng
+    domes: 23105M002
+    name: Bitung, Indonesia TG
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Indonesia) [ID]"
+    iso: IDN
+    coordinates: {x: -3674585.766, y: 5210904.565, z: 159093.409}
+  - id: bzrg
+    domes: 12751M001
+    name: Bolzano
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4312657.4848, y: 864634.66, z: 4603844.4431}
+  - id: cags
+    domes: 40147M001
+    name: Gatineau
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1096348.88661, y: -4335060.62642, z: 4533255.13137}
+  - id: ccj2
+    domes: 21732M002
+    name: CHICHIJIMA-A
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -4490605.4472, y: 3483894.7183, z: 2884928.2484}
+  - id: cebr
+    domes: 13408M001
+    name: Cebreros
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 4846665.2042, y: -370195.36514, z: 4116929.40921}
+  - id: cggn
+    domes: 33812M001
+    name: CENTRE FOR GEODESY AND
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Nigeria) [NG]"
+    iso: NGA
+    coordinates: {x: 6201032.323, y: 995277.1019, z: 1113815.3982}
+  - id: chil
+    domes: 40484M001
+    name: Chilao
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2478003.12, y: -4655349.22, z: 3577932.2}
+  - id: chof
+    domes: 21788M001
+    name: Chofu, Japan
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3946216.91812, y: 3366689.45878, z: 3698971.85739}
+  - id: chpg
+    domes: 41609M004
+    name: Cachoeira Paulista
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 4163476.671, y: -4163821.895, z: -2444511.254}
+  - id: chwk
+    domes: 40142M001
+    name: Chilliwack
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -2215259.90686, y: -3543996.83802, z: 4802098.69597}
+  - id: cit1
+    domes: 40400S201
+    name: Caltech
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2491490.30803, y: -4660803.18984, z: 3559129.01731}
+  - id: cksv
+    domes: 23606M002
+    name: Tainan
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Taiwan) [TW]"
+    iso: TWN
+    coordinates: {x: -2956619.1898, y: 5075902.1717, z: 2476625.5462}
+  - id: clar
+    domes: 49906M001
+    name: Claremont
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2458218.4736, y: -4680467.4516, z: 3556758.4957}
+  - id: cmp9
+    domes: 49905M003
+    name: Fire Camp 9
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2508506.1541, y: -4637174.7958, z: 3579499.9356}
+  - id: cmum
+    domes: 21908M001
+    name: Chiang Mai
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Thailand) [TH]"
+    iso: THA
+    coordinates: {x: -938078.387, y: 5968373.965, z: 2038404.323}
+  - id: cord
+    domes: 41511M001
+    name: Cordoba
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Argentina) [AR]"
+    iso: ARG
+    coordinates: {x: 2345503.8762, y: -4910842.8341, z: -3316365.3471}
+  - id: coso
+    domes: 40469M001
+    name: China Lake
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2411148.30266, y: -4571430.20802, z: 3727461.4486}
+  - id: cote
+    domes: 66096M001
+    name: Mt. Coates
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: -1285757.4165, y: 417822.4915, z: -6214230.8473}
+  - id: coyq
+    domes: 41715S001
+    name: Coyhaique
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Chile) [CL]"
+    iso: CHL
+    coordinates: {x: 1391587.19708, y: -4255574.46988, z: -4527925.94143}
+  - id: cpnm
+    domes: 21907M001
+    name: Chumphon
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Thailand) [TH]"
+    iso: THA
+    coordinates: {x: -1020874.496, y: 6183763.086, z: 1179096.215}
+  - id: cpvg
+    domes: 39601M001
+    name: CAP-VERT
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Cape Verde) [CV]"
+    iso: CPV
+    coordinates: {x: 5626883.39997, y: -2380932.65198, z: 1824483.75352}
+  - id: crfp
+    domes: 40481M001
+    name: Crafton Hills College
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2410446.83469, y: -4710490.36107, z: 3550422.50262}
+  - id: cusv
+    domes: 21904S001
+    name: Chulalongkorn
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Thailand) [TH]"
+    iso: THA
+    coordinates: {x: -1132914.7494, y: 6092528.58753, z: 1504633.26539}
+  - id: cut0
+    domes: 59945M001
+    name: Curtin University Bent
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2364336.95114, y: 4870285.49682, z: -3360810.17711}
+  - id: cuut
+    domes: 21904S002
+    name: Chulalongkorn Universi
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Thailand) [TH]"
+    iso: THA
+    coordinates: {x: -1132915.824, y: 6092526.351, z: 1504641.505}
+  - id: cztg
+    domes: 91301M002
+    name: CROZET ARCHIPELAGO (PO
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(French Southern Territories) [TF]"
+    iso: FRA
+    coordinates: {x: 2719994.82, y: 3463392.63, z: -4598612.94}
+  - id: dae2
+    domes: 23902M003
+    name: DAEJEON
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Korea) [KR]"
+    iso: KOR
+    coordinates: {x: -3120042.274, y: 4084614.722, z: 3764026.818}
+  - id: dakr
+    domes: 34108M001
+    name: DAKR
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Senegal) [SN]"
+    iso: SEN
+    coordinates: {x: 5886533.46052, y: -1849181.635, z: 1610300.40909}
+  - id: dear
+    domes: 30316M001
+    name: DE AAR
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5017617.29106, y: 2233214.82684, z: -3234696.16897}
+  - id: dhlg
+    domes: 49904M001
+    name: Durmid Hill
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2319099.2773, y: -4799846.4582, z: 3490090.491}
+  - id: djig
+    domes: 39901M005
+    name: Djibouti
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Djibouti) [DJ]"
+    iso: DJI
+    coordinates: {x: 4583086.1415, y: 4250982.5036, z: 1266243.0645}
+  - id: dlf1
+    domes: 13502M009
+    name: Delft
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3924697.82902, y: 301125.02096, z: 5001905.19588}
+  - id: dltv
+    domes: 24306M001
+    name: Da Lat
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Viet Nam) [VN]"
+    iso: VNM
+    coordinates: {x: -1978879.097, y: 5920511.651, z: 1311808.34}
+  - id: dund
+    domes: 50212M003
+    name: Dunedin GPS
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4388120.543, y: 726671.466, z: -4556533.466}
+  - id: dyng
+    domes: 12602M006
+    name: DIONYSOS
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Greece) [GR]"
+    iso: GRC
+    coordinates: {x: 4595220.17601, y: 2039433.95805, z: 3912625.86948}
+  - id: eil3
+    domes: 49805S002
+    name: Alaska NGA colocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2296304.083, y: -1484805.898, z: 5743078.376}
+  - id: eil4
+    domes: 49805S002
+    name: Alaska NGA colocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2296304.083, y: -1484805.898, z: 5743078.376}
+  - id: eprt
+    domes: 49928S001
+    name: East Port Elementary S
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1768544.55579, y: -4164839.44495, z: 4480190.41915}
+  - id: escu
+    domes: 40168M001
+    name: Escuminac
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1852954.44382, y: -3937498.76947, z: 4647314.68395}
+  - id: eusm
+    domes: 22721M001
+    name: FACULTY ENG.,USM
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Malaysia) [MY]"
+    iso: MYS
+    coordinates: {x: -1157029.938, y: 6246367.148, z: 568220.1}
+  - id: fale
+    domes: 50601S001
+    name: Faleolo Airport
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Samoa) [WS]"
+    iso: WSM
+    coordinates: {x: -6134111.8878, y: -862144.9045, z: -1514974.346}
+  - id: ffmj
+    domes: 14279M001
+    name: Frankfurt / Main
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 4053455.8922, y: 617729.6602, z: 4869395.7279}
+  - id: frdn
+    domes: 40146M001
+    name: FRDN CACS-GSD
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1760542.7645, y: -4080067.989, z: 4560178.563}
+  - id: ftna
+    domes: 92902S002
+    name: Futuna
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(French Polynesia) [PF]"
+    iso: FRA
+    coordinates: {x: -6178322.38203, y: -202695.39846, z: -1566024.67467}
+  - id: gamb
+    domes: 92301M003
+    name: Rikitea
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(French Polynesia) [PF]"
+    iso: FRA
+    coordinates: {x: -4147126.66487, y: -4152222.21297, z: -2490033.16917}
+  - id: gamg
+    domes: 23910M001
+    name: Gamak mountain
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Korea) [KR]"
+    iso: KOR
+    coordinates: {x: -3191607.863, y: 4096899.8448, z: 3691839.246}
+  - id: gcgo
+    domes: 40408M006
+    name: Gilmore Creek Geophysi
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2281621.6297, y: -1453585.1138, z: 5756964.9518}
+  - id: geno
+    domes: 12712M002
+    name: Genova - Istituto Idro
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4507892.24756, y: 707621.57188, z: 4441603.56828}
+  - id: gmsd
+    domes: 21749S002
+    name: GUTS Masda
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3607665.02073, y: 4147868.08947, z: 3223717.27984}
+  - id: godn
+    domes: 40451M127
+    name: GGAO NORTH DEEP DRILL
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1130760.9009, y: -4831298.68047, z: 3994155.17216}
+  - id: gods
+    domes: 40451M128
+    name: GGAO SOUTH DEEP DRILL
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1130752.33789, y: -4831349.11178, z: 3994098.93095}
+  - id: gop6
+    domes: 11502M006
+    name: Pecny, Ondrejov / CZ
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Czech Republic) [CZ]"
+    iso: CZE
+    coordinates: {x: 3979319.31777, y: 1050312.1396, z: 4857064.55184}
+  - id: gop7
+    domes: 11502M006
+    name: Pecny, Ondrejov / CZ
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Czech Republic) [CZ]"
+    iso: CZE
+    coordinates: {x: 3979319.31777, y: 1050312.1396, z: 4857064.55184}
+  - id: gope
+    domes: 11502M002
+    name: Pecny, Ondrejov / CZ
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Czech Republic) [CZ]"
+    iso: CZE
+    coordinates: {x: 3979316.1265, y: 1050312.4767, z: 4857067.1032}
+  - id: grac
+    domes: 10002M010
+    name: GRASSE
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4581708.33281, y: 556132.63727, z: 4389341.2771}
+  - id: haly
+    domes: 20102M001
+    name: Halat Ammar
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Saudi Arabia) [SA]"
+    iso: SAU
+    coordinates: {x: 4505447.14634, y: 3285418.65285, z: 3087773.53368}
+  - id: hamd
+    domes: 20411M001
+    name: HAMEDAN
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Islamic Republic of Iran) [IR]"
+    iso: IRN
+    coordinates: {x: 3469898.0183, y: 3926741.412, z: 3626961.1469}
+  - id: harv
+    domes: 40420M101
+    name: Harvest Oil Platform
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2686069.83921, y: -4527083.98969, z: 3589502.45297}
+  - id: hksl
+    domes: 23015M001
+    name: Siu Lang Shui
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2393382.414, y: 5393861.187, z: 2412592.401}
+  - id: hkws
+    domes: 23019M001
+    name: Wong Shek
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2430579.004, y: 5374285.676, z: 2418956.331}
+  - id: hnpt
+    domes: 49913S001
+    name: Horn Point Enviromenta
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1196626.3422, y: -4846358.4924, z: 3956723.114}
+  - id: hnus
+    domes: 30322M001
+    name: HERMANUS
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 4973168.81915, y: 1734085.42995, z: -3585434.11598}
+  - id: holp
+    domes: 49903M001
+    name: Hollydale
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2500946.0962, y: -4670472.9515, z: 3539500.5469}
+  - id: hrag
+    domes: 30302M010
+    name: Hartebeesthoek RAO
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5085418.04415, y: 2668226.26086, z: -2768758.25309}
+  - id: hueg
+    domes: 14280M001
+    name: Huegelheim
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 4251963.645, y: 567043.365, z: 4704708.41}
+  - id: ieng
+    domes: 12724S001
+    name: Torino
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4476537.4089, y: 600431.4291, z: 4488761.3327}
+  - id: ineg
+    domes: 40507M001
+    name: Aguascalientes Fixed S
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Mexico) [MX]"
+    iso: MEX
+    coordinates: {x: -1260435.6781, y: -5788547.2605, z: 2360340.0881}
+  - id: iqqe
+    domes: 41708S002
+    name: Iquique
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Chile) [CL]"
+    iso: CHL
+    coordinates: {x: 2034208.11678, y: -5629172.48542, z: -2196141.80354}
+  - id: irkj
+    domes: 12313M002
+    name: Irkutsk
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -968328.57783, y: 3794426.52419, z: 5018167.26506}
+  - id: isba
+    domes: 20308M001
+    name: Iraq Sury Baghdad
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Iraq) [IQ]"
+    iso: IRQ
+    coordinates: {x: 3808364.91086, y: 3734430.05305, z: 3485693.5227}
+  - id: ista
+    domes: 20807M001
+    name: Istanbul / Turkey
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Turkey) [TR]"
+    iso: TUR
+    coordinates: {x: 4208830.12391, y: 2334850.43046, z: 4171267.3592}
+  - id: jctw
+    domes: 30305M001
+    name: Cape Town
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5023564.462, y: 1677795.751, z: -3542025.865}
+  - id: jfng
+    domes: 21602M006
+    name: JIUFENG
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2279828.6168, y: 5004706.5936, z: 3219777.5208}
+  - id: jnav
+    domes: 24301M001
+    name: Navis Centre
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Viet Nam) [VN]"
+    iso: VNM
+    coordinates: {x: -1626346.47, y: 5730605.79, z: 2271881.48}
+  - id: jog2
+    domes: 23109M002
+    name: YogYakarta
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Indonesia) [ID]"
+    iso: IDN
+    coordinates: {x: -2200207.86247, y: 5924895.47827, z: -855929.21798}
+  - id: joz2
+    domes: 12204M002
+    name: JOZEFOSLAW
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Poland) [PL]"
+    iso: POL
+    coordinates: {x: 3664880.57473, y: 1409190.58998, z: 5009618.47729}
+  - id: jplm
+    domes: 40400M007
+    name: JPL Mesa
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2493304.42799, y: -4655215.24786, z: 3565497.47528}
+  - id: jpre
+    domes: 30325M001
+    name: Pretoria
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5064032.232, y: 2724721.054, z: -2752950.721}
+  - id: kgni
+    domes: 21704S005
+    name: Koganei KSP GPS site
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3941949.14892, y: 3368156.33992, z: 3702214.84122}
+  - id: khar
+    domes: 12314M001
+    name: Kharkiv
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Ukraine) [UA]"
+    iso: UKR
+    coordinates: {x: 3312984.3299, y: 2428203.4376, z: 4863307.8267}
+  - id: kir0
+    domes: 10422M001
+    name: Kiruna
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 2248123.1882, y: 865686.6819, z: 5886425.7755}
+  - id: kir8
+    domes: 10422M002
+    name: Kiruna
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 2248127.06572, y: 865685.602, z: 5886424.55264}
+  - id: kitg
+    domes: 12334M004
+    name: Kitab
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Uzbekistan) [UZ]"
+    iso: UZB
+    coordinates: {x: 1944879.726, y: 4556783.77, z: 4004205.937}
+  - id: kmnm
+    domes: 23608M001
+    name: Kinmen
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Taiwan) [TW]"
+    iso: TWN
+    coordinates: {x: -2761837.8555, y: 5110347.1476, z: 2625150.8677}
+  - id: kos1
+    domes: 13504M005
+    name: Kootwijk Observatory f
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3899613.9477, y: 397361.5923, z: 5014738.666}
+  - id: kouc
+    domes: 92727S001
+    name: Koumac
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(New Caledonia) [NC]"
+    iso: FRA
+    coordinates: {x: -5751222.79529, y: 1617967.50687, z: -2225743.85819}
+  - id: koug
+    domes: 97301M402
+    name: KOUROU
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(French Guiana) [GF]"
+    iso: FRA
+    coordinates: {x: 3855263.365, y: -5049732.02, z: 563040.436}
+  - id: ksmv
+    domes: 21701S007
+    name: Kashima KSP GPS site
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3997525.3364, y: 3276870.9001, z: 3724218.4898}
+  - id: kunm
+    domes: 21609M001
+    name: Kunming
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -1281255.72016, y: 5640746.07756, z: 2682879.9822}
+  - id: kuuj
+    domes: 40154M001
+    name: KUUJ CACS-GSD
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 772857.44952, y: -3558198.77443, z: 5219095.99012}
+  - id: kzn2
+    domes: 12374M001
+    name: KAZAN
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 2352346.13736, y: 2717466.3918, z: 5251459.1499}
+  - id: lae1
+    domes: 51002M001
+    name: University of Technolo
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Papua New Guinea) [PG]"
+    iso: PNG
+    coordinates: {x: -5312857.13633, y: 3451107.90565, z: -736322.47335}
+  - id: lama
+    domes: 12209M001
+    name: LAMKOWKO
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Poland) [PL]"
+    iso: POL
+    coordinates: {x: 3524522.9226, y: 1329693.628, z: 5129846.3531}
+  - id: lbch
+    domes: 40482M001
+    name: Long Beach
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2507798.7984, y: -4676369.6918, z: 3526890.8008}
+  - id: lck3
+    domes: 22305M004
+    name: Lucknow(Uttar Pradesh)
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(India) [IN]"
+    iso: IND
+    coordinates: {x: 894676.3053, y: 5620593.4735, z: 2869571.0496}
+  - id: lck4
+    domes: 22305M005
+    name: Lucknow(Uttar Pradesh)
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(India) [IN]"
+    iso: IND
+    coordinates: {x: 894678.4718, y: 5620595.0084, z: 2869567.4303}
+  - id: leij
+    domes: 14267M001
+    name: Leipzig
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 3898736.3884, y: 855345.2597, z: 4958372.4564}
+  - id: llag
+    domes: 31302M003
+    name: La Laguna, Tenerife
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 5384906.47884, y: -1576770.82365, z: 3023827.858}
+  - id: m0se
+    domes: 12772M001
+    name: Rome - The 'Moses' of
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4642432.4672, y: 1028629.4301, z: 4236854.2584}
+  - id: mad2
+    domes: 13407S012
+    name: Madrid Deep Space Trac
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 4849202.371, y: -360328.9666, z: 4114913.202}
+  - id: madr
+    domes: 13407S012
+    name: Madrid Deep Space Trac
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 4849202.371, y: -360328.9666, z: 4114913.202}
+  - id: mag0
+    domes: 12354M001
+    name: Seismic Station Magada
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -2825810.2989, y: 1581232.9325, z: 5477005.4486}
+  - id: maju
+    domes: 51501M001
+    name: Majuro
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Marshall Islands) [MH]"
+    iso: MHL
+    coordinates: {x: -6257572.31735, y: 950332.51119, z: 785215.15667}
+  - id: mana
+    domes: 41201S001
+    name: Managua
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Nicaragua) [NI]"
+    iso: NIC
+    coordinates: {x: 407981.83767, y: -6222925.71281, z: 1333528.96654}
+  - id: mar7
+    domes: 10405M003
+    name: Maartsbo
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 2998198.48076, y: 931449.8963, z: 5533392.90688}
+  - id: mars
+    domes: 10073M008
+    name: Marseille
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4630532.73875, y: 433946.31323, z: 4350142.71673}
+  - id: matg
+    domes: 12734M010
+    name: MateraG
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4641952.82581, y: 1393062.80327, z: 4133278.17809}
+  - id: mayg
+    domes: 90101M001
+    name: Dzaoudzi
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Mayotte) [YT]"
+    iso: FRA
+    coordinates: {x: 4379104.69062, y: 4418744.32606, z: -1401898.06895}
+  - id: mchl
+    domes: 59905M001
+    name: Mitchell
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4857858.74, y: 3018464.424, z: -2814983.502}
+  - id: meli
+    domes: 19379M001
+    name: Melilla
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: MAR
+    coordinates: {x: 5205628.11175, y: -268410.74801, z: 3663428.532}
+  - id: met3
+    domes: 10503M010
+    name: Metsahovi
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Finland) [FI]"
+    iso: FIN
+    coordinates: {x: 2892583.9749, y: 1311799.5635, z: 5512619.8547}
+  - id: metg
+    domes: 10503M002
+    name: METSAHOVI
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Finland) [FI]"
+    iso: FIN
+    coordinates: {x: 2890652.61034, y: 1310295.44395, z: 5513958.78503}
+  - id: mfkg
+    domes: 30321M001
+    name: MAFIKENG
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5185375.38835, y: 2477739.21988, z: -2760201.10992}
+  - id: mgue
+    domes: 41558M001
+    name: Malargue
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Argentina) [AR]"
+    iso: ARG
+    coordinates: {x: 1823327.9585, y: -4850352.43439, z: -3709085.59608}
+  - id: mikl
+    domes: 12335M001
+    name: Mykolaiv
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Ukraine) [UA]"
+    iso: UKR
+    coordinates: {x: 3698553.88338, y: 2308676.07778, z: 4639769.53166}
+  - id: mizu
+    domes: 21702M002
+    name: Mizusawa
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3857170.51713, y: 3108693.00528, z: 4004040.39353}
+  - id: mobj
+    domes: 12365M002
+    name: Obninsk/Moscow Seismic
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 2936424.6444, y: 2178374.0342, z: 5208858.4629}
+  - id: mobk
+    domes: 12365M002
+    name: Obninsk/Moscow Seismic
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 2936424.6444, y: 2178374.0342, z: 5208858.4629}
+  - id: mobn
+    domes: 12365M001
+    name: Obninsk/Moscow Seismic
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 2936432.0569, y: 2178364.5531, z: 5208858.2488}
+  - id: moiu
+    domes: 33204M001
+    name: Eldoret
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Kenya) [KE]"
+    iso: KEN
+    coordinates: {x: 5207811.3703, y: 3685972.9487, z: 31891.7647}
+  - id: morp
+    domes: 13299S001
+    name: Morpeth
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3645667.83615, y: -107277.23514, z: 5215053.53044}
+  - id: mrl1
+    domes: 50254S001
+    name: New Zealand NGA coloca
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4749991.001, y: 520984.518, z: -4210604.147}
+  - id: mrl2
+    domes: 50254S001
+    name: New Zealand NGA coloca
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4749991.001, y: 520984.518, z: -4210604.147}
+  - id: mro1
+    domes: 59913M001
+    name: Murchison Radio Observ
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2556629.34855, y: 5097138.19399, z: -2848385.57126}
+  - id: mtka
+    domes: 21741S002
+    name: Mitaka A Site
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3947762.904, y: 3364399.5371, z: 3699428.5214}
+  - id: mtv1
+    domes: 42323S001
+    name: Uruguay NGA collocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Uruguay) [UY]"
+    iso: URY
+    coordinates: {x: 2914536.977, y: -4349790.287, z: -3630033.464}
+  - id: mtv2
+    domes: 42323S001
+    name: Uruguay NGA collocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Uruguay) [UY]"
+    iso: URY
+    coordinates: {x: 2914536.977, y: -4349790.287, z: -3630033.464}
+  - id: ncku
+    domes: 23606M001
+    name: MECLAB
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Taiwan) [TW]"
+    iso: TWN
+    coordinates: {x: -2956913.107, y: 5075881.93, z: 2476417.112}
+  - id: novm
+    domes: 12367M002
+    name: Novosibirsk, SNIIM
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 452261.07879, y: 3635877.59414, z: 5203453.37879}
+  - id: nrl1
+    domes: 40451S301
+    name: U.S. Naval Research La
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1117249.1685, y: -4848758.6958, z: 3976821.2006}
+  - id: ntus
+    domes: 22601M001
+    name: Nanyang Technological
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Singapore) [SG]"
+    iso: SGP
+    coordinates: {x: -1508022.8546, y: 6195576.6211, z: 148799.4442}
+  - id: nvsk
+    domes: 12319M001
+    name: Novosibirsk
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 433605.57963, y: 3655558.52834, z: 5191286.70049}
+  - id: nya2
+    domes: 10317M008
+    name: Ny Alesund
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Norway) [NO]"
+    iso: NOR
+    coordinates: {x: 1202379.4901, y: 252474.5667, z: 6237786.4031}
+  - id: oak1
+    domes: 13235S002
+    name: United Kingdom NGA col
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4011440.89, y: -63375.739, z: 4941877.084}
+  - id: oak2
+    domes: 13235S002
+    name: United Kingdom NGA col
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4011440.89, y: -63375.739, z: 4941877.084}
+  - id: obe4
+    domes: 14208M007
+    name: Oberpfaffenhofen
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 4186704.43, y: 834903.583, z: 4723664.857}
+  - id: ons1
+    domes: 10402M007
+    name: Onsala
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 3370666.92435, y: 711818.9133, z: 5349788.12546}
+  - id: opmt
+    domes: 10001S006
+    name: Observatoire de Paris
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4202777.3713, y: 171367.9995, z: 4778660.2031}
+  - id: orid
+    domes: 15601M001
+    name: Ohrid / Macedonia
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Macedonia) [MK]"
+    iso: MKD
+    coordinates: {x: 4498451.61822, y: 1708267.08141, z: 4173591.90989}
+  - id: osn3
+    domes: 23904S002
+    name: South Korea NGA coloca
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Korea) [KR]"
+    iso: KOR
+    coordinates: {x: -3068340.81, y: 4066863.981, z: 3824757.006}
+  - id: osn4
+    domes: 23904S002
+    name: South Korea NGA coloca
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Korea) [KR]"
+    iso: KOR
+    coordinates: {x: -3068340.81, y: 4066863.981, z: 3824757.006}
+  - id: owmg
+    domes: 50253M004
+    name: Chatham Island
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4584394.1059, y: -290931.9957, z: -4410048.0233}
+  - id: pado
+    domes: 12750S001
+    name: UNIVERSITY OF PADOVA,
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Italy) [IT]"
+    iso: ITA
+    coordinates: {x: 4388882.0242, y: 924567.4648, z: 4519588.7349}
+  - id: palm
+    domes: 66005M002
+    name: Palmer Station, Antarc
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 1192671.90791, y: -2450887.61202, z: -5747096.02001}
+  - id: palv
+    domes: 66005M002
+    name: Palmer Station, Antarc
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 1192671.90791, y: -2450887.61202, z: -5747096.02001}
+  - id: park
+    domes: 50108M001
+    name: Australian Telescope N
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4554254.6546, y: 2816652.4596, z: -3454060.3841}
+  - id: pbri
+    domes: 22308M001
+    name: Port Blair(Andaman Nic
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(India) [IN]"
+    iso: IND
+    coordinates: {x: -295635.6921, y: 6240848.6831, z: 1278178.445}
+  - id: pen2
+    domes: 11206M007
+    name: FOMI Satellite Geodeti
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Hungary) [HU]"
+    iso: HUN
+    coordinates: {x: 4052438.0, y: 1417688.0, z: 4701418.0}
+  - id: penc
+    domes: 11206M006
+    name: FOMI Satellite Geodeti
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Hungary) [HU]"
+    iso: HUN
+    coordinates: {x: 4052449.4761, y: 1417681.1279, z: 4701407.1121}
+  - id: petp
+    domes: 12355M002
+    name: Institute of Volcanolo
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -3576239.76447, y: 1401003.49269, z: 5075177.47003}
+  - id: pets
+    domes: 12355M003
+    name: Petropavlovsk GSN Seis
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: -3580828.4685, y: 1399698.0925, z: 5072185.1517}
+  - id: pgen
+    domes: 22013M001
+    name: NAMRIA General Santos
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Philippines) [PH]"
+    iso: PHL
+    coordinates: {x: -3650007.527, y: 5187339.662, z: 669409.452}
+  - id: picl
+    domes: 40155M001
+    name: PICL CACS-ACP
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -11253.16173, y: -3980586.71787, z: 4967210.26381}
+  - id: pimo
+    domes: 22003M001
+    name: Manila Observatory
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Philippines) [PH]"
+    iso: PHL
+    coordinates: {x: -3186293.90683, y: 5286624.21192, z: 1601158.28631}
+  - id: pin1
+    domes: 40407M003
+    name: Pinyon 1
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2369510.75929, y: -4761206.91751, z: 3511396.2579}
+  - id: pngm
+    domes: 51006M001
+    name: Manus Island CGPS
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Papua New Guinea) [PG]"
+    iso: PNG
+    coordinates: {x: -5367942.96681, y: 3437431.55781, z: -225885.8354}
+  - id: pove
+    domes: 41628M001
+    name: PORTO VELHO
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 2774265.6156, y: -5662060.1132, z: -959415.9097}
+  - id: pppc
+    domes: 22016M001
+    name: NAMRIA Puerto Princesa
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Philippines) [PH]"
+    iso: PHL
+    coordinates: {x: -3022676.471, y: 5511839.403, z: 1075517.567}
+  - id: pre3
+    domes: 30310S002
+    name: South Africa NGA coloc
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5066223.489, y: 2719222.966, z: -2754406.543}
+  - id: pre4
+    domes: 30310S002
+    name: South Africa NGA coloc
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5066223.489, y: 2719222.966, z: -2754406.543}
+  - id: ptag
+    domes: 22006M005
+    name: NAMRIA Taguig Active G
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Philippines) [PH]"
+    iso: PHL
+    coordinates: {x: -3184319.0557, y: 5291065.3579, z: 1590418.0435}
+  - id: ptbb
+    domes: 14234M001
+    name: Braunschweig
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 3844059.9629, y: 709661.316, z: 5023129.5588}
+  - id: ptgg
+    domes: 22006M006
+    name: Manilla
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Philippines) [PH]"
+    iso: PHL
+    coordinates: {x: -3184365.6327, y: 5291038.8848, z: 1590414.0821}
+  - id: ptvl
+    domes: 51402M002
+    name: Port Vila GNSS
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Vanuatu) [VU]"
+    iso: VUT
+    coordinates: {x: -5950573.28264, y: 1230676.83175, z: -1932017.20709}
+  - id: qui3
+    domes: 42003S004
+    name: Ecuador NGA colocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Ecuador) [EC]"
+    iso: ECU
+    coordinates: {x: 1272867.304, y: -6252772.044, z: -23801.759}
+  - id: qui4
+    domes: 42003S004
+    name: Ecuador NGA colocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Ecuador) [EC]"
+    iso: ECU
+    coordinates: {x: 1272867.304, y: -6252772.044, z: -23801.759}
+  - id: raeg
+    domes: 31912M003
+    name: RAEGE Santa Maria
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Portugal) [PT]"
+    iso: PRT
+    coordinates: {x: 4618477.7328, y: -2166047.5259, z: 3816304.8451}
+  - id: rbay
+    domes: 30315M001
+    name: Richardsbay
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 4739765.79138, y: 2970758.29019, z: -3054077.68024}
+  - id: rdsd
+    domes: 40805M001
+    name: SantoDom_DOM2004
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Dominican Republic) [DO]"
+    iso: DOM
+    coordinates: {x: 2078681.178, y: -5683736.413, z: 2006886.9092}
+  - id: redu
+    domes: 13102M001
+    name: Redu
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Belgium) [BE]"
+    iso: BEL
+    coordinates: {x: 4091423.3577, y: 368380.5876, z: 4863179.8074}
+  - id: reyk
+    domes: 10202M001
+    name: Reykjavik / Iceland
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Iceland) [IS]"
+    iso: ISL
+    coordinates: {x: 2587384.3006, y: -1043033.5286, z: 5716564.0316}
+  - id: rgdg
+    domes: 41507M007
+    name: Rio Grande
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Argentina) [AR]"
+    iso: ARG
+    coordinates: {x: 1429870.34412, y: -3495334.7105, z: -5122723.06411}
+  - id: riop
+    domes: 42006M001
+    name: Riobamba Permanent Sta
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Ecuador) [EC]"
+    iso: ECU
+    coordinates: {x: 1255144.98, y: -6253609.4352, z: -182569.8205}
+  - id: roap
+    domes: 13402M006
+    name: San Fernando
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 5105509.677, y: -555200.57636, z: 3769790.25367}
+  - id: rock
+    domes: 40478M002
+    name: Rocketdyne
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2533220.219, y: -4631543.3986, z: 3568400.542}
+  - id: roth
+    domes: 66007M003
+    name: Rothera Station
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: 909245.9768, y: -2264764.1447, z: -5873056.3311}
+  - id: samo
+    domes: 50603M001
+    name: Samoa
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Samoa) [WS]"
+    iso: WSM
+    coordinates: {x: -6129702.19001, y: -890029.40909, z: -1516807.25934}
+  - id: sask
+    domes: 40167M001
+    name: SASK CACS-GSD
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -1106129.79059, y: -3758704.89462, z: 5016675.49184}
+  - id: sass
+    domes: 14281M001
+    name: Sassnitz
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 3606146.0743, y: 875303.3446, z: 5170193.9385}
+  - id: sbok
+    domes: 30320M001
+    name: SPRINGBOK
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5279492.02686, y: 1703114.31564, z: -3139092.95983}
+  - id: scip
+    domes: 49915M001
+    name: San Clemente Island Pe
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2556587.80465, y: -4711013.64622, z: 3446241.61609}
+  - id: scrz
+    domes: 41801M001
+    name: SANTA CRUZ DE LA SIERR
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Bolivia) [BO]"
+    iso: BOL
+    coordinates: {x: 2743005.91527, y: -5420745.27239, z: -1937117.0597}
+  - id: sctb
+    domes: 66071M001
+    name: Scott Base
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Antarctica) [AQ]"
+    iso: ATA
+    coordinates: {x: -1311028.77257, y: 308512.63682, z: -6213390.83329}
+  - id: sejn
+    domes: 23907M001
+    name: SEJONG City
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Korea) [KR]"
+    iso: KOR
+    coordinates: {x: -3110081.801, y: 4082093.983, z: 3775023.519}
+  - id: sey2
+    domes: 39801M006
+    name: Republic of the Seyche
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Seychelles) [SC]"
+    iso: SYC
+    coordinates: {x: 3602867.3394, y: 5238179.3811, z: -516268.0725}
+  - id: seyg
+    domes: 39801M004
+    name: MAHE
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Seychelles) [SC]"
+    iso: SYC
+    coordinates: {x: 3597836.206, y: 5240883.931, z: -516781.133}
+  - id: sfdm
+    domes: 49826M001
+    name: Santa Felicia Dam
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2532676.4067, y: -4615598.8587, z: 3588781.3303}
+  - id: sgoc
+    domes: 23501M003
+    name: Surveyor General's Off
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Sri Lanka) [LK]"
+    iso: LKA
+    coordinates: {x: 1113280.377, y: 6233644.226, z: 760276.706}
+  - id: she2
+    domes: 40169M002
+    name: Shediac
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1899507.90772, y: -3991722.3591, z: 4582242.86333}
+  - id: simo
+    domes: 30307M001
+    name: Simonstown
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5010435.78501, y: 1670594.64668, z: -3563732.54707}
+  - id: sin1
+    domes: 22601M003
+    name: Nanyang Technological
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Singapore) [SG]"
+    iso: SGP
+    coordinates: {x: -1507972.39989, y: 6195613.91018, z: 148488.07125}
+  - id: smst
+    domes: 21726M001
+    name: Shimosato Hydrographic
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3822373.2184, y: 3699360.0048, z: 3507585.8444}
+  - id: sni1
+    domes: 49909S001
+    name: San Nicolas Island
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2631346.95202, y: -4646278.52513, z: 3477113.48522}
+  - id: sod3
+    domes: 10513M002
+    name: Sodankyla
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Finland) [FI]"
+    iso: FIN
+    coordinates: {x: 2200149.224, y: 1091650.85, z: 5866868.6448}
+  - id: sola
+    domes: 20101M001
+    name: Solar Village
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Saudi Arabia) [SA]"
+    iso: SAU
+    coordinates: {x: 3992081.911, y: 4192182.162, z: 2670423.822}
+  - id: solo
+    domes: 51202M001
+    name: Solomon Islands CGPS
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Solomon Islands) [SB]"
+    iso: SLB
+    coordinates: {x: -5911340.124, y: 2156887.299, z: -1038664.005}
+  - id: spk1
+    domes: 40458M001
+    name: Fire Camp-8
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2535991.98736, y: -4642434.91781, z: 3552148.28719}
+  - id: spt0
+    domes: 10425M001
+    name: SP Boras
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 3328984.527, y: 761910.2647, z: 5369033.6891}
+  - id: sptu
+    domes: 48085M001
+    name: Tupa
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Brazil) [BR]"
+    iso: BRA
+    coordinates: {x: 3766123.31, y: -4567433.46, z: -2367323.83}
+  - id: ssia
+    domes: 41401S001
+    name: Ilopango Airport
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(El Salvador) [SV]"
+    iso: SLV
+    coordinates: {x: 95566.99572, y: -6197785.58295, z: 1500590.53624}
+  - id: stfu
+    domes: 49430S001
+    name: Stanford University
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2700404.10859, y: -4292605.40468, z: 3855137.54067}
+  - id: stj3
+    domes: 40101M005
+    name: STJ3 CACS-GSD
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 2612588.79038, y: -3426820.62889, z: 4686773.67925}
+  - id: stk2
+    domes: 21731S004
+    name: SHINTOTSUKAWA-A
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3642161.26425, y: 2861487.86278, z: 4370351.21645}
+  - id: str1
+    domes: 50119M002
+    name: Stromlo
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4467102.6471, y: 2683039.4713, z: -3666949.4332}
+  - id: str2
+    domes: 50119M001
+    name: Stromlo
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4467074.6961, y: 2683011.8427, z: -3667007.7297}
+  - id: sulp
+    domes: 12366M001
+    name: Lviv Polytechnic
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Ukraine) [UA]"
+    iso: UKR
+    coordinates: {x: 3765296.9, y: 1677559.27805, z: 4851297.45247}
+  - id: svtl
+    domes: 12350M001
+    name: Svetloe
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 2730155.3532, y: 1562364.734, z: 5529989.2697}
+  - id: tabl
+    domes: 49901M001
+    name: Table Mountain
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2448550.0235, y: -4668099.1352, z: 3582740.9944}
+  - id: tana
+    domes: 31508M001
+    name: ILA, Bahir Dar Univers
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Ethiopia) [ET]"
+    iso: ETH
+    coordinates: {x: 4970747.7784, y: 3790687.1134, z: 1271109.0376}
+  - id: tdou
+    domes: 30319M001
+    name: THOHOYANDOU
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 5064840.8313, y: 2969624.4192, z: -2485110.0433}
+  - id: thtg
+    domes: 92201M016
+    name: Papeete Tahiti
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(French Polynesia) [PF]"
+    iso: FRA
+    coordinates: {x: -5246414.723, y: -3077261.321, z: -1913842.232}
+  - id: tit2
+    domes: 14278M002
+    name: Titz / Jackerath
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 3993787.26, y: 450203.89, z: 4936131.69}
+  - id: tlsg
+    domes: 10003M034
+    name: Toulouse
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(France) [FR]"
+    iso: FRA
+    coordinates: {x: 4628684.7869, y: 119997.1258, z: 4372110.3365}
+  - id: tong
+    domes: 50902M001
+    name: Tonga
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Tonga) [TO]"
+    iso: TON
+    coordinates: {x: -5930303.42366, y: -500148.83442, z: -2286366.55825}
+  - id: torp
+    domes: 49912M001
+    name: Torrance Airport
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2517894.60582, y: -4670259.8421, z: 3527827.65628}
+  - id: trak
+    domes: 40480M001
+    name: Bommer Canyon
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2480029.3997, y: -4703110.67971, z: 3511298.64545}
+  - id: tsk2
+    domes: 21730S010
+    name: TSUKUBA2-A
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3957184.74432, y: 3310230.96673, z: 3737703.91786}
+  - id: tskb
+    domes: 21730S005
+    name: Tsukuba ROGUE site
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3957199.87763, y: 3310198.94691, z: 3737711.59126}
+  - id: tubi
+    domes: 20806M001
+    name: Gebze
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Turkey) [TR]"
+    iso: TUR
+    coordinates: {x: 4211317.30745, y: 2377865.87646, z: 4144663.34052}
+  - id: tukt
+    domes: 40165M001
+    name: Tuktoyaktuk
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -1532091.43774, y: -1643291.73217, z: 5949315.91585}
+  - id: twtf
+    domes: 23603S002
+    name: Taoyuan
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Taiwan) [TW]"
+    iso: TWN
+    coordinates: {x: -2994428.14198, y: 4951309.24133, z: 2674496.84767}
+  - id: ucal
+    domes: 49106M001
+    name: University of Calgary
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -1641944.875, y: -3664803.7761, z: 4940009.31354}
+  - id: uclp
+    domes: 40487M002
+    name: UCLA
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2519007.28093, y: -4650672.27151, z: 3552862.81366}
+  - id: uclu
+    domes: 40140M001
+    name: Ucluelet
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -2440669.0824, y: -3416437.0742, z: 4785136.8343}
+  - id: ulab
+    domes: 24201M001
+    name: Ulaanbataar
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Mongolia) [MN]"
+    iso: MNG
+    coordinates: {x: -1257408.54035, y: 4099404.34411, z: 4707992.62361}
+  - id: uldi
+    domes: 30318M001
+    name: ULUNDI
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Africa) [ZA]"
+    iso: ZAF
+    coordinates: {x: 4796680.89928, y: 2930311.50901, z: -3005435.78116}
+  - id: unbd
+    domes: 40146M003
+    name: University of New Brun
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 1761306.00427, y: -4078238.51282, z: 4561411.24836}
+  - id: unx2
+    domes: 50190M002
+    name: Sydney / Australia
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4644464.84468, y: 2549952.69373, z: -3538929.63868}
+  - id: unx3
+    domes: 50190M002
+    name: Sydney / Australia
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -4644464.84468, y: 2549952.69373, z: -3538929.63868}
+  - id: urum
+    domes: 21612M001
+    name: Urumqi, People Republi
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: 193030.62724, y: 4606851.31369, z: 4393311.4598}
+  - id: usn7
+    domes: 40451S009
+    name: U.S. Naval Observatory
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1112162.28189, y: -4842854.65234, z: 3985497.03117}
+  - id: usn8
+    domes: 40451S009
+    name: U.S. Naval Observatory
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1112162.138, y: -4842854.667, z: 3985497.066}
+  - id: usn9
+    domes: 40451S009
+    name: U.S. Naval Observatory
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1112162.138, y: -4842854.667, z: 3985497.066}
+  - id: usud
+    domes: 21729S007
+    name: Usuda Deep Space Track
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Japan) [JP]"
+    iso: JPN
+    coordinates: {x: -3855263.26244, y: 3427432.24444, z: 3741020.38973}
+  - id: vald
+    domes: 40156M001
+    name: VALD CACS-GSD
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: 919075.8163, y: -4167766.2851, z: 4724323.581}
+  - id: vill
+    domes: 13406M001
+    name: Villafranca
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Spain) [ES]"
+    iso: ESP
+    coordinates: {x: 4849833.69528, y: -335049.02488, z: 4116014.93948}
+  - id: vis0
+    domes: 10423M001
+    name: Visby
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Sweden) [SE]"
+    iso: SWE
+    coordinates: {x: 3246470.2527, y: 1077900.5118, z: 5365278.1}
+  - id: voim
+    domes: 33303M001
+    name: Ambalavao
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Madagascar) [MG]"
+    iso: MDG
+    coordinates: {x: 4054014.22102, y: 4316070.08504, z: -2365224.15156}
+  - id: wab2
+    domes: 14014M002
+    name: Wabern
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Switzerland) [CH]"
+    iso: CHE
+    coordinates: {x: 4327318.3962, y: 566955.7396, z: 4636425.7739}
+  - id: wark
+    domes: 50243M001
+    name: Warkworth GPS
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -5115333.13355, y: 477886.91016, z: -3767147.58619}
+  - id: warn
+    domes: 14277M002
+    name: Warnemuende
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 3658785.7984, y: 784470.875, z: 5147870.5849}
+  - id: wdc5
+    domes: 40451S010
+    name: USNO NGA colocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1112158.868, y: -4842855.614, z: 3985496.946}
+  - id: wdc6
+    domes: 40451S010
+    name: USNO NGA colocated
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: 1112158.868, y: -4842855.614, z: 3985496.946}
+  - id: wgtn
+    domes: 50208M003
+    name: Wellington Airport
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4777269.4835, y: 434270.2089, z: -4189484.4102}
+  - id: whc1
+    domes: 40461M001
+    name: Whittier College
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2488199.37761, y: -4673487.10917, z: 3544649.28012}
+  - id: widc
+    domes: 49917M001
+    name: Wide Canyon
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2354850.26017, y: -4745523.94028, z: 3540693.1127}
+  - id: wlsn
+    domes: 40400M101
+    name: Mt. Wilson
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(United States) [US]"
+    iso: USA
+    coordinates: {x: -2483640.9494, y: -4660072.8425, z: 3568172.1952}
+  - id: wroc
+    domes: 12217M001
+    name: WROCLAW
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Poland) [PL]"
+    iso: POL
+    coordinates: {x: 3835751.3036, y: 1177249.9646, z: 4941605.2488}
+  - id: wtz3
+    domes: 14201M015
+    name: Wettzell / Germany
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 4075535.179, y: 931822.3253, z: 4801609.0146}
+  - id: wtza
+    domes: 14201M013
+    name: Wettzell / Germany
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 4075578.3655, y: 931852.8017, z: 4801570.0343}
+  - id: wtzs
+    domes: 14201M015
+    name: Wettzell / Germany
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 4075535.179, y: 931822.3253, z: 4801609.0146}
+  - id: wtzz
+    domes: 14201M014
+    name: Wettzell / Germany
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Germany) [DE]"
+    iso: DEU
+    coordinates: {x: 4075579.4274, y: 931853.1099, z: 4801569.0371}
+  - id: wuh2
+    domes: 21602M007
+    name: WUHAN
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -2267749.71406, y: 5009154.59728, z: 3221294.54136}
+  - id: xian
+    domes: 21614M001
+    name: Shaanxi Observatory
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(China) [CN]"
+    iso: CHN
+    coordinates: {x: -1735212.7473, y: 4976840.062, z: 3580538.3015}
+  - id: yar3
+    domes: 50107M008
+    name: Yarragadee
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2389043.0595, y: 5043313.4476, z: -3078525.1415}
+  - id: yarr
+    domes: 50107M006
+    name: Yarragadee
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Australia) [AU]"
+    iso: AUS
+    coordinates: {x: -2389024.86929, y: 5043315.40871, z: -3078533.73616}
+  - id: yel2
+    domes: 40127M006
+    name: YEL2 CACS-GSD
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Canada) [CA]"
+    iso: CAN
+    coordinates: {x: -1224441.83938, y: -2689174.64003, z: 5633660.40248}
+  - id: ykro
+    domes: 32601M001
+    name: Yamoussoukro Tracking
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Cote d'Ivoire) [CI]"
+    iso: CIV
+    coordinates: {x: 6306439.9809, y: -578380.8581, z: 757956.427}
+  - id: yons
+    domes: 23906M001
+    name: YONGSAN
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(South Korea) [KR]"
+    iso: KOR
+    coordinates: {x: -3047506.741, y: 4043980.58, z: 3865243.01}
+  - id: zimj
+    domes: 14001M006
+    name: Zimmerwald GPS87E
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Switzerland) [CH]"
+    iso: CHE
+    coordinates: {x: 4331293.9196, y: 567542.13149, z: 4633135.71861}
+  - id: zwe2
+    domes: 12330M003
+    name: Astronomical Observato
+    primary_net: IGS_TRA
+    provider: IGS
+    type: IGS
+    use_nrt: true
+    country: "(Russian Federation) [RU]"
+    iso: RUS
+    coordinates: {x: 2886335.8549, y: 2155987.5736, z: 5245818.809}
+  - id: abep
+    domes: XXXXXXXXX
+    name: Aberporth
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3910361.0633, y: -312649.5094, z: 5012488.1198}
+  - id: aber
+    domes: 13231M001
+    name: Aberdeen
+    primary_net: UKCGPS
+    provider: IESSG
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3466272.258, y: -125904.2393, z: 5334662.3998}
+  - id: abyw
+    domes: 19185M001
+    name: Aberystwyth
+    primary_net: UKCGPS
+    provider: MO
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3888213.3359, y: -272189.224, z: 5031795.8993}
+  - id: adar
+    domes: 19161M001
+    name: Aberdaron
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3852249.677, y: -319510.952, z: 5056510.289}
+  - id: aldb
+    domes: XXXXXXXXX
+    name: Aldeburgh
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3920017.1601, y: 109689.7442, z: 5013322.8706}
+  - id: amer
+    domes: XXXXXXXXX
+    name: Amersham
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3963094.8992, y: -38691.0659, z: 4980716.618}
+  - id: anlx
+    domes: XXXXXXXXX
+    name: Angle
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3946630.6993, y: -350781.6692, z: 4981505.2407}
+  - id: appl
+    domes: XXXXXXXXX
+    name: Appledore
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4006363.7999, y: -294184.6028, z: 4937581.1195}
+  - id: ardl
+    domes: XXXXXXXXX
+    name: Ardleigh
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3941841.414, y: 66182.2, z: 4997100.6607}
+  - id: aris
+    domes: 19190M001
+    name: Arisaig
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3472288.716, y: -355730.749, z: 5320460.999}
+  - id: asap
+    domes: XXXXXXXXX
+    name: St Asaph
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3817313.1289, y: -232146.9648, z: 5087411.0186}
+  - id: attl
+    domes: XXXXXXXXX
+    name: Attleborough
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3888955.467, y: 67075.977, z: 5038068.6886}
+  - id: barr
+    domes: XXXXXXXXX
+    name: Barra
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3456456.3759, y: -455083.4622, z: 5323191.3923}
+  - id: bayf
+    domes: 19203M001
+    name: Bayfordbury Observator
+    primary_net: UKCGPS
+    provider: MO
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3954721.7, y: -6553.0, z: 4987444.0}
+  - id: benb
+    domes: XXXXXXXXX
+    name: Benbecula
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3409367.9921, y: -440629.967, z: 5354467.4886}
+  - id: biax
+    domes: XXXXXXXXX
+    name: Birmingham
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3893854.0, y: -118945.0, z: 5033469.0}
+  - id: blap
+    domes: XXXXXXXXX
+    name: Blackpool
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3772014.5463, y: -199991.969, z: 5122163.9506}
+  - id: brae
+    domes: XXXXXXXXX
+    name: Braemar
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3475466.5019, y: -206213.0828, z: 5326644.8409}
+  - id: brec
+    domes: XXXXXXXXX
+    name: Brecon
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3932380.2804, y: -232368.4453, z: 4999764.7576}
+  - id: buci
+    domes: XXXXXXXXX
+    name: Buckingham
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3934836.2888, y: -69826.2189, z: 5002614.7601}
+  - id: buck
+    domes: XXXXXXXXX
+    name: Buckie
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3414076.998, y: -176623.341, z: 5366605.965}
+  - id: buxt
+    domes: 19191M001
+    name: Buxton
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3824391.696, y: -128197.394, z: 5086209.332}
+  - id: caml
+    domes: XXXXXXXXX
+    name: Cambeltown
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3610431.291, y: -354128.721, z: 5228444.2611}
+  - id: camo
+    domes: 19187M002
+    name: Camborne
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4071657.282, y: -379671.77, z: 4878472.437}
+  - id: camt
+    domes: XXXXXXXXX
+    name: Cambeltown
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3610431.1932, y: -354128.7648, z: 5228444.114}
+  - id: cari
+    domes: XXXXXXXXX
+    name: Cardiff
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3970157.3191, y: -215489.0841, z: 4970586.1088}
+  - id: carl
+    domes: 13205S001
+    name: Carlisle
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3671344.382, y: -188441.1662, z: 5194774.1026}
+  - id: cate
+    domes: XXXXXXXXX
+    name: Catterick
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3722084.1249, y: -112104.2277, z: 5161140.2439}
+  - id: catt
+    domes: XXXXXXXXX
+    name: Catterick
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3722014.0507, y: -111529.7737, z: 5161180.9183}
+  - id: chio
+    domes: 19194M001
+    name: Chilbolton
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4007952.961, y: -100634.246, z: 4944058.96}
+  - id: claw
+    domes: XXXXXXXXX
+    name: Cawston
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3902468.47, y: -90706.0, z: 5027408.6181}
+  - id: crew
+    domes: XXXXXXXXX
+    name: Crewe
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3834871.0, y: -160349.0, z: 5077094.0}
+  - id: dare
+    domes: 13208S001
+    name: Daresbury
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3811965.3663, y: -175799.833, z: 5093615.7028}
+  - id: drow
+    domes: XXXXXXXXX
+    name: Droitwich
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3910017.766, y: -150066.957, z: 5020073.98}
+  - id: drum
+    domes: XXXXXXXXX
+    name: Drumalbin
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3601680.6827, y: -235186.9133, z: 5241367.77}
+  - id: dude
+    domes: XXXXXXXXX
+    name: Dundee
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3527480.0672, y: -177294.6395, z: 5293202.2747}
+  - id: dung
+    domes: XXXXXXXXX
+    name: Dungeness
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4027826.9984, y: 68651.6299, z: 4928442.4338}
+  - id: dunk
+    domes: 19181M001
+    name: Dunkeswell
+    primary_net: UKCGPS
+    provider: MO
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4027826.4112, y: -228003.8438, z: 4923995.9516}
+  - id: easn
+    domes: XXXXXXXXX
+    name: Easington
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3788774.1623, y: 7699.4795, z: 5113725.4903}
+  - id: edib
+    domes: XXXXXXXXX
+    name: Edinburgh
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3575417.935, y: -208918.2827, z: 5260071.6273}
+  - id: edin
+    domes: 13217S001
+    name: Edinburgh
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3575928.15393, y: -205860.3385, z: 5259853.41868}
+  - id: eskd
+    domes: XXXXXXXXX
+    name: Eskdalemuir
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3632522.5912, y: -203530.484, z: 5221498.1959}
+  - id: exet
+    domes: XXXXXXXXX
+    name: Exeter
+    primary_net: UKCGPS
+    provider: MO
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4038079.8185, y: -245212.6393, z: 4914542.0107}
+  - id: exmo
+    domes: XXXXXXXXX
+    name: Exmouth
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4048219.2428, y: -241221.217, z: 4906420.758}
+  - id: faug
+    domes: XXXXXXXXX
+    name: Fort Augustus
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3457751.5756, y: -283578.897, z: 5334198.5343}
+  - id: frar
+    domes: XXXXXXXXX
+    name: Fraserburgh
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3414901.9961, y: -119412.94, z: 5367626.8424}
+  - id: gayd
+    domes: XXXXXXXXX
+    name: Gaydon
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3916582.0, y: -101283.0, z: 5016322.0}
+  - id: gigg
+    domes: XXXXXXXXX
+    name: Giggleswick
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3747500.7746, y: -151093.6005, z: 5141933.9051}
+  - id: gira
+    domes: XXXXXXXXX
+    name: Girvan
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3631308.661, y: -308606.084, z: 5216933.9815}
+  - id: glas
+    domes: 13219S001
+    name: Glasgow
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3578263.2355, y: -268830.3404, z: 5255394.4137}
+  - id: gors
+    domes: XXXXXXXXX
+    name: Gorleston
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3882553.091, y: 117397.752, z: 5042019.632}
+  - id: hard
+    domes: XXXXXXXXX
+    name: Hardham
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4026247.5753, y: -37151.8385, z: 4930072.6429}
+  - id: hart
+    domes: XXXXXXXXX
+    name: Hartley Wintley
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3995501.2824, y: -63138.4203, z: 4954667.2825}
+  - id: hels
+    domes: XXXXXXXXX
+    name: Helmsdale
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3370353.185, y: -214959.864, z: 5392588.5485}
+  - id: hero
+    domes: 19168M001
+    name: Herstmonceux
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4033452.838, y: 23629.39, z: 4924309.298}
+  - id: holy
+    domes: XXXXXXXXX
+    name: Holyhead
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3805896.1788, y: -309027.7537, z: 5091799.7432}
+  - id: hoob
+    domes: XXXXXXXXX
+    name: Hoober
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3802633.9502, y: -91585.1479, z: 5102852.8269}
+  - id: hung
+    domes: XXXXXXXXX
+    name: Hungerford
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3985700.0, y: -105338.0, z: 4961869.0}
+  - id: invr
+    domes: 13221M001
+    name: Inverness
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3427172.402, y: -252834.355, z: 5355255.476}
+  - id: kelo
+    domes: XXXXXXXXX
+    name: Kelso
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3608854.0, y: -153784.0, z: 5239212.0}
+  - id: keyw
+    domes: XXXXXXXXX
+    name: Keyworth
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3856820.887, y: -72581.165, z: 5062522.9855}
+  - id: kiln
+    domes: XXXXXXXXX
+    name: Killin
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3522822.809, y: -266164.835, z: 5292794.808}
+  - id: king
+    domes: 13225S001
+    name: Kings Lynn
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3868685.8245, y: 27112.8693, z: 5053897.1526}
+  - id: kinl
+    domes: XXXXXXXXX
+    name: Kinlochbervie
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3331660.555, y: -294549.466, z: 5412697.193}
+  - id: kint
+    domes: 19192M001
+    name: Kintore
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3456261.31, y: -140550.888, z: 5340851.825}
+  - id: kirk
+    domes: XXXXXXXXX
+    name: Kirkcudbright
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3672068.3304, y: -259827.0198, z: 5191172.8314}
+  - id: kirw
+    domes: XXXXXXXXX
+    name: Kirkwall
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3293354.338, y: -166921.49, z: 5441328.8041}
+  - id: lcar
+    domes: XXXXXXXXX
+    name: Lochcarron
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3427036.957, y: -327820.838, z: 5351308.8571}
+  - id: ldrz
+    domes: 50256M001
+    name: Lauder
+    primary_net: UKCGPS
+    provider: MO
+    type: scientific
+    use_nrt: true
+    country: "(New Zealand) [NZ]"
+    iso: NZL
+    coordinates: {x: -4441865.748, y: 808496.368, z: -4490629.776}
+  - id: leed
+    domes: 13215S001
+    name: Leeds
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3773717.5523, y: -109614.2354, z: 5123816.2956}
+  - id: leek
+    domes: XXXXXXXXX
+    name: Leek
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3833229.6638, y: -132607.1622, z: 5079372.7839}
+  - id: leri
+    domes: 19159M003
+    name: Lerwick
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3183134.925, y: -65772.764, z: 5508281.193}
+  - id: liar
+    domes: XXXXXXXXX
+    name: Lizard
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4093715.608, y: -371674.742, z: 4860662.2963}
+  - id: licf
+    domes: XXXXXXXXX
+    name: Lichfield
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3870544.468, y: -122565.376, z: 5051157.8196}
+  - id: lino
+    domes: XXXXXXXXX
+    name: Lincoln
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3824305.082, y: -34716.094, z: 5087338.671}
+  - id: locg
+    domes: XXXXXXXXX
+    name: Lochgilphead
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3557501.7637, y: -339168.6769, z: 5265344.4276}
+  - id: loft
+    domes: XXXXXXXXX
+    name: Loftus
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3706041.3042, y: -55852.4598, z: 5173496.277}
+  - id: lwtg
+    domes: 19159M001
+    name: Lerwick TG
+    primary_net: UKCGPS
+    provider: IESSG
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3181624.2708, y: -63327.4256, z: 5509083.7804}
+  - id: macy
+    domes: XXXXXXXXX
+    name: Machynlleth
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3874391.7764, y: -260854.9599, z: 5042941.6621}
+  - id: mais
+    domes: XXXXXXXXX
+    name: Maidstone
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3995607.3952, y: 33714.4279, z: 4954781.2719}
+  - id: manr
+    domes: XXXXXXXXX
+    name: Manchester
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3798245.969, y: -148240.8119, z: 5104706.6236}
+  - id: mart
+    domes: XXXXXXXXX
+    name: Margate
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3986946.1357, y: 96247.3199, z: 4960898.233}
+  - id: moro
+    domes: 13299M002
+    name: Morpeth
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3645662.992, y: -107277.649, z: 5215057.722}
+  - id: ncas
+    domes: XXXXXXXXX
+    name: Newcastle
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3667109.1791, y: -103493.4446, z: 5200153.137}
+  - id: newl
+    domes: 13273M103
+    name: Newlyn TG
+    primary_net: UKCGPS
+    provider: IESSG
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4079953.89775, y: -395930.17321, z: 4870196.98797}
+  - id: newr
+    domes: XXXXXXXXX
+    name: Newmarket
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3911468.4789, y: 28349.9053, z: 5021085.383}
+  - id: oban
+    domes: XXXXXXXXX
+    name: Oban
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3517194.129, y: -335000.15, z: 5292440.8794}
+  - id: oxfr
+    domes: XXXXXXXXX
+    name: Oxford
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3949452.1175, y: -88835.026, z: 4990814.5459}
+  - id: padt
+    domes: XXXXXXXXX
+    name: Padstow
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4046548.1169, y: -349529.122, z: 4901310.4798}
+  - id: pbil
+    domes: XXXXXXXXX
+    name: Portland Bill
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4059565.2057, y: -174226.6483, z: 4899976.1964}
+  - id: pete
+    domes: XXXXXXXXX
+    name: Peterborough
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3883574.5302, y: -17838.7246, z: 5042590.9453}
+  - id: pmth
+    domes: XXXXXXXXX
+    name: Plymouth
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4061825.19991, y: -293020.87045, z: 4892572.47462}
+  - id: pool
+    domes: XXXXXXXXX
+    name: Poole
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4039175.0678, y: -134737.905, z: 4917867.7323}
+  - id: prae
+    domes: XXXXXXXXX
+    name: Prawle Point
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4082002.8524, y: -265421.203, z: 4877350.8625}
+  - id: pris
+    domes: XXXXXXXXX
+    name: Princes Risborough
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3959246.4601, y: -57260.9131, z: 4983652.6581}
+  - id: sabs
+    domes: XXXXXXXXX
+    name: St Abbs
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3581734.4531, y: -133126.4168, z: 5258187.9121}
+  - id: sano
+    domes: XXXXXXXXX
+    name: Sandown
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4051335.9147, y: -85781.64, z: 4909042.8173}
+  - id: scau
+    domes: XXXXXXXXX
+    name: Scarborough
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3734443.4199, y: -24769.2302, z: 5153337.767}
+  - id: scil
+    domes: XXXXXXXXX
+    name: Scilly Isles
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4090376.03988, y: -451277.79863, z: 4856740.06963}
+  - id: shap
+    domes: XXXXXXXXX
+    name: Shap
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3707981.3417, y: -173903.9104, z: 5169628.4351}
+  - id: shod
+    domes: XXXXXXXXX
+    name: Shobdon
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3908752.5492, y: -197044.2876, z: 5019523.5278}
+  - id: shoe
+    domes: XXXXXXXXX
+    name: Shoeburyness
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3973492.67302, y: 57358.19196, z: 4972193.18389}
+  - id: shre
+    domes: XXXXXXXXX
+    name: Shrewsbury
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3867417.2268, y: -183495.3325, z: 5051679.9645}
+  - id: skee
+    domes: XXXXXXXXX
+    name: Skegness
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3834022.9773, y: 23205.1767, z: 5080077.06}
+  - id: sneo
+    domes: 19135M002
+    name: St Neots
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3918752.98, y: -7694.318, z: 5015570.087}
+  - id: sotn
+    domes: XXXXXXXXX
+    name: Southampton
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4026134.34, y: -103349.05, z: 4929237.56}
+  - id: stbe
+    domes: XXXXXXXXX
+    name: St Bees
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3705552.6142, y: -233560.3252, z: 5168728.6074}
+  - id: stee
+    domes: XXXXXXXXX
+    name: Stevenage
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3943669.694, y: -12285.875, z: 4996173.3843}
+  - id: ston
+    domes: XXXXXXXXX
+    name: Stone
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3854637.7842, y: -147372.5221, z: 5062595.452}
+  - id: stor
+    domes: XXXXXXXXX
+    name: Stornoway
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3348056.003, y: -374089.493, z: 5397746.3884}
+  - id: stra
+    domes: XXXXXXXXX
+    name: Stratford
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3974813.041, y: 661.057, z: 4971513.6274}
+  - id: strn
+    domes: 19176M001
+    name: Stranraer
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3666407.61, y: -302233.264, z: 5192985.255}
+  - id: stru
+    domes: XXXXXXXXX
+    name: Stroud
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3954601.8794, y: -158929.3539, z: 4984972.8306}
+  - id: swan
+    domes: XXXXXXXXX
+    name: Swanland
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3780847.1116, y: -33326.7525, z: 5119568.2193}
+  - id: swas
+    domes: 19193M001
+    name: Swansea
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3963403.50237, y: -275880.61587, z: 4972970.30044}
+  - id: swtg
+    domes: 19158M001
+    name: Stornoway TG
+    primary_net: UKCGPS
+    provider: IESSG
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3347545.1778, y: -374833.4994, z: 5398005.3944}
+  - id: tauo
+    domes: XXXXXXXXX
+    name: Taunton
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4014287.3167, y: -215905.6076, z: 4935207.412}
+  - id: taut
+    domes: XXXXXXXXX
+    name: Taunton
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4014255.6816, y: -215908.7432, z: 4935245.1002}
+  - id: tedd
+    domes: XXXXXXXXX
+    name: Teddington
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3985122.635, y: -23895.137, z: 4963238.2946}
+  - id: thus
+    domes: XXXXXXXXX
+    name: Thurso
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3325963.737, y: -216539.3818, z: 5419865.3452}
+  - id: tire
+    domes: XXXXXXXXX
+    name: Tiree
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3503174.0, y: -422731.0, z: 5295431.0}
+  - id: uist
+    domes: 19180M001
+    name: South Uist
+    primary_net: UKCGPS
+    provider: MO
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3420417.7031, y: -442709.7416, z: 5347287.1802}
+  - id: ullo
+    domes: XXXXXXXXX
+    name: Ullapool
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3383210.4199, y: -305878.2256, z: 5380231.4382}
+  - id: warr
+    domes: XXXXXXXXX
+    name: Warminster
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4001504.9631, y: -152442.0468, z: 4947992.0642}
+  - id: watn
+    domes: 19182M001
+    name: Watnall
+    primary_net: UKCGPS
+    provider: MO
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3845249.737, y: -83911.137, z: 5071074.247}
+  - id: watt
+    domes: 19184M001
+    name: Wattisham
+    primary_net: UKCGPS
+    provider: MO
+    type: scientific
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3923626.4264, y: 65618.0151, z: 5011387.9283}
+  - id: wear
+    domes: XXXXXXXXX
+    name: Wear Head
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3686876.637, y: -143592.1674, z: 5185647.8862}
+  - id: weiw
+    domes: XXXXXXXXX
+    name: Weir Wood
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 4013361.866, y: 534.218, z: 4940700.797}
+  - id: well
+    domes: XXXXXXXXX
+    name: Wellingborough
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3907770.5987, y: -42604.358, z: 5023872.1146}
+  - id: weyb
+    domes: XXXXXXXXX
+    name: Weybourne
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3850873.3206, y: 75980.3869, z: 5066907.7478}
+  - id: yeal
+    domes: XXXXXXXXX
+    name: Yearsley
+    primary_net: UKCGPS
+    provider: OS
+    type: OS active
+    use_nrt: true
+    country: "(United Kingdom) [GB]"
+    iso: GBR
+    coordinates: {x: 3742024.3895, y: -71855.9833, z: 5147526.2047}

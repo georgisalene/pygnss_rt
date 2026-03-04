@@ -27,8 +27,8 @@ import glob
 
 from .db_models import (QualityDatabase, AmbiguityResolution, ZTDHourly, PPPSolution,
                         SatelliteTracking, ProcessingStats, SatelliteAmbiguityPRN,
-                        StationResidual, DataAvailability)
-from .bernese_parser import parse_fin_out_all, parse_edl_sum, parse_chk_sum, parse_qc_data, parse_clock_data, find_ig_campaign_dir
+                        StationResidual, DataAvailability, ObservationQuality)
+from .bernese_parser import parse_fin_out_all, parse_edl_sum, parse_chk_sum, parse_qc_data, parse_clock_data, parse_mpr_sum, find_ig_campaign_dir
 from .config import CAMPAIGN_PATH, DB_PATH
 
 from pygnss_rt.utils.dates import doy_to_mjd
@@ -416,6 +416,7 @@ def ingest_day(campaign_path: str, year: int, doy: int, db: QualityDatabase) -> 
         'station_residuals': 0,
         'data_availability': 0,
         'receiver_clocks': 0,
+        'observation_quality': 0,
         'errors': []
     }
 
@@ -516,6 +517,29 @@ def ingest_day(campaign_path: str, year: int, doy: int, db: QualityDatabase) -> 
         results['receiver_clocks'] = clk_counts.get('receiver_clocks', 0)
     except Exception as e:
         results['errors'].append(f"Clock Data: {e}")
+
+    # 7. Parse observation quality from MPR (MAUPRP summary) file
+    if os.path.exists(out_dir):
+        mpr_file = os.path.join(out_dir, f"MPR_{year}{doy:03d}0.SUM")
+        if os.path.exists(mpr_file):
+            try:
+                mpr_results = parse_mpr_sum(mpr_file, year, doy)
+                for mpr in mpr_results:
+                    oq = ObservationQuality(
+                        station_id=mpr['station_id'],
+                        year=year,
+                        doy=doy,
+                        cycle_slips=mpr['cycle_slips'],
+                        cycle_slip_rate=mpr['cycle_slip_rate'],
+                        total_observations=mpr['total_observations'],
+                        quality_level=mpr['quality_level'],
+                    )
+                    db.insert_observation_quality(oq)
+                results['observation_quality'] = len(mpr_results)
+            except Exception as e:
+                results['errors'].append(f"Observation Quality: {e}")
+        else:
+            results['errors'].append(f"MPR file not found")
 
     return results
 

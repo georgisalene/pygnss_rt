@@ -836,6 +836,97 @@ def populate_database(campaign_path: str, year: int,
     print("Database population complete")
 
 
+def parse_mpr_sum(filepath: str, year: int, doy: int) -> list[dict]:
+    """
+    Parse MPR_*.SUM (MAUPRP summary) file for per-station observation quality metrics.
+
+    Extracts: station_id, total observations, RMS, cycle slips, deleted obs, marked obs.
+
+    MPR format:
+     SESS FIL OK?  ST1  ST2 L(KM)   #OBS.    RMS    DX     DY     DZ    #SL   #DL   #MA  MAXL3      MIN. SLIP
+     3100   1 OK   0531         0   68559     10      5    -81    -30     0   736   113      0              0
+
+    Returns list of dicts with keys matching ObservationQuality fields.
+    """
+    results = []
+
+    if not os.path.exists(filepath):
+        return results
+
+    with open(filepath, 'r') as f:
+        lines = f.readlines()
+
+    in_data = False
+    for line in lines:
+        stripped = line.strip()
+
+        # Detect header separator line
+        if stripped.startswith('----') and len(stripped) > 30:
+            in_data = True
+            continue
+
+        # Stop at footer separator or summary
+        if in_data and (stripped.startswith('----') or stripped.startswith('Tot:')):
+            break
+
+        if not in_data:
+            continue
+
+        # Parse data line
+        parts = stripped.split()
+        if len(parts) < 14:
+            continue
+
+        # For PPP (no ST2/baseline), split gives:
+        # [0]=SESS [1]=FIL [2]=OK? [3]=ST1 [4]=L(KM) [5]=#OBS [6]=RMS
+        # [7]=DX [8]=DY [9]=DZ [10]=#SL [11]=#DL [12]=#MA [13]=MAXL3 [14]=MIN.SLIP
+        try:
+            status = parts[2]  # OK or NOT
+            station_id = parts[3]
+            n_obs = int(parts[5])
+            rms = float(parts[6])  # mm
+            cycle_slips = int(parts[10])
+            deleted = int(parts[11])
+            marked = int(parts[12])
+
+            # Compute cycle slip rate (per 1000 observations)
+            slip_rate = (cycle_slips / n_obs * 1000) if n_obs > 0 else 0.0
+
+            # Compute completeness: expected ~86400/30=2880 epochs for 30s data, ~82 sats
+            # Use total obs vs expected. For multi-GNSS with ~80 sats, ~2880 epochs:
+            # expected_obs ~= 80 * 2880 = 230400 (theoretical max)
+            # Use a simpler approach: ratio of actual obs to the max station in the file
+            # We'll compute completeness relative to 86400 epochs (1s) or normalize later
+
+            # Quality level based on RMS and cycle slips
+            if rms <= 8 and slip_rate < 1.0:
+                quality = 'EXCELLENT'
+            elif rms <= 12 and slip_rate < 5.0:
+                quality = 'GOOD'
+            elif rms <= 15 and slip_rate < 10.0:
+                quality = 'ACCEPTABLE'
+            else:
+                quality = 'POOR'
+
+            results.append({
+                'station_id': station_id,
+                'year': year,
+                'doy': doy,
+                'total_observations': n_obs,
+                'cycle_slips': cycle_slips,
+                'cycle_slip_rate': round(slip_rate, 3),
+                'rms': rms,
+                'deleted_obs': deleted,
+                'marked_obs': marked,
+                'quality_level': quality,
+                'status': status,
+            })
+        except (ValueError, IndexError):
+            continue
+
+    return results
+
+
 if __name__ == "__main__":
     import sys
 

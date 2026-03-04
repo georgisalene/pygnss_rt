@@ -104,6 +104,25 @@ class QualityDatabaseQuery(QualityDatabaseInsert):
 
         return result['station_id'].tolist() if len(result) > 0 else []
 
+    def get_available_years(self) -> list[int]:
+        """Get list of years that have solution data, sorted descending"""
+        conn = self.connect()
+        result = conn.execute(
+            "SELECT DISTINCT year FROM ppp_solutions ORDER BY year DESC"
+        ).fetchdf()
+        return result['year'].tolist() if len(result) > 0 else []
+
+    def get_doy_range(self, year: int) -> tuple[int, int]:
+        """Get min and max DOY for a given year"""
+        conn = self.connect()
+        result = conn.execute(
+            "SELECT MIN(doy) as min_doy, MAX(doy) as max_doy FROM ppp_solutions WHERE year = ?",
+            [year]
+        ).fetchdf()
+        if len(result) > 0 and result['min_doy'][0] is not None:
+            return int(result['min_doy'][0]), int(result['max_doy'][0])
+        return 1, 366
+
     def get_latest_processing(self, limit: int = 50) -> list[dict]:
         """Get most recently processed solutions"""
         conn = self.connect()

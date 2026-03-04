@@ -1,0 +1,53 @@
+# Template file for adding new stations to YAML configuration
+# Place this file at: pygnss_rt/new_stations_to_add.yaml
+#
+# Usage:
+#   python3 cli.py add-stations new_stations_to_add.yaml --target eurefgh.yaml
+#   python3 cli.py add-stations new_stations_to_add.yaml --target stationsgh.yaml -n IGS
+#
+# Format options:
+#
+# Option 1: YAML format (recommended)
+# ------------------------------------
+stations:
+  # Example station entry
+  # - id: xxxx              # 4-character station ID (required)
+  #   long_id: XXXX00XXX    # 9-character ID with country code (required)
+  #   name: Station Name    # Full station name (optional)
+  #   domes: 12345M001      # DOMES number (optional, defaults to long_id)
+  #   country_code: XXX     # 3-letter ISO country code (optional)
+  #   coordinates:          # ECEF coordinates in meters (required)
+  #     x: 1234567.8901
+  #     y: 234567.8901
+  #     z: 5678901.2345
+
+  # Add your stations below:
+  # - id: test
+  #   long_id: TEST00DEU
+  #   name: Test Station
+  #   coordinates: {x: 4000000.0, y: 500000.0, z: 4900000.0}
+
+
+# Option 2: Simple text format
+# ----------------------------
+# Create a .txt file with this format:
+#
+# LONG_NAME_MAP = {
+#     station_id  LONG_ID00XXX
+#     arlo  ARLO00BEL
+#     basc  BASC00LUX
+# }
+#
+#     ARLO  4116393.1678  419517.1900  4838147.0967
+#     BASC  4122555.2976  428880.4115  4832046.7403
+#
+# The LONG_NAME_MAP section maps 4-char IDs to 9-char IDs
+# The coordinate lines have: STATION_ID  X  Y  Z
+
+
+# Supported country codes:
+# ------------------------
+# Europe: AUT, BEL, BGR, CHE, CZE, DEU, DNK, ESP, EST, FIN, FRA, GBR, GRC, HRV,
+#         HUN, IRL, ISL, ITA, LTU, LUX, LVA, NLD, NOR, POL, PRT, ROU, RUS, SVK,
+#         SVN, SWE, UKR
+# Other:  USA, CAN, AUS, NZL, JPN, CHN, KOR, ARG, BRA, CHL, ZAF

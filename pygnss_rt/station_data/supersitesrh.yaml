@@ -1,0 +1,468 @@
+# Station configuration converted from supersitesrh.xml
+# Stations: 45
+#
+# Fields:
+#   id: 4-character station ID (lowercase)
+#   domes: DOMES number
+#   name: Full station name
+#   primary_net: Primary network (IGS20, EUREF, etc.)
+#   type: Station type (core, EUREF, OS active, etc.)
+#   use_nrt: NRT processing enabled (true/false)
+#   coordinates: ECEF coordinates (x, y, z in meters)
+
+metadata:
+  source_file: supersitesrh.xml
+  ref_epoch: '2015-01-01 00:00:00'
+  datum: IGS20_0
+
+stations:
+  - id: cbw1
+    domes: 13599M001
+    name: Cabauw
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3923113.377, y: 338135.245, z: 5000752.249}
+  - id: paye
+    domes: XXXXXXXXX
+    name: Payerne
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Switzerland) [CH]"
+    iso: CHE
+    coordinates: {x: 4341234.7426, y: 528725.7054, z: 4627897.0271}
+  - id: ard2
+    domes: XXXXXXXXX
+    name: Apeldoorn
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3898046.777, y: 406937.522, z: 5015165.236}
+  - id: amel
+    domes: 13540M001
+    name: Ameland
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3787664.302, y: 382392.264, z: 5100339.607}
+  - id: amst
+    domes: XXXXXXXXX
+    name: Amsterdam
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3887078.838, y: 328840.615, z: 5029290.871}
+  - id: apel
+    domes: 13510M001
+    name: Apeldoorn
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3895237.076, y: 406814.319, z: 5017378.046}
+  - id: arnh
+    domes: XXXXXXXXX
+    name: Arnhem
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3918476.216, y: 403127.775, z: 4999617.995}
+  - id: ass2
+    domes: XXXXXXXXX
+    name: Assen
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3823469.541, y: 439997.116, z: 5069105.033}
+  - id: bors
+    domes: XXXXXXXXX
+    name: Borssele Alpha
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3955652.22, y: 211230.193, z: 4982235.941}
+  - id: boxm
+    domes: XXXXXXXXX
+    name: Boxmeer
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3944886.122, y: 413431.074, z: 4978097.748}
+  - id: brd2
+    domes: XXXXXXXXX
+    name: Breda
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3959537.724, y: 328760.979, z: 4972791.961}
+  - id: delf
+    domes: 13502M004
+    name: Delft
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3924687.742, y: 301132.768, z: 5001910.798}
+  - id: delz
+    domes: 13547M001
+    name: Delfzijl Tide Gauge
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3789710.996, y: 460843.729, z: 5092371.142}
+  - id: dhel
+    domes: 13549M001
+    name: Dan Helder
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3836789.046, y: 318401.209, z: 5068116.604}
+  - id: dzyl
+    domes: XXXXXXXXX
+    name: Delfzijl
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3790230.496, y: 461382.059, z: 5091943.839}
+  - id: ebrg
+    domes: XXXXXXXXX
+    name: Eibergen
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3902595.35, y: 455471.204, z: 5007483.125}
+  - id: ehvn
+    domes: XXXXXXXXX
+    name: Eindhoven
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3966365.106, y: 379527.978, z: 4963825.742}
+  - id: epl1
+    domes: XXXXXXXXX
+    name: Europlatform
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3928755.412, y: 224813.623, z: 5002712.096}
+  - id: harl
+    domes: 13548M001
+    name: Harlingen
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3814004.828, y: 361287.865, z: 5082327.152}
+  - id: hho2
+    domes: 13546M001
+    name: Hoek van Holland
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3926788.699, y: 282838.418, z: 5001306.473}
+  - id: hhol
+    domes: XXXXXXXXX
+    name: Hoek van Holland
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3926738.944, y: 283194.091, z: 5001331.821}
+  - id: hkzu
+    domes: XXXXXXXXX
+    name: Hollandse Kust Zuid
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3897230.493, y: 275468.091, z: 5024671.31}
+  - id: hoog
+    domes: XXXXXXXXX
+    name: Hoogeveen
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3843554.988, y: 442888.764, z: 5053730.993}
+  - id: jour
+    domes: XXXXXXXXX
+    name: Joure
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3830329.525, y: 389953.895, z: 5068005.445}
+  - id: kerk
+    domes: XXXXXXXXX
+    name: Kerkrade
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 4012821.269, y: 422238.912, z: 4923338.417}
+  - id: lely
+    domes: XXXXXXXXX
+    name: Lelystad
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3873192.619, y: 367560.956, z: 5037217.998}
+  - id: lith
+    domes: XXXXXXXXX
+    name: Lith
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3933896.403, y: 375583.174, z: 4989692.703}
+  - id: lwrd
+    domes: XXXXXXXXX
+    name: Leeuwarden
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3809685.127, y: 386109.626, z: 5083758.453}
+  - id: mstr
+    domes: XXXXXXXXX
+    name: Maastricht
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 4015532.314, y: 400988.929, z: 4922752.238}
+  - id: olde
+    domes: XXXXXXXXX
+    name: Oldenzaal
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3879591.896, y: 469096.572, z: 5023971.97}
+  - id: rdam
+    domes: XXXXXXXXX
+    name: Rotterdam
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3926684.346, y: 313125.363, z: 4999633.072}
+  - id: ril2
+    domes: XXXXXXXXX
+    name: Rilland
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3972355.161, y: 293839.578, z: 4964820.305}
+  - id: roe2
+    domes: XXXXXXXXX
+    name: Roermond
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3985005.134, y: 418779.581, z: 4945822.879}
+  - id: sasg
+    domes: XXXXXXXXX
+    name: Sas van Gent
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3993367.364, y: 265868.024, z: 4949620.22}
+  - id: schi
+    domes: XXXXXXXXX
+    name: Schiermonnikoog
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3782171.422, y: 408355.782, z: 5102376.934}
+  - id: sdyk
+    domes: XXXXXXXXX
+    name: Scharendijke
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3948180.368, y: 264040.901, z: 4985581.425}
+  - id: stav
+    domes: XXXXXXXXX
+    name: Stavoren
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3838878.785, y: 361751.83, z: 5063646.534}
+  - id: tapl
+    domes: XXXXXXXXX
+    name: Ter Apel
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3827895.494, y: 476691.882, z: 5062478.151}
+  - id: txe2
+    domes: XXXXXXXXX
+    name: Texel Tide Gauge
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3829292.872, y: 324999.244, z: 5073333.527}
+  - id: utr2
+    domes: XXXXXXXXX
+    name: Utrecht
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3913990.883, y: 348838.708, z: 5007139.529}
+  - id: vlie
+    domes: XXXXXXXXX
+    name: Vlieland
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3805256.148, y: 339064.931, z: 5090357.913}
+  - id: warm
+    domes: XXXXXXXXX
+    name: Warmenhuizen
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3860515.555, y: 319818.422, z: 5050095.966}
+  - id: wil2
+    domes: XXXXXXXXX
+    name: Willemstad
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3951110.306, y: 303861.209, z: 4981014.561}
+  - id: wsra
+    domes: XXXXXXXXX
+    name: Westerbork
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3828736.147, y: 443304.741, z: 5064884.5}
+  - id: zwo2
+    domes: XXXXXXXXX
+    name: Zwolle
+    primary_net: undef
+    provider: undef
+    type: active
+    use_nrt: true
+    country: "(Netherlands) [NL]"
+    iso: NLD
+    coordinates: {x: 3868781.424, y: 413000.013, z: 5037105.694}

@@ -1,0 +1,1574 @@
+# Station configuration converted from eurefgh.xml
+# Stations: 156
+#
+# Fields:
+#   id: 4-character station ID (lowercase)
+#   domes: DOMES number
+#   name: Full station name
+#   primary_net: Primary network (IGS20, EUREF, etc.)
+#   type: Station type (core, EUREF, OS active, etc.)
+#   use_nrt: NRT processing enabled (true/false)
+#   coordinates: ECEF coordinates (x, y, z in meters)
+
+metadata: {source_file: eurefgh.xml, ref_epoch: '2015-01-01 00:00:00', datum: IGS20_0}
+stations:
+- id: acor
+  domes: 13434M001
+  name: A Coruna
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4594489.65271, y: -678367.65968, z: 4357066.18208}
+- id: adar
+  domes: 19161M001
+  name: Aberdaron
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 3852249.677, y: -319510.952, z: 5056510.289}
+- id: alac
+  domes: 13433M001
+  name: Alicante
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 5009051.12229, y: -42072.09811, z: 3935057.79549}
+- id: alba
+  domes: 13452M001
+  name: Albacete
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4962848.234, y: -160854.368, z: 3990884.225}
+- id: alme
+  domes: 13437M001
+  name: Almeria
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 5105220.0929, y: -219278.5211, z: 3804387.1303}
+- id: argi
+  domes: 10117M002
+  name: Argir, Torshavn
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Faroe Islands) [FO]
+  iso: DNK
+  coordinates: {x: 2981489.75836, y: -354651.57445, z: 5608475.00338}
+- id: aris
+  domes: 19190M001
+  name: Arisaig
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 3472288.716, y: -355730.749, z: 5320460.999}
+- id: aut1
+  domes: 12619M002
+  name: Thessaloniki
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Greece) [GR]
+  iso: GRC
+  coordinates: {x: 4466283.35338, y: 1896166.97976, z: 4126096.80466}
+- id: autn
+  domes: 10080M001
+  name: Autun
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4349465.9377, y: 326196.3004, z: 4638521.9934}
+- id: badh
+  domes: 14288M001
+  name: Bad Homburg
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4042497.7999, y: 612081.4403, z: 4879251.0558}
+- id: bell
+  domes: 13431M001
+  name: Bellmunt de Segarra
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4775849.33751, y: 116814.46313, z: 4213019.02721}
+- id: bogi
+  domes: 12207M003
+  name: Borowa Gora
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Poland) [PL]
+  iso: POL
+  coordinates: {x: 3633815.3431, y: 1397454.1366, z: 5035281.001}
+- id: borj
+  domes: 14268M002
+  name: Borkum
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3769402.91791, y: 440564.31237, z: 5109099.12909}
+- id: borr
+  domes: 13480M001
+  name: Borriana
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4899519.2985, y: -7115.8173, z: 4069961.4078}
+- id: brmf
+  domes: 19686M002
+  name: Bron
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4443793.0, y: 383967.2, z: 4544228.6}
+- id: bscn
+  domes: 10028M007
+  name: Besancon
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4314139.2355, y: 452626.2977, z: 4660704.0277}
+- id: bzrg
+  domes: 12751M001
+  name: Bolzano
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4312657.4848, y: 864634.66, z: 4603844.4431}
+- id: cace
+  domes: 13447M001
+  name: Caceres
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4899866.6176, y: -544567.286, z: 4033770.0197}
+- id: caen
+  domes: 19994M001
+  name: Caen
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4177021.0, y: -33327.0, z: 4803950.0}
+- id: cant
+  domes: 13438M001
+  name: Santander
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4625924.40688, y: -307096.41593, z: 4365771.4445}
+- id: carg
+  domes: 19412M001
+  name: Cartagena
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 5059185.52, y: -85999.148, z: 3870099.235}
+- id: casc
+  domes: 13909S001
+  name: Cascais
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Portugal) [PT]
+  iso: PRT
+  coordinates: {x: 4917536.944, y: -815726.2047, z: 3965857.3855}
+- id: cebr
+  domes: 13408M001
+  name: Cebreros
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4846665.2042, y: -370195.36514, z: 4116929.40921}
+- id: ceu1
+  domes: 13449M002
+  name: Ceuta
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 5150907.78817, y: -478414.65162, z: 3718518.54924}
+- id: cfrm
+  domes: 11525M001
+  name: Frydek Mistek
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Czech Republic) [CZ]
+  iso: CZE
+  coordinates: {x: 3924573.26, y: 1301971.08, z: 4840464.42}
+- id: chio
+  domes: 19194M001
+  name: Chilbolton
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 4007952.961, y: -100634.246, z: 4944058.96}
+- id: coba
+  domes: 13453M001
+  name: Cordoba
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 5021255.8604, y: -414684.7706, z: 3898182.4255}
+- id: crei
+  domes: 10016M001
+  name: Creil
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4166410.0, y: 182771.0, z: 4809803.0}
+- id: creu
+  domes: 13432M001
+  name: Cadaques
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4715420.2779, y: 273177.8081, z: 4271946.6556}
+- id: dare
+  domes: 13208S001
+  name: Daresbury
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 3811965.3663, y: -175799.833, z: 5093615.7028}
+- id: dent
+  domes: 13112M001
+  name: Dentergem
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4020711.4586, y: 238851.1309, z: 4928949.6451}
+- id: dour
+  domes: 13113M001
+  name: Dourbes
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4086778.1383, y: 328452.0137, z: 4869782.6396}
+- id: eglt
+  domes: 10032M001
+  name: Egletons
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4483373.6221, y: 160636.5879, z: 4519408.978}
+- id: eijs
+  domes: 13533M001
+  name: Eijsden
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Netherlands) [NL]
+  iso: NLD
+  coordinates: {x: 4023086.2517, y: 400395.1264, z: 4916655.552}
+- id: entz
+  domes: 10014M002
+  name: Entzheim
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4192710.4435, y: 562399.2294, z: 4757685.9972}
+- id: esco
+  domes: 13435M001
+  name: Naut Aran
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4696264.88537, y: 79978.58604, z: 4304245.04348}
+- id: gaia
+  domes: 13902M001
+  name: Gaia
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Portugal) [PT]
+  iso: PRT
+  coordinates: {x: 4759095.41446, y: -718818.5307, z: 4171491.43262}
+- id: ganp
+  domes: 11515M001
+  name: Ganovce
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Slovakia) [SK]
+  iso: SVK
+  coordinates: {x: 3929181.43121, y: 1455236.81192, z: 4793653.9452}
+- id: geno
+  domes: 12712M002
+  name: Genova - Istituto Idro
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4507892.24756, y: 707621.57188, z: 4441603.56828}
+- id: gope
+  domes: 11502M002
+  name: Pecny, Ondrejov / CZ
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Czech Republic) [CZ]
+  iso: CZE
+  coordinates: {x: 3979316.1265, y: 1050312.4767, z: 4857067.1032}
+- id: helg
+  domes: 14264M001
+  name: Helgoland Island
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3706067.1881, y: 513803.8734, z: 5148174.4705}
+- id: hert
+  domes: 13212M010
+  name: Water Tower monument
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 4033460.857, y: 23537.88035, z: 4924318.30868}
+- id: huel
+  domes: 13451M001
+  name: Huelva
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 5049612.9511, y: -612885.26088, z: 3835144.16599}
+- id: ieng
+  domes: 12724S001
+  name: Torino
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4476537.4089, y: 600431.4291, z: 4488761.3327}
+- id: igeo
+  domes: 15101M001
+  name: Chisinau
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Moldova) [MD]
+  iso: MDA
+  coordinates: {x: 3814971.8, y: 2101073.5, z: 4644140.7}
+- id: ijmu
+  domes: 13537M001
+  name: Ijmuiden
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Netherlands) [NL]
+  iso: NDL
+  coordinates: {x: 3882052.94475, y: 309346.50353, z: 5034330.4853}
+- id: izan
+  domes: 31309M002
+  name: Izana
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 5390243.448, y: -1596630.076, z: 3007752.759}
+- id: joen
+  domes: 10512M001
+  name: Joensuu
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Finland) [FI]
+  iso: FIN
+  coordinates: {x: 2564139.0846, y: 1486149.7668, z: 5628951.4399}
+- id: joz2
+  domes: 12204M002
+  name: JOZEFOSLAW
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Poland) [PL]
+  iso: POL
+  coordinates: {x: 3664880.57473, y: 1409190.58998, z: 5009618.47729}
+- id: karl
+  domes: 14216M001
+  name: Karlsruhe
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4146524.39484, y: 613138.16265, z: 4791517.34752}
+- id: kir0
+  domes: 10422M001
+  name: Kiruna
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Sweden) [SE]
+  iso: SWE
+  coordinates: {x: 2248123.1882, y: 865686.6819, z: 5886425.7755}
+- id: kos1
+  domes: 13504M005
+  name: Kootwijk Observatory f
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Netherlands) [NL]
+  iso: NLD
+  coordinates: {x: 3899613.9477, y: 397361.5923, z: 5014738.666}
+- id: kraw
+  domes: 12218M001
+  name: Krakow
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Poland) [PL]
+  iso: POL
+  coordinates: {x: 3856935.8065, y: 1397750.7119, z: 4867719.6293}
+- id: kure
+  domes: 10604S001
+  name: Kuressaare
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Estonia) [EE]
+  iso: EST
+  coordinates: {x: 3107617.756, y: 1287856.334, z: 5400807.098}
+- id: lago
+  domes: 13903M001
+  name: Lagos
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Portugal) [PT]
+  iso: PRT
+  coordinates: {x: 5035246.48822, y: -767657.00096, z: 3826194.39786}
+- id: lama
+  domes: 12209M001
+  name: LAMKOWKO
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Poland) [PL]
+  iso: POL
+  coordinates: {x: 3524522.9226, y: 1329693.628, z: 5129846.3531}
+- id: lamp
+  domes: 12706M002
+  name: Lampedusa
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 5073164.8362, y: 1134512.68894, z: 3683181.32749}
+- id: leij
+  domes: 14267M001
+  name: Leipzig
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3898736.3884, y: 855345.2597, z: 4958372.4564}
+- id: leon
+  domes: 13475M001
+  name: Leon
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4680871.391, y: -463168.386, z: 4294606.574}
+- id: lil2
+  domes: 10051M003
+  name: Lille - IUTA2
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4049341.0, y: 221853.0, z: 4906449.0}
+- id: lliv
+  domes: 13436M001
+  name: Llivia
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: FRA
+  coordinates: {x: 4709586.2108, y: 162244.70721, z: 4285914.32421}
+- id: mala
+  domes: 13443M001
+  name: Malaga
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 5103282.258, y: -392096.544, z: 3793147.052}
+- id: mall
+  domes: 13444M001
+  name: Palma de Mallorca
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4919369.39378, y: 225499.97769, z: 4039849.8914}
+- id: man2
+  domes: 10091M002
+  name: Le Mans
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4274276.05, y: 11584.22, z: 4718385.97}
+- id: mars
+  domes: 10073M008
+  name: Marseille
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4630532.73875, y: 433946.31323, z: 4350142.71673}
+- id: mlvl
+  domes: 10092M001
+  name: Marne-la-Vallee
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4201576.9568, y: 189860.1199, z: 4779064.8027}
+- id: mop2
+  domes: 11507M002
+  name: Modra-Piesok
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Slovakia) [SK]
+  iso: SVK
+  coordinates: {x: 4053743.0, y: 1260570.0, z: 4744940.0}
+- id: morp
+  domes: 13299S001
+  name: Morpeth
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 3645667.83615, y: -107277.23514, z: 5215053.53044}
+- id: nya1
+  domes: 10317M003
+  name: Ny-Alesund
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Norway) [NO]
+  iso: NOR
+  coordinates: {x: 1202433.7686, y: 252632.32619, z: 6237772.63696}
+- id: obe4
+  domes: 14208M007
+  name: Oberpfaffenhofen
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4186704.43, y: 834903.583, z: 4723664.857}
+- id: osls
+  domes: 10307M001
+  name: Oslo
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Norway) [NO]
+  iso: NOR
+  coordinates: {x: 3169981.9046, y: 579956.6705, z: 5485936.5957}
+- id: pado
+  domes: 12750S001
+  name: UNIVERSITY OF PADOVA,
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4388882.0242, y: 924567.4648, z: 4519588.7349}
+- id: pat0
+  domes: 12622M001
+  name: Patras
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Greece) [GR]
+  iso: GRC
+  coordinates: {x: 4655002.78297, y: 1860619.67495, z: 3930281.85035}
+- id: ptbb
+  domes: 14234M001
+  name: Braunschweig
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3844059.9629, y: 709661.316, z: 5023129.5588}
+- id: puyv
+  domes: 10065M001
+  name: Le Puy en Velay
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4504322.0986, y: 305405.2462, z: 4491277.3983}
+- id: raeg
+  domes: 31912M003
+  name: RAEGE Santa Maria
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Portugal) [PT]
+  iso: PRT
+  coordinates: {x: 4618477.7328, y: -2166047.5259, z: 3816304.8451}
+- id: ramo
+  domes: 20703S001
+  name: Mitzpe Ramon
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Israel) [IL]
+  iso: ISR
+  coordinates: {x: 4514721.74784, y: 3133507.90891, z: 3228024.79463}
+- id: rant
+  domes: 10914M001
+  name: Rantum / Island Sylt
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3845376.755, y: 531201.705, z: 5189296.705}
+- id: redu
+  domes: 13102M001
+  name: Redu
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4091423.3577, y: 368380.5876, z: 4863179.8074}
+- id: reyk
+  domes: 10202M001
+  name: Reykjavik / Iceland
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Iceland) [IS]
+  iso: ISL
+  coordinates: {x: 2587384.3006, y: -1043033.5286, z: 5716564.0316}
+- id: riga
+  domes: 12302M002
+  name: RIGA permanent GPS
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Latvia) [LV]
+  iso: LVA
+  coordinates: {x: 3183899.10531, y: 1421478.56254, z: 5322810.83581}
+- id: rio1
+  domes: 13448M002
+  name: Logrono
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4708447.196, y: -199490.814, z: 4284089.342}
+- id: rove
+  domes: 12774M001
+  name: Rovereto
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4364680.5524, y: 851736.8719, z: 4557204.918}
+- id: sala
+  domes: 13469M001
+  name: Salamanca
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4803054.1548, y: -462132.1996, z: 4158379.9743}
+- id: sass
+  domes: 14281M001
+  name: Sassnitz
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3606146.0743, y: 875303.3446, z: 5170193.9385}
+- id: scil
+  domes: XXXXXXXXX
+  name: Scilly Isles
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 4090376.03988, y: -451277.79863, z: 4856740.06963}
+- id: scoa
+  domes: 10088M002
+  name: Ciboure
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4639940.60343, y: -136225.12127, z: 4359552.3084}
+- id: scor
+  domes: 43006M002
+  name: Scoresbysund
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Greenland) [GL]
+  iso: GRL
+  coordinates: {x: 1982095.97631, y: -798820.98768, z: 5989464.57545}
+- id: shoe
+  domes: XXXXXXXXX
+  name: Shoeburyness
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 3973492.67302, y: 57358.19196, z: 4972193.18389}
+- id: ske0
+  domes: 10426M001
+  name: Skellefteaa
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Sweden) [SE]
+  iso: SWE
+  coordinates: {x: 2534030.81694, y: 975174.63482, z: 5752078.6283}
+- id: sneo
+  domes: 19135M002
+  name: St Neots
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 3918752.98, y: -7694.318, z: 5015570.087}
+- id: sofi
+  domes: 11101M002
+  name: Sofia / Bulgaria
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Bulgaria) [BG]
+  iso: BGR
+  coordinates: {x: 4319371.99675, y: 1868687.86952, z: 4292063.9759}
+- id: sons
+  domes: 13446M001
+  name: Sonseca
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4904660.4975, y: -339868.0384, z: 4050823.4963}
+- id: spt0
+  domes: 10425M001
+  name: SP Boras
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Sweden) [SE]
+  iso: SWE
+  coordinates: {x: 3328984.527, y: 761910.2647, z: 5369033.6891}
+- id: srjv
+  domes: 11801S001
+  name: Sarajevo
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Bosnia-Herzegovina) [BA]
+  iso: BIH
+  coordinates: {x: 4370292.963, y: 1454980.1589, z: 4397965.3333}
+- id: stas
+  domes: 10330M001
+  name: Stavanger
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Norway) [NO]
+  iso: NOR
+  coordinates: {x: 3275753.6658, y: 321111.0424, z: 5445042.1358}
+- id: sulp
+  domes: 12366M001
+  name: Lviv Polytechnic
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Ukraine) [UA]
+  iso: UKR
+  coordinates: {x: 3765296.9, y: 1677559.27805, z: 4851297.45247}
+- id: sun6
+  domes: 10440M002
+  name: Sundsvall
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Sweden) [SE]
+  iso: SWE
+  coordinates: {x: 2838911.2972, y: 903817.0216, z: 5620660.9093}
+- id: sur4
+  domes: 10601M002
+  name: Talinn
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Estonia) [EE]
+  iso: EST
+  coordinates: {x: 2959057.237, y: 1341058.492, z: 5470426.795}
+- id: swas
+  domes: 19193M001
+  name: Swansea
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 3963403.50237, y: -275880.61587, z: 4972970.30044}
+- id: tari
+  domes: 19350M001
+  name: Tarifa
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 5140808.15561, y: -504297.66497, z: 3728985.04374}
+- id: terc
+  domes: 31909M001
+  name: Angra do Heroismo
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Portugal) [PT]
+  iso: PRT
+  coordinates: {x: 4434022.21185, y: -2274181.04979, z: 3968280.19092}
+- id: ters
+  domes: 13534M001
+  name: West-Terschelling
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Netherlands) [NL]
+  iso: NLD
+  coordinates: {x: 3798580.6043, y: 346994.0514, z: 5094781.0225}
+- id: teru
+  domes: 13487M001
+  name: Teruel
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4867391.683, y: -95523.894, z: 4108341.276}
+- id: thu3
+  domes: 43001M002
+  name: THULE
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Greenland) [GL]
+  iso: GRL
+  coordinates: {x: 538093.43531, y: -1389088.07448, z: 6180979.27785}
+- id: tll1
+  domes: 13630M001
+  name: Tallaght
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Ireland) [IE]
+  iso: IRL
+  coordinates: {x: 3797281.634, y: -423481.399, z: 5090130.069}
+- id: tlse
+  domes: 10003M009
+  name: Toulouse
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4627851.76384, y: 119640.10821, z: 4372993.60383}
+- id: toil
+  domes: 10605S001
+  name: Toila
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Estonia) [EE]
+  iso: EST
+  coordinates: {x: 2884257.554, y: 1503793.875, z: 5468067.728}
+- id: tor2
+  domes: 10602M001
+  name: Toravere
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Estonia) [EE]
+  iso: EST
+  coordinates: {x: 3010733.77, y: 1498576.64, z: 5401387.65}
+- id: tori
+  domes: 12724M002
+  name: Torino
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4472544.28228, y: 601634.43666, z: 4492545.25686}
+- id: trds
+  domes: 10331M001
+  name: Trondheim
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Norway) [NO]
+  iso: NOR
+  coordinates: {x: 2820170.8463, y: 513486.0537, z: 5678936.0033}
+- id: tro1
+  domes: 10302M006
+  name: Tromsoe
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Norway) [NO]
+  iso: NOR
+  coordinates: {x: 2102928.39322, y: 721619.50551, z: 5958196.29875}
+- id: tubo
+  domes: 11503M001
+  name: Brno
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Czech Republic) [CZ]
+  iso: CZE
+  coordinates: {x: 4001470.2626, y: 1192345.5588, z: 4805795.5226}
+- id: ucag
+  domes: 12702M003
+  name: Cagliari
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4885051.542, y: 783345.1761, z: 4012042.3101}
+- id: unpg
+  domes: 12752M001
+  name: Perugia
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4555145.66305, y: 997822.51597, z: 4337432.80194}
+- id: usal
+  domes: 19527M001
+  name: Lecce
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4627539.839, y: 1513540.017, z: 4106446.892}
+- id: uzhl
+  domes: 12301M001
+  name: Uzhgorod
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Ukraine) [UA]
+  iso: UKR
+  coordinates: {x: 3907587.36912, y: 1602428.77416, z: 4763783.79542}
+- id: vala
+  domes: 13463M002
+  name: Valladolid
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4753521.68, y: -391505.62, z: 4221500.53}
+- id: vale
+  domes: 13439M001
+  name: Valencia
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4929533.7745, y: -29050.30861, z: 4033710.21926}
+- id: vars
+  domes: 10322M002
+  name: Vardoe
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Norway) [NO]
+  iso: NOR
+  coordinates: {x: 1844607.2874, y: 1109719.214, z: 5983936.149}
+- id: ven1
+  domes: 19513M001
+  name: Venezia
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4379846.48548, y: 959292.34738, z: 4521100.41412}
+- id: vfch
+  domes: 10046M001
+  name: Villefranche-sur-Cher
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4331862.3855, y: 130055.4803, z: 4664121.8472}
+- id: vigo
+  domes: 13450M001
+  name: Vigo
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4677480.8459, y: -725204.71772, z: 4260827.47475}
+- id: vill
+  domes: 13406M001
+  name: Villafranca
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4849833.69528, y: -335049.02488, z: 4116014.93948}
+- id: vis0
+  domes: 10423M001
+  name: Visby
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Sweden) [SE]
+  iso: SWE
+  coordinates: {x: 3246470.2527, y: 1077900.5118, z: 5365278.1}
+- id: vlis
+  domes: 13538M001
+  name: Vlissingen
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Netherlands) [NL]
+  iso: NLD
+  coordinates: {x: 3975804.8984, y: 249950.38088, z: 4964446.35202}
+- id: ware
+  domes: 13114M001
+  name: Waremme
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4031947.1721, y: 370151.0538, z: 4911905.9906}
+- id: warn
+  domes: 14277M002
+  name: Warnemuende
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3658785.7984, y: 784470.875, z: 5147870.5849}
+- id: wroc
+  domes: 12217M001
+  name: WROCLAW
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Poland) [PL]
+  iso: POL
+  coordinates: {x: 3835751.3036, y: 1177249.9646, z: 4941605.2488}
+- id: wsrt
+  domes: 13506M005
+  name: Westerbork Synthesis R
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Netherlands) [NL]
+  iso: NLD
+  coordinates: {x: 3828735.7932, y: 443305.03614, z: 5064884.77268}
+- id: wtzr
+  domes: 14201M010
+  name: Wettzell / Germany
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4075580.46294, y: 931853.88145, z: 4801568.17344}
+- id: yebe
+  domes: 13420M001
+  name: Yebes
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4848724.65658, y: -261632.11394, z: 4123094.21316}
+- id: zara
+  domes: 13462M001
+  name: Zaragoza
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4773804.8946, y: -73506.9226, z: 4215455.3431}
+- id: zeck
+  domes: 12351M001
+  name: Zelenchukskaya / Russi
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Russian Federation) [RU]
+  iso: RUS
+  coordinates: {x: 3451174.59251, y: 3060335.50734, z: 4391955.6946}
+- id: zim2
+  domes: 14001M008
+  name: Zimmerwald
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Switzerland) [CH]
+  iso: CHE
+  coordinates: {x: 4331299.80372, y: 567537.41105, z: 4633133.77012}
+- id: zouf
+  domes: 12763M001
+  name: Cercivento
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: false
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4282710.0174, y: 986659.4709, z: 4609469.7941}
+- id: soda
+  domes: 10513M001
+  name: Sodankyla
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Finland) [FI]
+  iso: FIN
+  coordinates: {x: 2200146.6632, y: 1091638.37, z: 5866870.8075}
+- id: ldb2
+  domes: 14114M002
+  name: Lindenberg
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3798344.93, y: 955553.1, z: 5017221.77}
+- id: smne
+  domes: 10001M007
+  name: Saint Mande
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4201792.08, y: 177945.43, z: 4779286.87}
+- id: arlo
+  domes: ARLO00BEL
+  name: Arlo
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4116393.1678, y: 419517.19, z: 4838147.0967}
+- id: basc
+  domes: BASC00LUX
+  name: Bascharage
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4122555.2976, y: 428880.4115, z: 4832046.7403}
+- id: ech2
+  domes: ECH200LUX
+  name: Echternach
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4098761.1974, y: 462872.3223, z: 4848908.998}
+- id: erpl
+  domes: ERPL00LUX
+  name: Erpeldange
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4121181.9235, y: 456670.5441, z: 4830472.6487}
+- id: kbg2
+  domes: KBG200LUX
+  name: Kayl-Berghaus
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4116053.9254, y: 444201.598, z: 4836213.5377}
+- id: long
+  domes: LONG00FRA
+  name: Longwy
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4128280.7882, y: 417044.7656, z: 4828146.4065}
+- id: mabo
+  domes: MABO00BEL
+  name: Mabompre
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4081255.6407, y: 410189.1685, z: 4868500.7538}
+- id: merz
+  domes: MERZ00DEU
+  name: Merzig
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4127342.963, y: 480763.333, z: 4822954.84}
+- id: rode
+  domes: RODE00DEU
+  name: Rodenberg
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4084902.591, y: 443391.806, z: 4862653.512}
+- id: roul
+  domes: ROUL00LUX
+  name: Roullingen
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4090435.1354, y: 423990.8165, z: 4859729.4267}
+- id: thnv
+  domes: THNV00FRA
+  name: Thionville
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4137834.1229, y: 447345.2765, z: 4817173.8648}
+- id: tri2
+  domes: TRI200DEU
+  name: Trier
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4103810.549, y: 476146.251, z: 4843232.184}
+- id: tros
+  domes: TROS00LUX
+  name: Troisvierges
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4074899.3289, y: 428814.0533, z: 4872251.2627}
+- id: walf
+  domes: WALF00LUX
+  name: Walf
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 113440.8954, y: 441892.8968, z: 4838483.8188}
+- id: '0531'
+  domes: 053100XXX
+  name: '0531'
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Unknown) [XX]
+  iso: XXX
+  coordinates: {x: 4084903.1194, y: 443391.2666, z: 4862653.1057}
+- id: 0929
+  domes: 092900XXX
+  name: 0929
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Unknown) [XX]
+  iso: XXX
+  coordinates: {x: 4127343.5012, y: 480762.7876, z: 4822954.4384}
+- id: 0935
+  domes: 093500XXX
+  name: 0935
+  primary_net: EUREF
+  provider: EUREF
+  type: EUREF
+  use_nrt: true
+  country: (Unknown) [XX]
+  iso: XXX
+  coordinates: {x: 4125351.481, y: 466805.1774, z: 4826228.1743}

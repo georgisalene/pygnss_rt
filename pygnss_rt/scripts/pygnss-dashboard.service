@@ -1,0 +1,14 @@
+[Unit]
+Description=GNSS Quality Monitoring Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=ahunegnaw
+WorkingDirectory=/home/ahunegnaw/Python_IGNSS/i-GNSS/pygnss_rt
+ExecStart=/home/ahunegnaw/.local/bin/streamlit run frontend/dashboard.py --server.address 0.0.0.0 --server.port 8501 --server.headless true
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

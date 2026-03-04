@@ -1,0 +1,574 @@
+# Station configuration converted from IGS20gh.xml
+# Stations: 54
+#
+# Fields:
+#   id: 4-character station ID (lowercase)
+#   domes: DOMES number
+#   name: Full station name
+#   primary_net: Primary network (IGS20, core, etc.)
+#   type: Station type (core, core, OS active, etc.)
+#   use_nrt: NRT processing enabled (true/false)
+#   coordinates: ECEF coordinates (x, y, z in meters)
+
+metadata: {source_file: IGS20gh.xml, ref_epoch: '2015-01-01 00:00:00', datum: IGS20_0}
+stations:
+- id: abmf
+  domes: 97103M001
+  name: Aeroport du Raizet -LE
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Guadeloupe) [GP]
+  iso: FRA
+  coordinates: {x: 2919785.75385, y: -5383745.01048, z: 1774604.78666}
+- id: reso
+  domes: 40149M001
+  name: Resolute
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Canada) [CA]
+  iso: CAN
+  coordinates: {x: -144107.79762, y: -1683119.83609, z: 6129763.32501}
+- id: whit
+  domes: 40136M001
+  name: WHIT CACS-GSD
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Canada) [CA]
+  iso: CAN
+  coordinates: {x: -2218338.11779, y: -2201205.12455, z: 5543057.49315}
+- id: will
+  domes: 40134M001
+  name: Williams Lake
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Canada) [CA]
+  iso: CAN
+  coordinates: {x: -2084258.32021, y: -3313873.00179, z: 5019852.98749}
+- id: wind
+  domes: 31101M001
+  name: Windhoek
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Namibia) [NA]
+  iso: NAM
+  coordinates: {x: 5633708.78435, y: 1732017.92406, z: -2433985.5965}
+- id: wsrt
+  domes: 13506M005
+  name: Westerbork Synthesis R
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Netherlands) [NL]
+  iso: NLD
+  coordinates: {x: 3828735.71575, y: 443305.11755, z: 5064884.81623}
+- id: wtzr
+  domes: 14201M010
+  name: Wettzell / Germany
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4075580.39017, y: 931853.96842, z: 4801568.22935}
+- id: wuhn
+  domes: 21602M001
+  name: Wuhan
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (China) [CN]
+  iso: CHN
+  coordinates: {x: -2267749.78429, y: 5009154.26546, z: 3221290.64611}
+- id: xmis
+  domes: 50183M001
+  name: Christmas Island
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Australia) [AU]
+  iso: AUS
+  coordinates: {x: -1696344.54587, y: 6039590.01656, z: -1149275.35648}
+- id: yakt
+  domes: 12353M002
+  name: Seismic Station Yakuts
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Russian Federation) [RU]
+  iso: RUS
+  coordinates: {x: -2389026.38583, y: 5043317.02106, z: -3078529.82146}
+- id: yar2
+  domes: 50107M004
+  name: Yarragadee 2
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Australia) [AU]
+  iso: AUS
+  coordinates: {x: -2389026.38288, y: 5043317.01716, z: -3078529.81295}
+- id: yebe
+  domes: 13420M001
+  name: Yebes
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Spain) [ES]
+  iso: ESP
+  coordinates: {x: 4848724.6123, y: -261632.01668, z: 4123094.2756}
+- id: yell
+  domes: 40127M003
+  name: YELL CACS-GSD
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Canada) [CA]
+  iso: CAN
+  coordinates: {x: -1224452.87188, y: -2689216.18816, z: 5633638.28494}
+- id: yibl
+  domes: 25001M001
+  name: Yibal Oman
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Oman) [OM]
+  iso: OMN
+  coordinates: {x: 3294552.39901, y: 4905092.51736, z: 2393579.98036}
+- id: yssk
+  domes: 12329M003
+  name: Yuzhno-Sakhalinsk
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Russian Federation) [RU]
+  iso: RUS
+  coordinates: {x: -3465321.07865, y: 2638269.33179, z: 4644085.34811}
+- id: zamb
+  domes: 34601M001
+  name: Lusaka, Zambia
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Zambia) [ZM]
+  iso: ZMB
+  coordinates: {x: 5415352.97452, y: 2917210.09665, z: -1685888.69442}
+- id: zeck
+  domes: 12351M001
+  name: Zelenchukskaya / Russi
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Russian Federation) [RU]
+  iso: RUS
+  coordinates: {x: 3451174.48401, y: 3060335.58017, z: 4391955.73862}
+- id: zim2
+  domes: 14001M008
+  name: Zimmerwald
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Switzerland) [CH]
+  iso: CHE
+  coordinates: {x: 4331299.74061, y: 567537.50138, z: 4633133.83227}
+- id: zimm
+  domes: 14001M004
+  name: Zimmerwald L+T 88
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Switzerland) [CH]
+  iso: CHE
+  coordinates: {x: 4331296.92975, y: 567556.05813, z: 4633134.05193}
+- id: arlo
+  domes: ARLO00BEL
+  name: Arlo
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4116393.1678, y: 419517.19, z: 4838147.0967}
+- id: arl0
+  domes: ARLO00BEL
+  name: Arl0
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4116393.1678, y: 419517.19, z: 4838147.0967}
+- id: basc
+  domes: BASC00LUX
+  name: Basc
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4122555.2976, y: 428880.4115, z: 4832046.7403}
+- id: ech2
+  domes: ECH200LUX
+  name: Ech2
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4098761.1974, y: 462872.3223, z: 4848908.998}
+- id: erpl
+  domes: ERPL00LUX
+  name: Erpl
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4121181.9235, y: 456670.5441, z: 4830472.6487}
+- id: kbg2
+  domes: KBG200LUX
+  name: Kbg2
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4116053.9254, y: 444201.598, z: 4836213.5377}
+- id: long
+  domes: LONG00FRA
+  name: Long
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4128280.7882, y: 417044.7656, z: 4828146.4065}
+- id: mabo
+  domes: MABO00BEL
+  name: Mabo
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4081255.6407, y: 410189.1685, z: 4868500.7538}
+- id: mab0
+  domes: MABO00BEL
+  name: Mab0
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4081255.6407, y: 410189.1685, z: 4868500.7538}
+- id: 0929
+  domes: MERZ00DEU
+  name: Merz
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4127342.963, y: 480763.333, z: 4822954.84}
+- id: rode
+  domes: RODE00DEU
+  name: Rode
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4084902.591, y: 443391.806, z: 4862653.512}
+- id: roul
+  domes: ROUL00LUX
+  name: Roul
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4090435.1354, y: 423990.8165, z: 4859729.4267}
+- id: thnv
+  domes: THNV00FRA
+  name: Thnv
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4137834.1229, y: 447345.2765, z: 4817173.8648}
+- id: tri2
+  domes: TRI200DEU
+  name: Tri2
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4103810.549, y: 476146.251, z: 4843232.184}
+- id: tros
+  domes: TROS00LUX
+  name: Tros
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 4074899.3289, y: 428814.0533, z: 4872251.2627}
+- id: walf
+  domes: WALF00LUX
+  name: Walf
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Luxembourg) [LU]
+  iso: LUX
+  coordinates: {x: 113440.8954, y: 441892.8968, z: 4838483.8188}
+- id: 0935
+  domes: 093500DEU
+  name: 0935
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4125351.481, y: 466805.1774, z: 4826228.1743}
+- id: '0531'
+  domes: 053100DEU
+  name: '0531'
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4084903.1194, y: 443391.2666, z: 4862653.1057}
+- id: brst
+  domes: BRST00FRA
+  name: Brst
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4231162.779, y: -332746.923, z: 4745130.681}
+- id: brux
+  domes: BRUX00BEL
+  name: Brux
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Belgium) [BE]
+  iso: BEL
+  coordinates: {x: 4027881.8468, y: 306998.261, z: 4919498.6524}
+- id: dare
+  domes: DARE00GBR
+  name: Dare
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 3811965.6105, y: -175800.068, z: 5093615.4804}
+- id: entz
+  domes: ENTZ00FRA
+  name: Entz
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4192710.723, y: 562398.961, z: 4757685.767}
+- id: eusk
+  domes: EUSK00DEU
+  name: Eusk
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 4022106.5, y: 477010.9, z: 4910840.5}
+- id: gras
+  domes: GRAS00FRA
+  name: Gras
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4581691.1573, y: 556114.5747, z: 4389360.5596}
+- id: graz
+  domes: GRAZ00AUT
+  name: Graz
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Austria) [AT]
+  iso: AUT
+  coordinates: {x: 4194424.124, y: 1162702.4605, z: 4647245.193}
+- id: hers
+  domes: HERS00GBR
+  name: Hers
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (United Kingdom) [GB]
+  iso: GBR
+  coordinates: {x: 4033470.2939, y: 23672.7, z: 4924301.1926}
+- id: joze
+  domes: JOZE00POL
+  name: Joze
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Poland) [PL]
+  iso: POL
+  coordinates: {x: 3664939.6857, y: 1409153.9908, z: 5009571.1962}
+- id: lroc
+  domes: LROC00FRA
+  name: Lroc
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4424632.789, y: -94175.482, z: 4577543.851}
+- id: mar6
+  domes: MAR600SWE
+  name: Mar6
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Sweden) [SE]
+  iso: SWE
+  coordinates: {x: 2998189.714, y: 931451.5922, z: 5533398.4755}
+- id: mate
+  domes: MATE00ITA
+  name: Mate
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Italy) [IT]
+  iso: ITA
+  coordinates: {x: 4641949.8142, y: 1393045.1637, z: 4133287.2808}
+- id: mlvl
+  domes: MLVL00FRA
+  name: Mlvl
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4201577.208, y: 189859.858, z: 4779064.558}
+- id: onsa
+  domes: ONSA00SWE
+  name: Onsa
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Sweden) [SE]
+  iso: SWE
+  coordinates: {x: 3370658.8291, y: 711876.9374, z: 5349786.7382}
+- id: pots
+  domes: POTS00DEU
+  name: Pots
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3800689.6341, y: 882077.3857, z: 5028791.3179}
+- id: stas
+  domes: STAS00NOR
+  name: Stas
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Norway) [NO]
+  iso: NOR
+  coordinates: {x: 3275753.9094, y: 321110.8626, z: 5445041.8817}
+- id: tlse
+  domes: TLSE00FRA
+  name: Tlse
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (France) [FR]
+  iso: FRA
+  coordinates: {x: 4627852.064, y: 119639.7555, z: 4372993.3168}
+- id: warn
+  domes: WARN00DEU
+  name: Warn
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Germany) [DE]
+  iso: DEU
+  coordinates: {x: 3658785.6, y: 784471.1, z: 5147870.7}
+- id: bor1
+  domes: BOR100POL
+  name: Bor1
+  primary_net: IGS20
+  provider: IGS
+  type: core
+  use_nrt: true
+  country: (Poland) [PL]
+  iso: POL
+  coordinates: {x: 3738358.5958, y: 1148173.5785, z: 5021815.7483}

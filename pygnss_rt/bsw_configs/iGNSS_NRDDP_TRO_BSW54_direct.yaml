@@ -683,8 +683,8 @@ bern_options:
       TROPOS: GPT3
       STAFIX: ''
       IUSFLG: '0'
-      MINEL: '5'
-      MINELEO: '0'
+      MINEL: '10'
+      MINELEO: '3'
       MNCONT: '301'
       MXHOLE: '61'
       IPRNT1: SUMMARY
@@ -1457,7 +1457,7 @@ bern_options:
       ELVWGT: COSZ
       NORRES: NORMALIZED
       CORREL: BASELINE
-      MINELEO: '0'
+      MINELEO: '3'
       LEOEDW: NONE
       RADIO1_1: '1'
       SESSION_YEAR1: $Y+0
@@ -2162,7 +2162,7 @@ bern_options:
       ELVWGT: COSZ
       NORRES: NORMALIZED
       CORREL: BASELINE
-      MINELEO: '0'
+      MINELEO: '3'
       LEOEDW: NONE
       RADIO1_1: '1'
       SESSION_YEAR1: $Y+0
@@ -2797,7 +2797,7 @@ bern_options:
       ELVWGT: COSZ
       NORRES: NORMALIZED
       CORREL: BASELINE
-      MINELEO: '0'
+      MINELEO: '3'
       LEOEDW: NONE
       RADIO1_1: '1'
       SESSION_YEAR1: $Y+0
@@ -3432,7 +3432,7 @@ bern_options:
       ELVWGT: COSZ
       NORRES: NORMALIZED
       CORREL: BASELINE
-      MINELEO: '0'
+      MINELEO: '3'
       LEOEDW: NONE
       RADIO1_1: '1'
       SESSION_YEAR1: $Y+0
@@ -4104,7 +4104,7 @@ bern_options:
       ELVWGT: COSZ
       NORRES: NORMALIZED
       CORREL: BASELINE
-      MINELEO: '0'
+      MINELEO: '3'
       LEOEDW: NONE
       RADIO1_1: '1'
       SESSION_YEAR1: $Y+0
@@ -4735,7 +4735,7 @@ bern_options:
       ELVWGT: COSZ
       NORRES: NORMALIZED
       CORREL: BASELINE
-      MINELEO: '0'
+      MINELEO: '3'
       LEOEDW: NONE
       RADIO1_1: '1'
       SESSION_YEAR1: $Y+0

@@ -38,6 +38,7 @@ except ImportError:
 from pygnss_rt.frontend.db_models import QualityDatabase
 from pygnss_rt.frontend.bernese_parser import find_ig_campaign_dir
 from pygnss_rt.frontend.config import DB_PATH, DASHBOARD_CONFIG, MONITORED_STATIONS
+from pygnss_rt.frontend.gfz_loading_parser import get_combined_loading, get_available_dates
 from code_tro_parser import parse_code_tro_file, download_code_tro, get_code_ztd_for_station
 from code_snx_parser import parse_code_snx_file, download_code_snx, get_code_coords_for_station, compute_enu_diff
 from dd_crd_parser import parse_dd_crd_file, get_dd_coords_for_station, compute_enu_diff_dd
@@ -645,6 +646,18 @@ def cached_get_stats(year: int, limit: int = 5000) -> list:
     db = get_database()
     return db.get_stats(year=year, limit=limit)
 
+
+@st.cache_data(ttl=300, show_spinner=False)
+def cached_get_available_years() -> list[int]:
+    """Get years with data in the database (cached for 5 minutes)"""
+    db = get_database()
+    return db.get_available_years()
+
+@st.cache_data(ttl=300, show_spinner=False)
+def cached_get_doy_range(year: int) -> tuple[int, int]:
+    """Get DOY range for a year (cached for 5 minutes)"""
+    db = get_database()
+    return db.get_doy_range(year)
 
 @st.cache_data(ttl=300, show_spinner=False)
 def cached_get_solutions(station_id: str, year: int, start_doy: int, end_doy: int) -> list:
@@ -1469,43 +1482,168 @@ def main():
 
         st.divider()
 
-        # Page Navigation
-        st.markdown('<p style="color: #4ECDC4; font-weight: 600; font-size: 0.9rem; margin-bottom: 10px;">NAVIGATION</p>', unsafe_allow_html=True)
-        page_options = {
-            "📊 Overview": 0,
-            "📈 Coordinate Repeatability": 1,
-            "📉 RMS Analysis": 2,
-            "🌡️ ZTD Monitor": 3,
-            "🎯 Ambiguity Resolution": 4,
-            "🛰️ Satellite Tracking": 5,
-            "⚙️ Processing Stats": 6,
-            "🔗 Sat. Ambiguity PRN": 7,
-            "📡 Obs. Residuals": 8,
-            "📶 Data Availability": 9,
-            "🚫 Outlier Statistics": 10,
-            "🌬️ Trop. Gradients": 11,
-            "⏱️ Receiver Clocks": 12,
-            "📊 Station Completeness": 13,
+        # Page Navigation - single selectbox with all pages grouped by category
+        st.markdown('<p style="color: #4ECDC4; font-weight: 600; font-size: 0.9rem; margin-bottom: 5px;">NAVIGATION</p>', unsafe_allow_html=True)
+
+        # All pages in display order with category separators
+        all_pages = [
+            "--- Overview & Coordinates ---",
+            "📊 Overview",
+            "📈 Coordinate Repeatability",
+            "📊 Repeatability (DD)",
+            "📉 RMS Analysis",
+            "🔥 Repeatability Heatmap",
+            "--- Troposphere ---",
+            "🌡️ ZTD Monitor",
+            "🌬️ Trop. Gradients",
+            "--- Ambiguity Resolution ---",
+            "🎯 Ambiguity Resolution (DD)",
+            "🎯 Ambiguity Resolution (PPP-AR)",
+            "🔗 Sat. Ambiguity PRN",
+            "📐 Baseline (DD)",
+            "--- Satellites & Tracking ---",
+            "🛰️ Satellite Tracking",
+            "📶 Data Availability",
+            "🛰️ Satellite Residuals",
+            "📡 Obs. Residuals",
+            "--- Station & Data Quality ---",
+            "⚙️ Processing Stats",
+            "🚫 Outlier Statistics",
+            "🔬 Observation Quality",
+            "📊 Station Completeness",
+            "⏱️ Receiver Clocks",
+            "🏔️ Station Elevation",
+            "🌊 Ocean Loading",
+            "--- Network & Comparison ---",
+            "🗺️ PPP-DD Vectors",
+            "📦 Network Comparison",
+            "🔗 Station Correlation",
+            "📈 DD Multi-DOY",
+            "🌍 NGL/CODE External TS",
+            "--- Advanced Analysis ---",
+            "🎬 Time Evolution",
+            "🤖 ML Quality Control",
+        ]
+
+        # Separate actual pages from category headers
+        selectable_pages = [p for p in all_pages if not p.startswith("---")]
+
+        # Custom CSS to style category headers in the radio group
+        st.markdown("""
+        <style>
+        /* Make sidebar radio labels more compact */
+        div[data-testid="stSidebar"] .stRadio > div {
+            gap: 0px;
         }
-        selected_page = st.selectbox(
-            "Jump to page",
-            options=list(page_options.keys()),
-            index=0,
-            key='page_nav'
-        )
+        div[data-testid="stSidebar"] .stRadio label {
+            padding: 2px 0px;
+            font-size: 0.85rem;
+        }
+        /* Style category headers displayed via markdown */
+        .nav-category {
+            color: #4ECDC4;
+            font-weight: 700;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            margin-bottom: 2px;
+            padding: 4px 0px;
+            border-bottom: 1px solid rgba(78, 205, 196, 0.3);
+        }
+        .nav-category:first-child {
+            margin-top: 0px;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # Render grouped navigation with category headers + radio
+        if 'selected_page' not in st.session_state:
+            st.session_state['selected_page'] = '📊 Overview'
+
+        # Build navigation using category headers and radio buttons per group
+        nav_groups = {
+            "OVERVIEW & COORDINATES": [
+                "📊 Overview",
+                "📈 Coordinate Repeatability",
+                "📊 Repeatability (DD)",
+                "📉 RMS Analysis",
+                "🔥 Repeatability Heatmap",
+            ],
+            "TROPOSPHERE": [
+                "🌡️ ZTD Monitor",
+                "🌬️ Trop. Gradients",
+            ],
+            "AMBIGUITY RESOLUTION": [
+                "🎯 Ambiguity Resolution (DD)",
+                "🎯 Ambiguity Resolution (PPP-AR)",
+                "🔗 Sat. Ambiguity PRN",
+                "📐 Baseline (DD)",
+            ],
+            "SATELLITES & TRACKING": [
+                "🛰️ Satellite Tracking",
+                "📶 Data Availability",
+                "🛰️ Satellite Residuals",
+                "📡 Obs. Residuals",
+            ],
+            "STATION & DATA QUALITY": [
+                "⚙️ Processing Stats",
+                "🚫 Outlier Statistics",
+                "🔬 Observation Quality",
+                "📊 Station Completeness",
+                "⏱️ Receiver Clocks",
+                "🏔️ Station Elevation",
+                "🌊 Ocean Loading",
+            ],
+            "NETWORK & COMPARISON": [
+                "🗺️ PPP-DD Vectors",
+                "📦 Network Comparison",
+                "🔗 Station Correlation",
+                "📈 DD Multi-DOY",
+                "🌍 NGL/CODE External TS",
+            ],
+            "ADVANCED ANALYSIS": [
+                "🎬 Time Evolution",
+                "🤖 ML Quality Control",
+                "🌐 NTAL/NTOL Loading",
+            ],
+        }
+
+        current_page = st.session_state.get('selected_page', '📊 Overview')
+
+        for group_name, pages in nav_groups.items():
+            st.markdown(f'<div class="nav-category">{group_name}</div>', unsafe_allow_html=True)
+            for page in pages:
+                is_active = (page == current_page)
+                btn_type = "primary" if is_active else "secondary"
+                if st.button(page, key=f"nav_{page}", use_container_width=True, type=btn_type):
+                    st.session_state['selected_page'] = page
+                    st.rerun()
+
+        selected_page = st.session_state.get('selected_page', '📊 Overview')
 
         st.divider()
 
         # Date range selection
         st.markdown('<p style="color: #6366F1; font-weight: 600; font-size: 0.9rem; margin-bottom: 10px;">DATE RANGE</p>', unsafe_allow_html=True)
         current_year = datetime.now().year
-        year = st.selectbox("Year", range(current_year, 2020, -1), index=0)
+        # Build year list: include DB years plus current year, sorted descending
+        db_years = cached_get_available_years()
+        all_years = sorted(set(db_years + [current_year]), reverse=True)
+        # Default to the most recent year that has data
+        default_year_idx = 0
+        if db_years and db_years[0] in all_years:
+            default_year_idx = all_years.index(db_years[0])
+        year = st.selectbox("Year", all_years, index=default_year_idx)
+
+        # Get DOY range from database for selected year
+        db_min_doy, db_max_doy = cached_get_doy_range(year)
 
         col1, col2 = st.columns(2)
         with col1:
-            start_doy = st.number_input("Start DOY", min_value=1, max_value=366, value=290)
+            start_doy = st.number_input("Start DOY", min_value=1, max_value=366, value=db_min_doy)
         with col2:
-            end_doy = st.number_input("End DOY", min_value=1, max_value=366, value=300)
+            end_doy = st.number_input("End DOY", min_value=1, max_value=366, value=db_max_doy)
 
         st.divider()
 
@@ -1538,44 +1676,11 @@ def main():
     try:
         db = get_database()
 
-        # Scroll hint for tabs
-        st.markdown('<p style="text-align: right; font-size: 12px; color: #00d4ff; margin-bottom: -10px;">Scroll tabs right for more options (Obs. Quality, Trop. Gradients, Receiver Clocks, Ocean Loading, ML Quality Control) →</p>', unsafe_allow_html=True)
+        # Page routing based on sidebar selection
+        # (replaces horizontal tabs with sidebar navigation)
 
-        # Create tabs
-        tab1, tab2, tab2b, tab3, tab4, tab5, tab5b, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17, tab18, tab19, tab20, tab21, tab22, tab23, tab24, tab25, tab26, tab27 = st.tabs([
-            "📊 Overview",
-            "📈 Coordinate Repeatability",
-            "📊 Repeatability (DD)",
-            "📉 RMS Analysis",
-            "🌡️ ZTD Monitor",
-            "🎯 Ambiguity Resolution (DD)",
-            "🎯 Ambiguity Resolution (PPP-AR)",
-            "🛰️ Satellite Tracking",
-            "⚙️ Processing Stats",
-            "🔗 Sat. Ambiguity PRN",
-            "📡 Obs. Residuals",
-            "📶 Data Availability",
-            "🚫 Outlier Statistics",
-            "🔬 Observation Quality",
-            "🌬️ Trop. Gradients",
-            "⏱️ Receiver Clocks",
-            "📊 Station Completeness",
-            "🌊 Ocean Loading",
-            "🏔️ Station Elevation",
-            "🤖 ML Quality Control",
-            "🗺️ PPP-DD Vectors",
-            "🔥 Repeatability Heatmap",
-            "📦 Network Comparison",
-            "🎬 Time Evolution",
-            "🔗 Station Correlation",
-            "📐 Baseline (DD)",
-            "📈 DD Multi-DOY",
-            "🛰️ Satellite Residuals",
-            "🌍 NGL/CODE External TS"
-        ])
-
-        # TAB 1: Overview
-        with tab1:
+        # PAGE: Overview
+        if selected_page == "📊 Overview":
             st.header("Processing Overview")
 
             # Get latest processing results (cached)
@@ -1868,7 +1973,7 @@ def main():
                 st.info("No data available. Run the parser to populate the database.")
 
         # TAB 2: Coordinate Repeatability
-        with tab2:
+        elif selected_page == "📈 Coordinate Repeatability":
             st.header("Coordinate Repeatability Analysis")
 
             if available_stations:
@@ -2133,11 +2238,29 @@ def main():
                     if failed_coord_doys:
                         st.warning(f"Could not load CODE coordinates for {len(failed_coord_doys)} days: {failed_coord_doys[:5]}{'...' if len(failed_coord_doys) > 5 else ''}")
 
-                    if all_code_coords and ts_stations:
+                    if all_code_coords:
+                        # Find stations that exist in both local data and CODE products
+                        code_station_set = set()
+                        for doy_coords in all_code_coords.values():
+                            for coord in doy_coords:
+                                code_station_set.add(coord.station_4char)
+                        common_stations = sorted([s for s in available_stations if s.upper() in code_station_set])
+
+                        if common_stations:
+                            code_compare_stations = st.multiselect(
+                                "Stations to compare with CODE (only showing stations present in CODE solutions)",
+                                options=common_stations,
+                                default=common_stations,
+                                key='code_compare_stations'
+                            )
+                        else:
+                            code_compare_stations = []
+                            st.warning("None of your local stations are present in CODE SINEX solutions.")
+
                         # Build comparison data
                         comparison_data = []
 
-                        for station in ts_stations:
+                        for station in code_compare_stations:
                             station_df = df[df['station_id'] == station]
 
                             for _, row in station_df.iterrows():
@@ -2363,7 +2486,7 @@ def main():
 
                         else:
                             st.info("No matching stations found between local data and CODE products.")
-                    elif not all_code_coords:
+                    else:
                         st.info("No CODE coordinate products loaded. Check if products are available for the selected dates.")
 
                     # ========================================
@@ -2606,7 +2729,7 @@ def main():
                 st.warning("Please select at least one station.")
 
         # TAB 2B: Repeatability (DD) - Helmert Transformation Results
-        with tab2b:
+        elif selected_page == "📊 Repeatability (DD)":
             st.header("Helmert Transformation Repeatability (DD)")
             st.markdown("""
             **Double Difference Repeatability Analysis** - Analyzing coordinate residuals from Helmert transformation
@@ -3201,7 +3324,7 @@ def main():
                 """)
 
         # TAB 3: RMS Analysis
-        with tab3:
+        elif selected_page == "📉 RMS Analysis":
             st.header("RMS Residual Analysis")
 
             # Get processing stats for ALL available stations
@@ -3298,7 +3421,7 @@ def main():
                 st.info("No processing statistics available.")
 
         # TAB 4: ZTD Monitor
-        with tab4:
+        elif selected_page == "🌡️ ZTD Monitor":
             st.header("Zenith Total Delay (ZTD) & Gradients Monitor")
             st.markdown("PPP-AR Troposphere estimates from TRO SINEX files: ZTD (TROTOT), North Gradient (TGNTOT), East Gradient (TGETOT)")
 
@@ -4417,7 +4540,7 @@ def main():
                 st.warning("Please select at least one station.")
 
         # TAB 5: Ambiguity Resolution (DD)
-        with tab5:
+        elif selected_page == "🎯 Ambiguity Resolution (DD)":
             st.header("DD Ambiguity Resolution Statistics")
             st.markdown("Double Difference ambiguity resolution from Bernese AMB files: WL (Widelane), NL (Narrowlane), L5 (Phase-Based)")
 
@@ -5343,7 +5466,7 @@ def main():
                 st.info("Expected path pattern: `/home/ahunegnaw/GPSRESULTS/ahunegnaw/OCT2025_MGX/{year}/{doy}/OUT/AMB_{year}{doy}0.SUM.gz`")
 
         # TAB 5b: Ambiguity Resolution (PPP-AR)
-        with tab5b:
+        elif selected_page == "🎯 Ambiguity Resolution (PPP-AR)":
             st.header("PPP Ambiguity Resolution Statistics")
             st.markdown("Precise Point Positioning with Ambiguity Resolution (PPP-AR) using external bias products")
 
@@ -5569,7 +5692,7 @@ def main():
                 """)
 
         # TAB 6: Satellite Tracking
-        with tab6:
+        elif selected_page == "🛰️ Satellite Tracking":
             st.header("Satellite Tracking Statistics")
             st.markdown("GPS (PRN 1-32), GLONASS (PRN 101-128), Galileo (PRN 201-236)")
 
@@ -5689,7 +5812,7 @@ def main():
         # ═══════════════════════════════════════════════════════════════════════════════
         # TAB 7: Processing Statistics
         # ═══════════════════════════════════════════════════════════════════════════════
-        with tab7:
+        elif selected_page == "⚙️ Processing Stats":
             st.header("Processing Statistics")
             st.markdown("**A posteriori RMS, Chi²/DOF, and observation statistics from GPSEST**")
 
@@ -5891,7 +6014,7 @@ def main():
         # ==========================================
         # TAB 8: Satellite-wise Ambiguity PRN
         # ==========================================
-        with tab8:
+        elif selected_page == "🔗 Sat. Ambiguity PRN":
             st.header("Satellite-wise Ambiguity Resolution by PRN")
             st.markdown("""
             Per-satellite ambiguity resolution statistics showing L1/L2 and L5 resolution rates for each PRN.
@@ -6081,7 +6204,7 @@ def main():
         # ==========================================
         # TAB 9: Observation Residuals
         # ==========================================
-        with tab9:
+        elif selected_page == "📡 Obs. Residuals":
             st.header("Observation Residuals by Station & Satellite")
             st.markdown("""
             Per-station, per-satellite observation residual RMS from GPSEST processing (EDL_*.SUM files).
@@ -6223,7 +6346,7 @@ def main():
         # ==========================================
         # TAB 10: Data Availability
         # ==========================================
-        with tab10:
+        elif selected_page == "📶 Data Availability":
             st.header("Satellite Data Availability")
             st.markdown("""
             Satellite observation statistics from RESCHK (CHK_*.SUM files).
@@ -6358,7 +6481,7 @@ def main():
         # ==========================================
         # TAB 11: Outlier Statistics
         # ==========================================
-        with tab11:
+        elif selected_page == "🚫 Outlier Statistics":
             st.header("Outlier Rejection Statistics")
             st.markdown("""
             Comparison of observations **before** and **after** outlier rejection from RESCHK.
@@ -6536,7 +6659,7 @@ def main():
         # ==================================
         # TAB 12: OBSERVATION QUALITY
         # ==================================
-        with tab12:
+        elif selected_page == "🔬 Observation Quality":
             st.header("Observation Quality Analysis")
             st.markdown("""
             Comprehensive GNSS observation quality metrics:
@@ -6652,10 +6775,10 @@ def main():
                 st.divider()
 
                 # ============================================
-                # Section 2: RINEX QC Metrics (MP, SNR, Cycle Slips)
+                # Section 2: Observation Quality Metrics (from Bernese MAUPRP)
                 # ============================================
-                st.subheader("RINEX QC Metrics")
-                st.markdown("*Multipath, SNR, and Cycle Slip metrics from RINEX quality checking*")
+                st.subheader("Observation Quality Metrics")
+                st.markdown("*Observation counts, cycle slips, and RMS from Bernese MAUPRP preprocessing (MPR\\_\\*.SUM)*")
 
                 # Try to get observation quality data
                 obs_quality = cached_get_observation_quality(year=year, doy=obsq_doy)
@@ -6666,101 +6789,63 @@ def main():
                     # Summary metrics
                     col1, col2, col3, col4 = st.columns(4)
                     with col1:
-                        mean_mp1 = df_obsq['mp1'].mean() if 'mp1' in df_obsq and df_obsq['mp1'].notna().any() else None
-                        if mean_mp1 is not None:
-                            st.metric("Mean MP1", f"{mean_mp1:.3f} m",
-                                     delta=f"{'Good' if mean_mp1 < 0.5 else 'Check'}")
-                        else:
-                            st.metric("Mean MP1", "N/A")
+                        n_stations = len(df_obsq)
+                        st.metric("Stations Processed", f"{n_stations}")
                     with col2:
-                        mean_mp2 = df_obsq['mp2'].mean() if 'mp2' in df_obsq and df_obsq['mp2'].notna().any() else None
-                        if mean_mp2 is not None:
-                            st.metric("Mean MP2", f"{mean_mp2:.3f} m",
-                                     delta=f"{'Good' if mean_mp2 < 0.5 else 'Check'}")
-                        else:
-                            st.metric("Mean MP2", "N/A")
+                        total_obs = df_obsq['total_observations'].sum() if 'total_observations' in df_obsq else 0
+                        st.metric("Total Observations", f"{total_obs:,}")
                     with col3:
-                        mean_snr = df_obsq['snr_l1'].mean() if 'snr_l1' in df_obsq and df_obsq['snr_l1'].notna().any() else None
-                        if mean_snr is not None:
-                            st.metric("Mean SNR (L1)", f"{mean_snr:.1f} dB-Hz",
-                                     delta=f"{'Good' if mean_snr > 35 else 'Low'}")
-                        else:
-                            st.metric("Mean SNR (L1)", "N/A")
-                    with col4:
                         total_slips = df_obsq['cycle_slips'].sum() if 'cycle_slips' in df_obsq else 0
                         st.metric("Total Cycle Slips", f"{total_slips:,}")
+                    with col4:
+                        n_excellent = len(df_obsq[df_obsq['quality_level'] == 'EXCELLENT']) if 'quality_level' in df_obsq else 0
+                        n_good = len(df_obsq[df_obsq['quality_level'] == 'GOOD']) if 'quality_level' in df_obsq else 0
+                        st.metric("Excellent + Good", f"{n_excellent + n_good} / {n_stations}")
 
-                    # Row 1: Multipath indicators
+                    # Row 1: Observation counts and quality
                     col1, col2 = st.columns(2)
 
                     with col1:
-                        # MP1/MP2 bar chart per station
-                        if 'mp1' in df_obsq.columns and 'mp2' in df_obsq.columns:
-                            mp_data = df_obsq[['station_id', 'mp1', 'mp2']].dropna()
-                            if len(mp_data) > 0:
-                                fig_mp = go.Figure()
-                                fig_mp.add_trace(go.Bar(
-                                    name='MP1 (L1)',
-                                    x=mp_data['station_id'],
-                                    y=mp_data['mp1'],
-                                    marker_color='#00d4ff'
-                                ))
-                                fig_mp.add_trace(go.Bar(
-                                    name='MP2 (L2)',
-                                    x=mp_data['station_id'],
-                                    y=mp_data['mp2'],
-                                    marker_color='#ff6b6b'
-                                ))
-                                fig_mp.update_layout(
-                                    title='Multipath Indicators by Station',
-                                    xaxis_title='Station',
-                                    yaxis_title='Multipath (m)',
-                                    barmode='group'
-                                )
-                                fig_mp.add_hline(y=0.5, line_dash="dash", line_color="#ffa502",
-                                                annotation_text="0.5m threshold")
-                                apply_colorful_style(fig_mp)
-                                st.plotly_chart(fig_mp, use_container_width=True)
-                            else:
-                                st.info("No multipath data available")
+                        # Observation count per station
+                        if 'total_observations' in df_obsq.columns:
+                            obs_data = df_obsq[['station_id', 'total_observations']].sort_values('total_observations')
+                            fig_obs = px.bar(
+                                obs_data,
+                                x='station_id',
+                                y='total_observations',
+                                color='total_observations',
+                                color_continuous_scale='Viridis',
+                                title='Total Observations by Station (MAUPRP)',
+                                labels={'total_observations': 'Observations', 'station_id': 'Station'}
+                            )
+                            median_obs = obs_data['total_observations'].median()
+                            fig_obs.add_hline(y=median_obs, line_dash="dash", line_color="#ffa502",
+                                            annotation_text=f"Median: {median_obs:,.0f}")
+                            apply_colorful_style(fig_obs)
+                            st.plotly_chart(fig_obs, use_container_width=True)
                         else:
-                            st.info("MP1/MP2 columns not found in data")
+                            st.info("No observation count data available")
 
                     with col2:
-                        # SNR bar chart
-                        if 'snr_l1' in df_obsq.columns and 'snr_l2' in df_obsq.columns:
-                            snr_data = df_obsq[['station_id', 'snr_l1', 'snr_l2']].dropna()
-                            if len(snr_data) > 0:
-                                fig_snr = go.Figure()
-                                fig_snr.add_trace(go.Bar(
-                                    name='SNR L1',
-                                    x=snr_data['station_id'],
-                                    y=snr_data['snr_l1'],
-                                    marker_color='#4ecdc4'
-                                ))
-                                fig_snr.add_trace(go.Bar(
-                                    name='SNR L2',
-                                    x=snr_data['station_id'],
-                                    y=snr_data['snr_l2'],
-                                    marker_color='#ffe66d'
-                                ))
-                                fig_snr.update_layout(
-                                    title='Signal-to-Noise Ratio by Station',
-                                    xaxis_title='Station',
-                                    yaxis_title='SNR (dB-Hz)',
-                                    barmode='group'
-                                )
-                                fig_snr.add_hline(y=35, line_dash="dash", line_color="#26de81",
-                                                annotation_text="35 dB-Hz good threshold")
-                                apply_colorful_style(fig_snr)
-                                st.plotly_chart(fig_snr, use_container_width=True)
-                            else:
-                                st.info("No SNR data available")
+                        # Quality level distribution pie chart
+                        if 'quality_level' in df_obsq.columns:
+                            quality_counts = df_obsq['quality_level'].value_counts()
+                            quality_colors = {'EXCELLENT': '#26de81', 'GOOD': '#4ecdc4',
+                                            'ACCEPTABLE': '#ffa502', 'POOR': '#ff4757'}
+                            fig_qual = px.pie(
+                                values=quality_counts.values,
+                                names=quality_counts.index,
+                                title='Station Quality Distribution',
+                                color=quality_counts.index,
+                                color_discrete_map=quality_colors
+                            )
+                            apply_colorful_style(fig_qual)
+                            st.plotly_chart(fig_qual, use_container_width=True)
                         else:
-                            st.info("SNR columns not found in data")
+                            st.info("No quality level data available")
 
-                    # Row 2: Cycle slips
-                    st.markdown("**Cycle Slip Analysis**")
+                    # Row 2: Cycle slips and deleted observations
+                    st.markdown("**Cycle Slip & Editing Analysis**")
                     col1, col2 = st.columns(2)
 
                     with col1:
@@ -6785,49 +6870,38 @@ def main():
                             st.info("Cycle slip rate not available")
 
                     with col2:
-                        # Quality level distribution
-                        if 'quality_level' in df_obsq.columns:
-                            quality_counts = df_obsq['quality_level'].value_counts()
-                            quality_colors = {'EXCELLENT': '#26de81', 'GOOD': '#4ecdc4',
-                                            'ACCEPTABLE': '#ffa502', 'POOR': '#ff4757'}
-                            fig_qual = px.pie(
-                                values=quality_counts.values,
-                                names=quality_counts.index,
-                                title='Station Quality Distribution',
-                                color=quality_counts.index,
-                                color_discrete_map=quality_colors
+                        # Cycle slips absolute count per station
+                        if 'cycle_slips' in df_obsq.columns:
+                            slip_abs = df_obsq[['station_id', 'cycle_slips']].sort_values('cycle_slips', ascending=False)
+                            fig_slip_abs = px.bar(
+                                slip_abs,
+                                x='station_id',
+                                y='cycle_slips',
+                                color='cycle_slips',
+                                color_continuous_scale='RdYlGn_r',
+                                title='Total Cycle Slips by Station',
+                                labels={'cycle_slips': 'Cycle Slips', 'station_id': 'Station'}
                             )
-                            apply_colorful_style(fig_qual)
-                            st.plotly_chart(fig_qual, use_container_width=True)
+                            apply_colorful_style(fig_slip_abs)
+                            st.plotly_chart(fig_slip_abs, use_container_width=True)
 
                     # Detailed table
                     st.markdown("**Detailed Observation Quality Metrics**")
-                    display_cols = ['station_id', 'mp1', 'mp2', 'snr_l1', 'snr_l2',
-                                   'cycle_slips', 'cycle_slip_rate', 'completeness_pct', 'quality_level']
+                    display_cols = ['station_id', 'total_observations', 'cycle_slips',
+                                   'cycle_slip_rate', 'quality_level']
                     available_cols = [c for c in display_cols if c in df_obsq.columns]
                     df_display = df_obsq[available_cols].copy()
 
                     col_rename = {
-                        'station_id': 'Station', 'mp1': 'MP1 (m)', 'mp2': 'MP2 (m)',
-                        'snr_l1': 'SNR L1', 'snr_l2': 'SNR L2', 'cycle_slips': 'Cycle Slips',
-                        'cycle_slip_rate': 'Slip Rate', 'completeness_pct': 'Complete %',
+                        'station_id': 'Station', 'total_observations': 'Observations',
+                        'cycle_slips': 'Cycle Slips', 'cycle_slip_rate': 'Slip Rate (/1000 obs)',
                         'quality_level': 'Quality'
                     }
                     df_display.rename(columns=col_rename, inplace=True)
 
                     format_dict = {}
-                    if 'MP1 (m)' in df_display.columns:
-                        format_dict['MP1 (m)'] = '{:.3f}'
-                    if 'MP2 (m)' in df_display.columns:
-                        format_dict['MP2 (m)'] = '{:.3f}'
-                    if 'SNR L1' in df_display.columns:
-                        format_dict['SNR L1'] = '{:.1f}'
-                    if 'SNR L2' in df_display.columns:
-                        format_dict['SNR L2'] = '{:.1f}'
-                    if 'Slip Rate' in df_display.columns:
-                        format_dict['Slip Rate'] = '{:.2f}'
-                    if 'Complete %' in df_display.columns:
-                        format_dict['Complete %'] = '{:.1f}'
+                    if 'Slip Rate (/1000 obs)' in df_display.columns:
+                        format_dict['Slip Rate (/1000 obs)'] = '{:.3f}'
 
                     st.dataframe(
                         df_display.style.format(format_dict),
@@ -6837,10 +6911,10 @@ def main():
 
                 else:
                     st.info(f"""
-                    No RINEX QC data for DOY {obsq_doy}.
+                    No observation quality data for DOY {obsq_doy}.
 
-                    RINEX QC metrics (MP1, MP2, SNR, Cycle Slips) require ingestion from RINEX quality check files.
-                    Phase residuals above are parsed from Bernese processing output (EDL_*.SUM files).
+                    Observation quality metrics (observations, cycle slips, RMS) are parsed from Bernese MAUPRP output (MPR_*.SUM files).
+                    Run ingestion to populate this data.
                     """)
 
                 st.divider()
@@ -7080,7 +7154,7 @@ def main():
         # ==================================
         # TAB 13: TROPOSPHERIC GRADIENT MONITORING
         # ==================================
-        with tab13:
+        elif selected_page == "🌬️ Trop. Gradients":
             st.header("Tropospheric Gradient Monitoring")
             st.markdown("""
             Monitor tropospheric horizontal gradients (North/East components) which indicate
@@ -7122,6 +7196,11 @@ def main():
 
                         if all_grad_data:
                             df_grad = pd.DataFrame(all_grad_data)
+
+                            # Convert gradients from meters to millimeters for display
+                            for col in ['grad_n', 'grad_n_rms', 'grad_e', 'grad_e_rms', 'grad_magnitude']:
+                                if col in df_grad.columns:
+                                    df_grad[col] = df_grad[col] * 1000.0
 
                             # Convert hour to datetime for plotting
                             df_grad['datetime'] = pd.to_datetime(
@@ -7183,38 +7262,62 @@ def main():
                             # Row 3: Polar plot of gradients (wind rose style)
                             st.subheader("Gradient Vector Distribution")
 
-                            # Select single station for polar plot
-                            polar_station = st.selectbox("Select Station for Polar Plot",
-                                                         options=selected_grad_stations,
-                                                         key="polar_station")
+                            # Select stations for polar plot (multi-select)
+                            polar_stations = st.multiselect(
+                                "Select stations for polar plot",
+                                options=selected_grad_stations,
+                                default=selected_grad_stations[:min(3, len(selected_grad_stations))],
+                                key="polar_stations"
+                            )
 
-                            df_polar = df_grad[df_grad['station_id'] == polar_station].copy()
+                            df_polar = df_grad[df_grad['station_id'].isin(polar_stations)].copy()
 
                             if len(df_polar) > 0:
                                 fig_polar = go.Figure()
-                                fig_polar.add_trace(go.Scatterpolar(
-                                    r=df_polar['grad_magnitude'],
-                                    theta=df_polar['grad_azimuth'],
-                                    mode='markers',
-                                    marker=dict(
-                                        size=8,
-                                        color=df_polar['hour'],
-                                        colorscale='Viridis',
-                                        showscale=True,
-                                        colorbar=dict(title="Hour (UTC)")
-                                    ),
-                                    text=df_polar['datetime'].dt.strftime('%H:%M'),
-                                    hovertemplate="Magnitude: %{r:.2f} mm<br>Azimuth: %{theta:.1f}°<br>Time: %{text}<extra></extra>"
-                                ))
+                                # Use distinct colors per station
+                                colors = px.colors.qualitative.Plotly
+                                for i, sta in enumerate(polar_stations):
+                                    sta_df = df_polar[df_polar['station_id'] == sta]
+                                    if len(sta_df) == 0:
+                                        continue
+                                    fig_polar.add_trace(go.Scatterpolar(
+                                        r=sta_df['grad_magnitude'],
+                                        theta=sta_df['grad_azimuth'],
+                                        mode='markers',
+                                        name=sta,
+                                        marker=dict(
+                                            size=8,
+                                            color=sta_df['hour'],
+                                            colorscale='Viridis',
+                                            showscale=(i == 0),
+                                            colorbar=dict(
+                                                title="Hour<br>(UTC)",
+                                                tickvals=[0, 6, 12, 18, 23],
+                                                ticktext=["00h", "06h", "12h", "18h", "23h"]
+                                            ),
+                                            symbol=i,
+                                            line=dict(width=1, color=colors[i % len(colors)])
+                                        ),
+                                        text=sta_df['datetime'].dt.strftime('%H:%M UTC'),
+                                        hovertemplate=f"<b>{sta}</b><br>Magnitude: %{{r:.3f}} mm<br>Azimuth: %{{theta:.1f}}°<br>Time: %{{text}}<extra></extra>"
+                                    ))
+                                title_stations = ", ".join(polar_stations)
                                 fig_polar.update_layout(
-                                    title=f"Gradient Vectors - {polar_station}",
+                                    title=f"Gradient Vectors — {title_stations}",
                                     polar=dict(
                                         radialaxis=dict(visible=True, title="Magnitude (mm)"),
-                                        angularaxis=dict(direction="clockwise", rotation=90)
+                                        angularaxis=dict(
+                                            direction="clockwise",
+                                            rotation=90,
+                                            ticktext=["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
+                                            tickvals=[0, 45, 90, 135, 180, 225, 270, 315]
+                                        )
                                     ),
-                                    showlegend=False,
-                                    height=500
+                                    showlegend=True,
+                                    legend=dict(title="Station"),
+                                    height=550
                                 )
+                                apply_colorful_style(fig_polar)
                                 st.plotly_chart(fig_polar, use_container_width=True)
 
                             # Statistics table
@@ -7257,7 +7360,7 @@ def main():
         # ==================================
         # TAB 14: RECEIVER CLOCK ANALYSIS
         # ==================================
-        with tab14:
+        elif selected_page == "⏱️ Receiver Clocks":
             st.header("Receiver Clock Analysis")
             st.markdown("""
             Analyze receiver clock behavior including offset time series, drift rates,
@@ -7464,7 +7567,7 @@ def main():
         # ========================================
         # TAB 15: Station Data Completeness
         # ========================================
-        with tab15:
+        elif selected_page == "📊 Station Completeness":
             st.header("Station Data Completeness")
             st.markdown("""
             Monitor station-level data completeness showing:
@@ -7721,7 +7824,7 @@ def main():
         # ========================================
         # TAB 16: Ocean Loading
         # ========================================
-        with tab16:
+        elif selected_page == "🌊 Ocean Loading":
             st.header("Ocean Tide Loading Displacements")
             st.markdown("""
             Visualize ocean tide loading effects on GNSS stations from BLQ coefficients.
@@ -8546,7 +8649,7 @@ def main():
                 st.info("Please provide a valid path to a Bernese BLQ file.")
 
         # TAB 17: Station Elevation / DEM
-        with tab17:
+        elif selected_page == "🏔️ Station Elevation":
             st.markdown("""
             <div style="
                 background: linear-gradient(135deg, #1E2530 0%, #242830 100%);
@@ -9284,7 +9387,7 @@ def main():
 
         # TAB 18: ML Quality Control
         # ========================================
-        with tab18:
+        elif selected_page == "🤖 ML Quality Control":
             st.markdown("""
             <div style="
                 background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -10048,7 +10151,7 @@ def main():
         # ============================================================
         # TAB 19: PPP vs DD Vector Comparison Map
         # ============================================================
-        with tab19:
+        elif selected_page == "🗺️ PPP-DD Vectors":
             st.header("🗺️ PPP-AR vs DD Vector Comparison")
             st.markdown("""
             Compare PPP-AR and Double-Difference coordinate solutions on an interactive map.
@@ -10180,7 +10283,7 @@ def main():
         # ============================================================
         # TAB 20: Repeatability Heatmap (Station × DOY)
         # ============================================================
-        with tab20:
+        elif selected_page == "🔥 Repeatability Heatmap":
             st.header("🔥 Repeatability Heatmap")
             st.markdown("""
             Heatmap showing 3D repeatability (deviation from mean) for each station-DOY combination.
@@ -10269,7 +10372,7 @@ def main():
         # ============================================================
         # TAB 21: Network Comparison Box Plots
         # ============================================================
-        with tab21:
+        elif selected_page == "📦 Network Comparison":
             st.header("📦 Network Comparison")
             st.markdown("""
             Compare repeatability statistics across different GNSS networks (IGS, EUREF, Regional).
@@ -10358,7 +10461,7 @@ def main():
         # ============================================================
         # TAB 22: Time Evolution Animation
         # ============================================================
-        with tab22:
+        elif selected_page == "🎬 Time Evolution":
             st.header("🎬 Time Evolution")
             st.markdown("""
             Animated visualization of coordinate changes over time.
@@ -10471,7 +10574,7 @@ def main():
         # ============================================================
         # TAB 23: Station Correlation Matrix
         # ============================================================
-        with tab23:
+        elif selected_page == "🔗 Station Correlation":
             st.header("🔗 Station Correlation Matrix")
             st.markdown("""
             Analyze spatial correlations between station coordinate time series.
@@ -10630,7 +10733,7 @@ def main():
         # ============================================================
         # TAB 24: Baseline (DD) Network Visualization
         # ============================================================
-        with tab24:
+        elif selected_page == "📐 Baseline (DD)":
             st.header("📐 Baseline Network (DD)")
 
             # Explanation of baseline processing
@@ -12133,7 +12236,7 @@ def main():
         # ============================================================
         # TAB 25: DD Multi-DOY Analysis
         # ============================================================
-        with tab25:
+        elif selected_page == "📈 DD Multi-DOY":
             st.header("📈 DD Multi-DOY Analysis")
             st.markdown("""
             Comprehensive quality analysis across multiple days of Double-Difference processing.
@@ -12700,9 +12803,11 @@ def main():
                         days = coord_summary['Days'].max()
                         st.metric("Max Days", int(days))
 
-                    # Station selector
+                    # Station selector - filter to only monitored stations
+                    crd_all_stations = sorted(coord_ts.keys())
+                    crd_monitored = [s for s in crd_all_stations if s in MONITORED_STATIONS]
                     crd_station = st.selectbox("Select Station",
-                                               sorted(coord_ts.keys()),
+                                               crd_monitored if crd_monitored else crd_all_stations,
                                                key='crd_station')
 
                     if crd_station and crd_station in coord_ts:
@@ -12877,7 +12982,7 @@ def main():
                     st.warning(f"No R2S PRC file found for DOY {r2s_doy}. Check the directory path.")
 
         # TAB 26: Satellite Residuals Analysis
-        with tab26:
+        elif selected_page == "🛰️ Satellite Residuals":
             st.header("🛰️ Satellite Residuals Analysis")
             st.markdown("""
             Monitor satellite-specific phase residuals across processing sessions.
@@ -13365,7 +13470,7 @@ def main():
                         st.code(traceback.format_exc())
 
         # TAB 27: NGL/CODE External Time Series Comparison
-        with tab27:
+        elif selected_page == "🌍 NGL/CODE External TS":
             st.header("🌍 NGL/CODE External TS Comparison")
             st.markdown("""
             Compare **NGL (Nevada Geodetic Laboratory)** external time series with your
@@ -14257,6 +14362,248 @@ def main():
                 import traceback
                 with st.expander("Error details"):
                     st.code(traceback.format_exc())
+
+        # =====================================================================
+        # NTAL/NTOL Loading Time Series
+        # =====================================================================
+        elif selected_page == "🌐 NTAL/NTOL Loading":
+            st.header("GFZ ESMGFZ Non-Tidal Loading Time Series")
+            st.markdown("""
+            **NTAL** = Non-Tidal Atmospheric Loading | **NTOL** = Non-Tidal Ocean Loading
+
+            Site displacements from GFZ ESMGFZ loading models (Dill & Dobslaw, 2013),
+            interpolated from 0.5-degree global grids to station coordinates.
+            """)
+
+            # Get stations from DB (all years - we just need lat/lon for grid interpolation)
+            db = get_database()
+            db_conn = db.connect()
+            all_stations_data = db_conn.execute("""
+                SELECT station_id,
+                       AVG(lat) as lat, AVG(lon) as lon
+                FROM ppp_solutions
+                GROUP BY station_id
+                ORDER BY station_id
+            """).fetchdf()
+
+            if all_stations_data.empty:
+                st.warning("No station coordinates found in database.")
+            else:
+                station_list = all_stations_data['station_id'].tolist()
+
+                col1, col2 = st.columns([1, 2])
+                with col1:
+                    selected_station = st.selectbox(
+                        "Station", station_list, key="ntal_station"
+                    )
+                with col2:
+                    # Check available dates
+                    ntal_dates = get_available_dates("NTAL")
+                    if ntal_dates:
+                        date_range_str = f"{ntal_dates[0][0]} to {ntal_dates[-1][0]}"
+                        n_days = len(set(d for d, h in ntal_dates))
+                        st.info(f"Available data: {date_range_str} ({n_days} days, {len(ntal_dates)} epochs)")
+                    else:
+                        st.warning("No NTAL/NTOL grid files found.")
+
+                if selected_station and ntal_dates:
+                    stn_row = all_stations_data[all_stations_data['station_id'] == selected_station].iloc[0]
+                    stn_lat = stn_row['lat']
+                    stn_lon = stn_row['lon']
+
+                    st.markdown(f"**{selected_station}** - Lat: {stn_lat:.4f}, Lon: {stn_lon:.4f}")
+
+                    # Convert sidebar DOY range to YYYYMMDD for loading parser
+                    from datetime import datetime as _dt, timedelta as _td
+                    _start_date_obj = _dt(year, 1, 1) + _td(days=start_doy - 1)
+                    _end_date_obj = _dt(year, 1, 1) + _td(days=end_doy - 1)
+                    _start_date_str = _start_date_obj.strftime("%Y%m%d")
+                    _end_date_str = _end_date_obj.strftime("%Y%m%d")
+
+                    @st.cache_data(ttl=3600, show_spinner=False)
+                    def _cached_loading(lat, lon, sd, ed):
+                        return get_combined_loading(lat, lon, start_date=sd, end_date=ed)
+
+                    with st.spinner(f"Reading loading grids for {selected_station} ({_start_date_str} to {_end_date_str})..."):
+                        combined = _cached_loading(stn_lat, stn_lon, _start_date_str, _end_date_str)
+
+                    if combined.empty:
+                        st.warning("No loading data could be extracted.")
+                    else:
+                        # Create tabs for different views
+                        load_tab1, load_tab2, load_tab3 = st.tabs([
+                            "Combined Time Series", "Component Comparison", "Statistics"
+                        ])
+
+                        with load_tab1:
+                            # Up component - most important
+                            fig_up = go.Figure()
+                            if 'ntal_up_mm' in combined.columns:
+                                fig_up.add_trace(go.Scatter(
+                                    x=combined['datetime'], y=combined['ntal_up_mm'],
+                                    name='NTAL', mode='lines',
+                                    line=dict(color='#FF6B6B', width=1.5)
+                                ))
+                            if 'ntol_up_mm' in combined.columns:
+                                fig_up.add_trace(go.Scatter(
+                                    x=combined['datetime'], y=combined['ntol_up_mm'],
+                                    name='NTOL', mode='lines',
+                                    line=dict(color='#4ECDC4', width=1.5)
+                                ))
+                            if 'total_up_mm' in combined.columns:
+                                fig_up.add_trace(go.Scatter(
+                                    x=combined['datetime'], y=combined['total_up_mm'],
+                                    name='NTAL+NTOL', mode='lines',
+                                    line=dict(color='#FFE66D', width=2)
+                                ))
+                            fig_up.update_layout(
+                                title=f'{selected_station} - Vertical (Up) Loading Displacement',
+                                xaxis_title='Date/Time',
+                                yaxis_title='Displacement (mm)',
+                                template='plotly_dark',
+                                height=400,
+                                hovermode='x unified'
+                            )
+                            fig_up.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+                            st.plotly_chart(fig_up, use_container_width=True)
+
+                            # North component
+                            fig_n = go.Figure()
+                            if 'ntal_north_mm' in combined.columns:
+                                fig_n.add_trace(go.Scatter(
+                                    x=combined['datetime'], y=combined['ntal_north_mm'],
+                                    name='NTAL', mode='lines',
+                                    line=dict(color='#FF6B6B', width=1.5)
+                                ))
+                            if 'ntol_north_mm' in combined.columns:
+                                fig_n.add_trace(go.Scatter(
+                                    x=combined['datetime'], y=combined['ntol_north_mm'],
+                                    name='NTOL', mode='lines',
+                                    line=dict(color='#4ECDC4', width=1.5)
+                                ))
+                            if 'total_north_mm' in combined.columns:
+                                fig_n.add_trace(go.Scatter(
+                                    x=combined['datetime'], y=combined['total_north_mm'],
+                                    name='NTAL+NTOL', mode='lines',
+                                    line=dict(color='#FFE66D', width=2)
+                                ))
+                            fig_n.update_layout(
+                                title=f'{selected_station} - North Loading Displacement',
+                                xaxis_title='Date/Time',
+                                yaxis_title='Displacement (mm)',
+                                template='plotly_dark',
+                                height=350,
+                                hovermode='x unified'
+                            )
+                            fig_n.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+                            st.plotly_chart(fig_n, use_container_width=True)
+
+                            # East component
+                            fig_e = go.Figure()
+                            if 'ntal_east_mm' in combined.columns:
+                                fig_e.add_trace(go.Scatter(
+                                    x=combined['datetime'], y=combined['ntal_east_mm'],
+                                    name='NTAL', mode='lines',
+                                    line=dict(color='#FF6B6B', width=1.5)
+                                ))
+                            if 'ntol_east_mm' in combined.columns:
+                                fig_e.add_trace(go.Scatter(
+                                    x=combined['datetime'], y=combined['ntol_east_mm'],
+                                    name='NTOL', mode='lines',
+                                    line=dict(color='#4ECDC4', width=1.5)
+                                ))
+                            if 'total_east_mm' in combined.columns:
+                                fig_e.add_trace(go.Scatter(
+                                    x=combined['datetime'], y=combined['total_east_mm'],
+                                    name='NTAL+NTOL', mode='lines',
+                                    line=dict(color='#FFE66D', width=2)
+                                ))
+                            fig_e.update_layout(
+                                title=f'{selected_station} - East Loading Displacement',
+                                xaxis_title='Date/Time',
+                                yaxis_title='Displacement (mm)',
+                                template='plotly_dark',
+                                height=350,
+                                hovermode='x unified'
+                            )
+                            fig_e.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+                            st.plotly_chart(fig_e, use_container_width=True)
+
+                        with load_tab2:
+                            # NTAL vs NTOL comparison subplots
+                            fig_comp = make_subplots(
+                                rows=3, cols=2,
+                                subplot_titles=[
+                                    'NTAL Up', 'NTOL Up',
+                                    'NTAL North', 'NTOL North',
+                                    'NTAL East', 'NTOL East'
+                                ],
+                                vertical_spacing=0.08
+                            )
+
+                            components = [
+                                ('ntal_up_mm', 'ntol_up_mm'),
+                                ('ntal_north_mm', 'ntol_north_mm'),
+                                ('ntal_east_mm', 'ntol_east_mm'),
+                            ]
+
+                            for row, (ntal_col, ntol_col) in enumerate(components, 1):
+                                if ntal_col in combined.columns:
+                                    fig_comp.add_trace(go.Scatter(
+                                        x=combined['datetime'], y=combined[ntal_col],
+                                        name=f'NTAL', mode='lines',
+                                        line=dict(color='#FF6B6B'),
+                                        showlegend=(row == 1)
+                                    ), row=row, col=1)
+                                if ntol_col in combined.columns:
+                                    fig_comp.add_trace(go.Scatter(
+                                        x=combined['datetime'], y=combined[ntol_col],
+                                        name=f'NTOL', mode='lines',
+                                        line=dict(color='#4ECDC4'),
+                                        showlegend=(row == 1)
+                                    ), row=row, col=2)
+
+                            fig_comp.update_layout(
+                                title=f'{selected_station} - NTAL vs NTOL Component Comparison',
+                                template='plotly_dark',
+                                height=800,
+                                showlegend=True
+                            )
+                            for i in range(1, 7):
+                                fig_comp.update_yaxes(title_text='mm', row=(i-1)//2+1, col=(i-1)%2+1)
+                            st.plotly_chart(fig_comp, use_container_width=True)
+
+                        with load_tab3:
+                            st.subheader("Loading Displacement Statistics")
+
+                            stats_data = []
+                            for comp in ['up', 'north', 'east']:
+                                for src in ['ntal', 'ntol', 'total']:
+                                    col_name = f'{src}_{comp}_mm'
+                                    if col_name in combined.columns:
+                                        vals = combined[col_name]
+                                        stats_data.append({
+                                            'Source': src.upper(),
+                                            'Component': comp.capitalize(),
+                                            'Mean (mm)': f"{vals.mean():.4f}",
+                                            'Std (mm)': f"{vals.std():.4f}",
+                                            'Min (mm)': f"{vals.min():.4f}",
+                                            'Max (mm)': f"{vals.max():.4f}",
+                                            'Range (mm)': f"{vals.max() - vals.min():.4f}",
+                                        })
+
+                            if stats_data:
+                                stats_df = pd.DataFrame(stats_data)
+                                st.dataframe(stats_df, use_container_width=True, hide_index=True)
+
+                            st.markdown("""
+                            **Notes:**
+                            - NTAL: Non-tidal atmospheric pressure loading (dominant signal, ~1-5 mm vertical)
+                            - NTOL: Non-tidal ocean loading (response to atmospheric pressure over oceans, ~0.1-1 mm)
+                            - Combined NTAL+NTOL represents the total non-tidal loading effect
+                            - These corrections are applied in Bernese via GPSEST (ALOAD/ONTLD files)
+                            - Source: GFZ ESMGFZ (Dill & Dobslaw, 2013)
+                            """)
 
     except Exception as e:
         error_msg = str(e)
