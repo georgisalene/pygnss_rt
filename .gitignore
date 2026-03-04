@@ -107,3 +107,21 @@ tivoli/
 utilities/
 utilities.tar
 outy
+
+# Large binary files
+*.tar
+*.zip
+*.PCV
+*.PCV.*
+*.PCV_*
+*.atx
+*.docx
+*.xlsx
+*.pptx
+*.png
+*.jpg
+*.jpeg
+TT/
+*_backup_*/
+era5_cache/
+LoadFile*

@@ -1,0 +1,53 @@
+# Large binary files
+*.tar
+*.zip
+*.gz
+*.bz2
+*.xz
+*.7z
+
+# Large data files
+*.PCV
+*.PCV.*
+*.atx
+*.duckdb
+*.duckdb.wal
+
+# Office documents
+*.docx
+*.xlsx
+*.pptx
+
+# Images (keep in separate asset management)
+*.png
+*.jpg
+*.jpeg
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup directories
+*_backup_*/
+
+# ERA5 cache
+era5_cache/
+
+# Specific large files
+TT/
+Send request.zip
+LoadFile*

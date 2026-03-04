@@ -28,8 +28,10 @@ import glob
 from .db_models import (QualityDatabase, AmbiguityResolution, ZTDHourly, PPPSolution,
                         SatelliteTracking, ProcessingStats, SatelliteAmbiguityPRN,
                         StationResidual, DataAvailability)
-from .bernese_parser import parse_fin_out_all, parse_edl_sum, parse_chk_sum, parse_qc_data, parse_clock_data
+from .bernese_parser import parse_fin_out_all, parse_edl_sum, parse_chk_sum, parse_qc_data, parse_clock_data, find_ig_campaign_dir
 from .config import CAMPAIGN_PATH, DB_PATH
+
+from pygnss_rt.utils.dates import doy_to_mjd
 
 
 def prn_to_constellation(prn: int) -> str:
@@ -175,26 +177,22 @@ def parse_chk_file(filepath: str, year: int, doy: int, db: QualityDatabase) -> i
     return count
 
 
-def doy_to_mjd(year: int, doy: int) -> float:
-    """Convert year and day-of-year to Modified Julian Date"""
-    from datetime import date, timedelta
-    d = date(year, 1, 1) + timedelta(days=doy - 1)
-    a = (14 - d.month) // 12
-    y = d.year + 4800 - a
-    m = d.month + 12 * a - 3
-    jd = d.day + (153 * m + 2) // 5 + 365 * y + y // 4 - y // 100 + y // 400 - 32045
-    return jd - 2400000.5
-
-
 def parse_tro_file(filepath: str, db: QualityDatabase) -> int:
     """Parse TRO file and save to database. Returns count of records saved.
 
     TRO format: STATION EPOCH TROTOT STDDEV TGNTOT STDDEV TGETOT STDDEV
+    Supports both plain text and gzipped (.gz) files.
     """
+    import gzip
     count = 0
 
-    with open(filepath, 'r') as f:
-        content = f.read()
+    # Handle gzipped files
+    if filepath.endswith('.gz'):
+        with gzip.open(filepath, 'rt') as f:
+            content = f.read()
+    else:
+        with open(filepath, 'r') as f:
+            content = f.read()
 
     in_solution = False
     for line in content.split('\n'):
@@ -219,12 +217,17 @@ def parse_tro_file(filepath: str, db: QualityDatabase) -> int:
                 hour = seconds // 3600
 
                 # Parse all values: TROTOT STDDEV TGNTOT STDDEV TGETOT STDDEV
-                trotot = float(parts[2]) / 1000.0  # mm to m
-                trotot_std = float(parts[3]) / 1000.0  # TROTOT STDDEV
-                tgn = float(parts[4]) / 1000.0  # TGNTOT
-                tgn_std = float(parts[5]) / 1000.0  # TGNTOT STDDEV
-                tge = float(parts[6]) / 1000.0  # TGETOT
-                tge_std = float(parts[7]) / 1000.0  # TGETOT STDDEV
+                # Skip lines with invalid values (e.g., '******')
+                try:
+                    trotot = float(parts[2]) / 1000.0  # mm to m
+                    trotot_std = float(parts[3]) / 1000.0  # TROTOT STDDEV
+                    tgn = float(parts[4]) / 1000.0  # TGNTOT
+                    tgn_std = float(parts[5]) / 1000.0  # TGNTOT STDDEV
+                    tge = float(parts[6]) / 1000.0  # TGETOT
+                    tge_std = float(parts[7]) / 1000.0  # TGETOT STDDEV
+                except ValueError:
+                    # Skip lines with invalid/missing values
+                    continue
 
                 mjd = doy_to_mjd(year, doy) + hour / 24.0
 
@@ -400,8 +403,7 @@ def parse_satellite_ambiguity_prn(filepath: str, year: int, doy: int, db: Qualit
 
 def ingest_day(campaign_path: str, year: int, doy: int, db: QualityDatabase) -> dict:
     """Ingest all data for a single day. Returns counts."""
-    session_dir = f"{year % 100:02d}{doy:03d}IG"
-    session_path = os.path.join(campaign_path, session_dir)
+    session_path = find_ig_campaign_dir(campaign_path, year, doy)
 
     results = {
         'doy': doy,
@@ -417,8 +419,8 @@ def ingest_day(campaign_path: str, year: int, doy: int, db: QualityDatabase) -> 
         'errors': []
     }
 
-    if not os.path.exists(session_path):
-        results['errors'].append(f"Session directory not found: {session_dir}")
+    if not session_path or not os.path.exists(session_path):
+        results['errors'].append(f"Session directory not found for DOY {doy}")
         return results
 
     # 1. Parse coordinates from FIN_*.OUT files (Estimated value with sub-mm RMS)
@@ -453,9 +455,20 @@ def ingest_day(campaign_path: str, year: int, doy: int, db: QualityDatabase) -> 
     else:
         results['errors'].append(f"OUT directory not found: {out_dir}")
 
-    # 2. Parse ZTD from TRO file
-    tro_file = os.path.join(session_path, "ATM", f"FIN_{year}{doy:03d}0.TRO")
-    if os.path.exists(tro_file):
+    # 2. Parse ZTD from TRO file (try multiple patterns)
+    tro_patterns = [
+        os.path.join(session_path, "ATM", f"FIN_{year}{doy:03d}0.TRO"),
+        os.path.join(session_path, "ATM", f"FIN_{year}{doy:03d}0.TRO.gz"),
+        os.path.join(session_path, "ATM", f"F10_{year}{doy:03d}0.TRO"),
+        os.path.join(session_path, "ATM", f"F10_{year}{doy:03d}0.TRO.gz"),
+    ]
+    tro_file = None
+    for pattern in tro_patterns:
+        if os.path.exists(pattern):
+            tro_file = pattern
+            break
+
+    if tro_file:
         try:
             results['ztd'] = parse_tro_file(tro_file, db)
         except Exception as e:
@@ -505,6 +518,96 @@ def ingest_day(campaign_path: str, year: int, doy: int, db: QualityDatabase) -> 
         results['errors'].append(f"Clock Data: {e}")
 
     return results
+
+
+def reingest_ztd_from_pppar(campaign_path: str, year: int, doys: list, db: QualityDatabase) -> int:
+    """
+    Re-ingest ZTD data from PPP-AR TRO files in CAMPAIGN54.
+
+    Directory format: {campaign_path}/{yy}{doy}IG/ATM/FIN_{year}{doy}0_{station}.TRO
+
+    PPP-AR produces per-station TRO files, unlike DD which has all stations in one file.
+    """
+    import glob
+    total_count = 0
+
+    # Clear existing ZTD data for these DOYs
+    conn = db.connect()
+    for doy in doys:
+        conn.execute("DELETE FROM ztd_hourly WHERE year = ? AND doy = ?", [year, doy])
+    print(f"Cleared existing ZTD data for DOYs {min(doys)}-{max(doys)}")
+
+    for doy in doys:
+        session_path = find_ig_campaign_dir(campaign_path, year, doy)
+        if not session_path:
+            print(f"  DOY {doy}: Session directory not found")
+            continue
+        atm_dir = os.path.join(session_path, "ATM")
+
+        if not os.path.exists(atm_dir):
+            print(f"  DOY {doy}: ATM directory not found")
+            continue
+
+        # Find all per-station TRO files: FIN_YYYYDDD0_*.TRO
+        pattern = os.path.join(atm_dir, f"FIN_{year}{doy:03d}0_*.TRO")
+        tro_files = glob.glob(pattern)
+
+        if not tro_files:
+            print(f"  DOY {doy}: No PPP-AR TRO files found")
+            continue
+
+        day_count = 0
+        for tro_file in tro_files:
+            count = parse_tro_file(tro_file, db)
+            day_count += count
+
+        total_count += day_count
+        print(f"  DOY {doy}: {day_count} ZTD records from {len(tro_files)} station files")
+
+    return total_count
+
+
+def reingest_ztd_from_mgx(base_dir: str, year: int, doys: list, db: QualityDatabase) -> int:
+    """
+    Re-ingest ZTD data from MGX directory structure.
+
+    Directory format: {base_dir}/{year}/{doy}/ATM/F10_{year}{doy}0.TRO.gz
+
+    This function first clears existing ZTD data for the specified DOYs,
+    then re-ingests from the correct TRO files.
+    """
+    import gzip
+    total_count = 0
+
+    # Clear existing ZTD data for these DOYs
+    conn = db.connect()
+    for doy in doys:
+        conn.execute("DELETE FROM ztd_hourly WHERE year = ? AND doy = ?", [year, doy])
+    print(f"Cleared existing ZTD data for DOYs {min(doys)}-{max(doys)}")
+
+    for doy in doys:
+        # Try different file patterns
+        tro_patterns = [
+            f"{base_dir}/{year}/{doy:03d}/ATM/F10_{year}{doy:03d}0.TRO.gz",
+            f"{base_dir}/{year}/{doy}/ATM/F10_{year}{doy:03d}0.TRO.gz",
+            f"{base_dir}/{year}/{doy:03d}/ATM/F10_{year}{doy:03d}0.TRO",
+        ]
+
+        tro_file = None
+        for pattern in tro_patterns:
+            if os.path.exists(pattern):
+                tro_file = pattern
+                break
+
+        if not tro_file:
+            print(f"  DOY {doy}: TRO file not found")
+            continue
+
+        count = parse_tro_file(tro_file, db)
+        total_count += count
+        print(f"  DOY {doy}: {count} ZTD records ingested from {os.path.basename(tro_file)}")
+
+    return total_count
 
 
 def main():

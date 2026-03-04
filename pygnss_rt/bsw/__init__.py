@@ -7,6 +7,7 @@ from pygnss_rt.bsw.bpe_runner import (
     BPEConfig,
     BPEResult as BPEExecutionResult,
     parse_bsw_options_xml,
+    parse_bsw_options_file,
 )
 from pygnss_rt.bsw.rnx2snx import (
     RNX2SNXProcessor,
@@ -46,6 +47,7 @@ __all__ = [
     "BPEConfig",
     "BPEExecutionResult",
     "parse_bsw_options_xml",
+    "parse_bsw_options_file",
     # RNX2SNX processing
     "RNX2SNXProcessor",
     "RNX2SNXConfig",

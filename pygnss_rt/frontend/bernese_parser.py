@@ -16,22 +16,52 @@ from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
 
-from .db_models import (PPPSolution, ProcessingStats, ZTDHourly, QualityDatabase,
+from .db_models import (PPPSolution, ProcessingStats, QualityDatabase,
                         StationResidual, DataAvailability, ReceiverClock)
 from .config import CAMPAIGN_PATH, DB_PATH
 
+from pygnss_rt.utils.dates import doy_to_mjd
 
-def doy_to_mjd(year: int, doy: int) -> float:
-    """Convert year and day-of-year to Modified Julian Date"""
-    from datetime import date
-    d = date(year, 1, 1) + __import__('datetime').timedelta(days=doy - 1)
-    # MJD = JD - 2400000.5
-    # JD for a date can be calculated
-    a = (14 - d.month) // 12
-    y = d.year + 4800 - a
-    m = d.month + 12 * a - 3
-    jd = d.day + (153 * m + 2) // 5 + 365 * y + y // 4 - y // 100 + y // 400 - 32045
-    return jd - 2400000.5
+
+def find_ig_campaign_dir(
+    campaign_path: str,
+    year: int,
+    doy: int,
+    preferred_session: str | None = None,
+) -> str | None:
+    """Find IG campaign directory for a day, supporting optional suffixes.
+
+    Matches (in priority order):
+    - preferred_session if explicitly provided
+    - YYDOYIG_GRE (preferred: full multi-GNSS)
+    - YYDOYIG_GE
+    - YYDOYIG_G
+    - YYDOYIG (plain, no suffix)
+    - any other YYDOYIG_* variant
+    """
+    session_id = f"{year % 100:02d}{doy:03d}"
+    base = Path(campaign_path)
+
+    if preferred_session:
+        preferred = base / preferred_session
+        if preferred.is_dir():
+            return str(preferred)
+
+    # Prefer multi-GNSS suffixes in order: GRE > GE > G > plain
+    for suffix in ("_GRE", "_GE", "_G", ""):
+        candidate = base / f"{session_id}IG{suffix}"
+        if candidate.is_dir():
+            return str(candidate)
+
+    # Fallback: any other IG* variant
+    candidates = sorted(
+        p for p in base.glob(f"{session_id}IG*")
+        if p.is_dir()
+    )
+    if candidates:
+        return str(candidates[0])
+
+    return None
 
 
 def parse_fin_crd(filepath: str, year: int, doy: int) -> list[dict]:
@@ -317,8 +347,13 @@ def parse_gpsest_output(filepath: str) -> dict:
     return result
 
 
-def parse_campaign_day(campaign_path: str, year: int, doy: int,
-                       db: Optional[QualityDatabase] = None) -> list[dict]:
+def parse_campaign_day(
+    campaign_path: str,
+    year: int,
+    doy: int,
+    db: Optional[QualityDatabase] = None,
+    preferred_session: str | None = None,
+) -> list[dict]:
     """
     Parse all GPSEST output files for a campaign day.
 
@@ -327,13 +362,19 @@ def parse_campaign_day(campaign_path: str, year: int, doy: int,
         year: 4-digit year
         doy: Day of year
         db: Optional database connection to save results
+        preferred_session: Exact session directory name to prioritize
 
     Returns:
         List of parsed results
     """
     # Construct session directory path
-    session_id = f"{year % 100:02d}{doy:03d}"
-    out_dir = os.path.join(campaign_path, f"{session_id}IG", "OUT")
+    campaign_dir = find_ig_campaign_dir(
+        campaign_path,
+        year,
+        doy,
+        preferred_session=preferred_session,
+    )
+    out_dir = os.path.join(campaign_dir, "OUT") if campaign_dir else ""
 
     if not os.path.exists(out_dir):
         print(f"Output directory not found: {out_dir}")
@@ -409,18 +450,10 @@ def save_to_database(db: QualityDatabase, parsed: dict,
         )
         db.insert_stats(proc_stats)
 
-    # Save hourly ZTD
-    for ztd_entry in parsed.get('ztd_hourly', []):
-        ztd = ZTDHourly(
-            station_id=station_id,
-            year=year,
-            doy=doy,
-            hour=ztd_entry['hour'],
-            mjd=mjd + ztd_entry['hour'] / 24.0,
-            ztd=ztd_entry['ztd'],
-            ztd_rms=ztd_entry['ztd_rms']
-        )
-        db.insert_ztd(ztd)
+    # NOTE: ZTD from EDL single-station PPP OUT files is NOT saved here.
+    # ZTD should be ingested from the combined FIN_*.TRO files (DD network
+    # solution) via ingest_all.py, which provides much more precise estimates
+    # (RMS ~1mm vs ~70-100mm from EDL single-station PPP).
 
 
 def prn_to_constellation(prn: int) -> str:
@@ -653,8 +686,13 @@ def parse_clk_rinex(filepath: str, year: int, doy: int) -> list[dict]:
     return results
 
 
-def parse_clock_data(campaign_path: str, year: int, doy: int,
-                     db: Optional['QualityDatabase'] = None) -> dict:
+def parse_clock_data(
+    campaign_path: str,
+    year: int,
+    doy: int,
+    db: Optional['QualityDatabase'] = None,
+    preferred_session: str | None = None,
+) -> dict:
     """
     Parse receiver clock data from RINEX clock files for a campaign day.
 
@@ -663,12 +701,18 @@ def parse_clock_data(campaign_path: str, year: int, doy: int,
         year: 4-digit year
         doy: Day of year
         db: Optional database connection to save results
+        preferred_session: Exact session directory name to prioritize
 
     Returns:
         Dict with count of parsed records
     """
-    session_id = f"{year % 100:02d}{doy:03d}"
-    out_dir = os.path.join(campaign_path, f"{session_id}IG", "OUT")
+    campaign_dir = find_ig_campaign_dir(
+        campaign_path,
+        year,
+        doy,
+        preferred_session=preferred_session,
+    )
+    out_dir = os.path.join(campaign_dir, "OUT") if campaign_dir else ""
 
     counts = {'receiver_clocks': 0}
 
@@ -693,8 +737,13 @@ def parse_clock_data(campaign_path: str, year: int, doy: int,
     return counts
 
 
-def parse_qc_data(campaign_path: str, year: int, doy: int,
-                  db: Optional['QualityDatabase'] = None) -> dict:
+def parse_qc_data(
+    campaign_path: str,
+    year: int,
+    doy: int,
+    db: Optional['QualityDatabase'] = None,
+    preferred_session: str | None = None,
+) -> dict:
     """
     Parse QC data (station residuals and data availability) for a campaign day.
 
@@ -703,12 +752,18 @@ def parse_qc_data(campaign_path: str, year: int, doy: int,
         year: 4-digit year
         doy: Day of year
         db: Optional database connection to save results
+        preferred_session: Exact session directory name to prioritize
 
     Returns:
         Dict with counts of parsed records
     """
-    session_id = f"{year % 100:02d}{doy:03d}"
-    out_dir = os.path.join(campaign_path, f"{session_id}IG", "OUT")
+    campaign_dir = find_ig_campaign_dir(
+        campaign_path,
+        year,
+        doy,
+        preferred_session=preferred_session,
+    )
+    out_dir = os.path.join(campaign_dir, "OUT") if campaign_dir else ""
 
     counts = {'station_residuals': 0, 'data_availability': 0}
 

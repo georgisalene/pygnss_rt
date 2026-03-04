@@ -21,6 +21,7 @@ import os
 from pathlib import Path
 
 from .db_models import QualityDatabase, AmbiguityResolution
+from .bernese_parser import find_ig_campaign_dir
 from .config import CAMPAIGN_PATH, DB_PATH
 
 
@@ -202,17 +203,21 @@ def main():
         # Default: find available DOYs
         doys = []
         for d in os.listdir(campaign_path):
-            if d.endswith("IG") and len(d) == 7:
+            # Match IG, IG_G, IG_GE, IG_GRE, etc.
+            if "IG" in d and len(d) >= 7:
                 try:
                     doy = int(d[2:5])
                     doys.append(doy)
                 except ValueError:
                     pass
-        doys = sorted(doys)
+        doys = sorted(set(doys))
 
     for doy in doys:
-        session_dir = f"25{doy:03d}IG"
-        amb_file = os.path.join(campaign_path, session_dir, "OUT", f"AMB_2025{doy:03d}0.SUM")
+        session_path = find_ig_campaign_dir(campaign_path, 2025, doy)
+        if not session_path:
+            print(f"Session dir not found for DOY {doy}")
+            continue
+        amb_file = os.path.join(session_path, "OUT", f"AMB_2025{doy:03d}0.SUM")
 
         if os.path.exists(amb_file):
             parse_amb_file(amb_file, doy, save_to_db=save_to_db, db=db)

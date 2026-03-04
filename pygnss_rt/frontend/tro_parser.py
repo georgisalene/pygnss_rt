@@ -23,7 +23,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .db_models import QualityDatabase, ZTDHourly
+from .bernese_parser import find_ig_campaign_dir
 from .config import CAMPAIGN_PATH, DB_PATH
+
+from pygnss_rt.utils.dates import doy_to_mjd
 
 
 def parse_tro_file(filepath: str, save_to_db: bool = False, db: Optional[QualityDatabase] = None) -> list[dict]:
@@ -112,17 +115,6 @@ def parse_tro_file(filepath: str, save_to_db: bool = False, db: Optional[Quality
                     db.insert_ztd(ztd)
 
     return results
-
-
-def doy_to_mjd(year: int, doy: int) -> float:
-    """Convert year and day-of-year to Modified Julian Date"""
-    from datetime import date, timedelta
-    d = date(year, 1, 1) + timedelta(days=doy - 1)
-    a = (14 - d.month) // 12
-    y = d.year + 4800 - a
-    m = d.month + 12 * a - 3
-    jd = d.day + (153 * m + 2) // 5 + 365 * y + y // 4 - y // 100 + y // 400 - 32045
-    return jd - 2400000.5
 
 
 def print_tro_summary(results: list[dict], doy: int):
@@ -232,18 +224,22 @@ def main():
     else:
         doys = []
         for d in os.listdir(campaign_path):
-            if d.endswith("IG") and len(d) == 7:
+            # Match IG, IG_G, IG_GE, IG_GRE, etc.
+            if "IG" in d and len(d) >= 7:
                 try:
                     doy = int(d[2:5])
                     doys.append(doy)
                 except ValueError:
                     pass
-        doys = sorted(doys)
+        doys = sorted(set(doys))
 
     total_saved = 0
     for doy in doys:
-        session_dir = f"25{doy:03d}IG"
-        tro_file = os.path.join(campaign_path, session_dir, "ATM", f"FIN_2025{doy:03d}0.TRO")
+        session_path = find_ig_campaign_dir(campaign_path, 2025, doy)
+        if not session_path:
+            print(f"TRO session dir not found for DOY {doy}")
+            continue
+        tro_file = os.path.join(session_path, "ATM", f"FIN_2025{doy:03d}0.TRO")
 
         if os.path.exists(tro_file):
             results = parse_tro_file(tro_file, save_to_db=save_to_db, db=db)

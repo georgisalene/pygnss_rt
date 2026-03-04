@@ -156,6 +156,20 @@ def date_from_doy(year: int, doy: int) -> tuple[int, int]:
     return dt.month, dt.day
 
 
+def doy_to_mjd(year: int, doy: int) -> float:
+    """Convert year and day-of-year to Modified Julian Date.
+
+    Args:
+        year: Year (e.g., 2024)
+        doy: Day of year (1-366)
+
+    Returns:
+        MJD as float
+    """
+    month, day = date_from_doy(year, doy)
+    return mjd_from_date(year, month, day)
+
+
 def hour_to_alpha(hour: int) -> str:
     """Convert hour (0-23) to alpha character (a-x).
 
@@ -301,6 +315,45 @@ class GNSSDate:
         return cls(
             dt.year, dt.month, dt.day,
             dt.hour, dt.minute, float(dt.second)
+        )
+
+    @classmethod
+    def from_str(cls, date_str: str) -> GNSSDate:
+        """Parse date string to GNSSDate.
+
+        Supports formats:
+        - YYYY-MM-DD
+        - YYYY/DOY
+        - YYYYDOY (7 digits)
+
+        Args:
+            date_str: Date string in one of the supported formats
+
+        Returns:
+            GNSSDate instance
+
+        Raises:
+            ValueError: If date string format is not recognized
+        """
+        # Try YYYY-MM-DD
+        if "-" in date_str:
+            parts = date_str.split("-")
+            if len(parts) == 3:
+                return cls(int(parts[0]), int(parts[1]), int(parts[2]))
+
+        # Try YYYY/DOY
+        if "/" in date_str:
+            parts = date_str.split("/")
+            if len(parts) == 2:
+                return cls.from_doy(int(parts[0]), int(parts[1]))
+
+        # Try YYYYDOY (7 digits)
+        if len(date_str) == 7 and date_str.isdigit():
+            return cls.from_doy(int(date_str[:4]), int(date_str[4:]))
+
+        raise ValueError(
+            f"Unrecognized date format: '{date_str}'. "
+            f"Use YYYY-MM-DD, YYYY/DOY, or YYYYDOY."
         )
 
     @classmethod

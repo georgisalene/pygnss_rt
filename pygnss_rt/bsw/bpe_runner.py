@@ -41,6 +41,8 @@ class BPEConfig:
     campaign: str  # Campaign name/path
     session: str  # Session (e.g., "2600" for DOY 260, daily)
     year: int  # Year
+    pcf_path: str | None = None  # Optional absolute PCF file path override
+    pcf_selector: str | None = None  # Optional selector name for RUNBPE panel
 
     # Processing identification
     task_id: str = "IG"  # 2-char task identifier
@@ -735,6 +737,294 @@ class BPERunner:
 
         return files_copied
 
+    # ── Phase methods ──────────────────────────────────────────────────
+
+    def _phase_setup(
+        self,
+        config: BPEConfig,
+        opt_dirs: dict[str, str] | None,
+        prod_mode: bool,
+    ) -> tuple[Path, Path, Path]:
+        """Phase 1: Setup temporary environment.
+
+        Creates temp user area, ensures campaign essentials, adds campaign,
+        copies OPT directories and PAN files.
+
+        Returns:
+            Tuple of (temp_user_area, campaign_dir, menu_exe)
+        """
+        env = self._get_env()
+        camp_root = Path(env.get("P", str(self.env.campaign_root)))
+        campaign_dir = camp_root / config.campaign
+
+        self.ensure_campaign_essentials(campaign_dir)
+        self.add_campaign(config.campaign)
+
+        temp_u = self._create_temp_user_area(config)
+        pan_dir = temp_u / "PAN"
+
+        # Install PCF override if provided
+        if config.pcf_path:
+            override_pcf = Path(config.pcf_path)
+            pcf_link = temp_u / "PCF"
+            if override_pcf.exists() and pcf_link.is_symlink():
+                original_pcf_dir = pcf_link.resolve()
+                pcf_link.unlink()
+                pcf_link.mkdir(parents=True, exist_ok=True)
+                for f in original_pcf_dir.iterdir():
+                    dst = pcf_link / f.name
+                    if not dst.exists():
+                        os.symlink(f, dst)
+                shutil.copy2(override_pcf, pcf_link / override_pcf.name)
+                logger.debug(f"Installed PCF override: {override_pcf.name} into temp PCF dir")
+
+        # Copy INP files from OPT to temp OPT directories
+        if opt_dirs:
+            self.copy_opt_to_temp(temp_u, opt_dirs, prod_mode)
+
+        # Copy PAN files (MENU*.INP, program panels, CPU files)
+        user_pan = self.env.user_dir / "PAN"
+        u_orig = str(self.env.user_dir)
+        if user_pan.exists():
+            for src in user_pan.glob("*.INP"):
+                shutil.copy2(src, pan_dir / src.name)
+            for src in user_pan.glob("*.CPU"):
+                shutil.copy2(src, pan_dir / src.name)
+
+        # Fix ${U} paths in MENU.INP and MENU_EXT.INP to use original user directory
+        for menu_file in ["MENU.INP", "MENU_EXT.INP"]:
+            menu_path = pan_dir / menu_file
+            if menu_path.exists():
+                content = menu_path.read_text()
+                content = content.replace('${U}/', f'{u_orig}/')
+                menu_path.write_text(content)
+
+        # Find menu.sh executable
+        xq = env.get("XQ", str(self.env.queue_dir))
+        menu_exe = Path(xq) / "menu.sh"
+        if not menu_exe.exists():
+            menu_exe = Path(xq) / "menu"
+        if not menu_exe.exists():
+            raise BSWError("BPE", f"menu executable not found in {xq}")
+
+        return temp_u, campaign_dir, menu_exe
+
+    def _phase_customize(
+        self,
+        temp_u: Path,
+        config: BPEConfig,
+        bsw_options: dict[str, dict[str, dict[str, str]]] | None,
+        variable_substitutions: dict[str, str] | None,
+    ) -> None:
+        """Phase 2: Customize processing options.
+
+        Sets session/campaign values in MENU.INP, customizes INP files
+        from bsw_options, and substitutes BPE user variables.
+        """
+        pan_dir = temp_u / "PAN"
+        temp_opt = temp_u / "OPT"
+
+        mjd = GNSSDate(config.year, 1, 1).add_days(int(config.session[:3]) - 1).mjd
+        session_char = config.session[3] if len(config.session) > 3 else "0"
+
+        self.put_key(pan_dir / "MENU.INP", "ACTIVE_CAMPAIGN", f"${{P}}/{config.campaign}")
+        self.put_key(pan_dir / "MENU.INP", "SESSION_CHAR", session_char)
+        self.put_key(pan_dir / "MENU.INP", "MODJULDATE", str(mjd))
+        self.put_key(pan_dir / "MENU.INP", "SESSION_TABLE", f"${{P}}/{config.campaign}/GEN/SESSIONS.SES")
+
+        if bsw_options:
+            keys_set = self.customize_inp_files(
+                temp_opt, bsw_options, variable_substitutions
+            )
+            logger.info(f"Customized {keys_set} INP keys in temp OPT")
+
+        self.substitute_bpe_user_vars(temp_opt, pan_dir)
+
+    def _phase_configure_runbpe(
+        self,
+        temp_u: Path,
+        config: BPEConfig,
+        campaign_dir: Path,
+        menu_exe: Path,
+    ) -> None:
+        """Phase 3: Configure RUNBPE.INP and expand variables.
+
+        Writes all BPE settings into RUNBPE.INP, then runs menu.sh
+        to expand Bernese variables.
+        """
+        env = self._get_env()
+        pan_dir = temp_u / "PAN"
+        work_dir = temp_u / "WORK"
+        u_orig = str(self.env.user_dir)
+        session_char = config.session[3] if len(config.session) > 3 else "0"
+        session_full = config.session[:3] + session_char
+
+        runbpe_inp = pan_dir / "RUNBPE.INP"
+        if not runbpe_inp.exists():
+            return
+
+        loadgps_setvar = env.get("C", str(self.env.bsw_root)) + "/LOADGPS.setvar"
+        if config.pcf_path:
+            pcf_path = config.pcf_path
+            pcf_name = config.pcf_selector or Path(config.pcf_path).stem
+        else:
+            pcf_name = config.pcf_file.replace(".PCF", "")
+            pcf_path = f"{u_orig}/PCF/{pcf_name}.PCF"
+        cpu_path = f"{u_orig}/PAN/{config.cpu_file}.CPU"
+        session_table = f"${{P}}/{config.campaign}/GEN/SESSIONS.SES"
+        sysout_path = f"${{P}}/{config.campaign}/BPE/{config.sysout}.OUT"
+        status_path = f"${{P}}/{config.campaign}/BPE/{config.status}"
+
+        self.put_key(runbpe_inp, "BPE_CLIENT", f"${{BPE}}/RUNBPE.sh")
+        self.put_key(runbpe_inp, "CLIENT_ENV", loadgps_setvar)
+        self.put_key(runbpe_inp, "PCF_FILE", pcf_path, selector=pcf_name)
+        self.put_key(runbpe_inp, "CPU_FILE", cpu_path)
+        self.put_key(runbpe_inp, "CPUUPDRATE", str(config.cpu_update_rate))
+        self.put_key(runbpe_inp, "BPE_CAMPAIGN", str(campaign_dir))
+        self.put_key(runbpe_inp, "SESSION_TABLE", session_table)
+        self.put_key(runbpe_inp, "YEAR", str(config.year))
+        self.put_key(runbpe_inp, "SESSION", session_full)
+        self.put_key(runbpe_inp, "NUM_SESS", str(config.num_sessions))
+        self.put_key(runbpe_inp, "MODULO_SESS", str(config.modulo_sessions))
+        self.put_key(runbpe_inp, "NEXTSESS", str(config.next_session))
+        self.put_key(runbpe_inp, "TASKID", config.task_id)
+        self.put_key(runbpe_inp, "SYSOUT", sysout_path, selector=config.sysout)
+        status_base = config.status.replace(".RUN", "").replace(".SUM", "")
+        self.put_key(runbpe_inp, "STATUS", status_path, selector=status_base)
+        self.put_key(runbpe_inp, "DEBUG", "1" if config.debug else "0")
+        self.put_key(runbpe_inp, "NOCLEAN", "1" if config.no_clean else "0")
+        self.put_key(runbpe_inp, "BPE_MAXTIME", str(config.max_time))
+        logger.debug("Configured RUNBPE.INP for BPE execution")
+
+        # Run menu.sh to expand variables in RUNBPE.INP
+        pid = os.getpid()
+        exec_env = env.copy()
+        exec_env["U"] = str(temp_u)
+        exec_env["T"] = str(temp_u / "WORK" / "T:")
+
+        setvar_file = work_dir / f"SETVAR.MEN_{pid}"
+        with open(setvar_file, "w") as f:
+            f.write(f"INP_FILE_NAME 1 {runbpe_inp}\n\n")
+            f.write(f"OUT_FILE_NAME 1 {runbpe_inp}\n\n")
+
+        result = subprocess.run(
+            [str(menu_exe), str(pan_dir / "MENU.INP"), str(setvar_file)],
+            env=exec_env,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            cwd=str(work_dir),
+        )
+
+        if result.returncode != 0:
+            logger.warning(f"Variable expansion returned {result.returncode}: {result.stderr}")
+
+    def _phase_execute(
+        self,
+        temp_u: Path,
+        config: BPEConfig,
+        campaign_dir: Path,
+        menu_exe: Path,
+        timeout: int,
+        start_time: float,
+    ) -> BPEResult:
+        """Phase 4: Execute BPE and wait for completion.
+
+        Spawns BPE via menu.sh, monitors output file for completion,
+        and returns the result.
+        """
+        env = self._get_env()
+        pan_dir = temp_u / "PAN"
+        work_dir = temp_u / "WORK"
+        pid = os.getpid()
+        runbpe_inp = pan_dir / "RUNBPE.INP"
+
+        exec_env = env.copy()
+        exec_env["U"] = str(temp_u)
+        exec_env["T"] = str(temp_u / "WORK" / "T:")
+
+        # Create RUN_BPE command file
+        runbpe_men = work_dir / f"RUNBPE.MEN_{pid}"
+        with open(runbpe_men, "w") as f:
+            f.write(f"RUN_BPE 1 {runbpe_inp}\n\n")
+            f.write("PRINT_PID 1 \"1\"\n\n")
+
+        logger.info("Executing BPE via menu.sh", temp_u=str(temp_u))
+
+        output_file = campaign_dir / "BPE" / f"{config.sysout}.OUT"
+        status_file = campaign_dir / "BPE" / f"{config.status}"
+        logger.debug(f"Campaign directory: {campaign_dir}")
+        logger.debug(f"BPE output file will be: {output_file}")
+
+        # Clear any existing output file to detect new output
+        if output_file.exists():
+            logger.debug(f"Removing existing output file: {output_file}")
+            output_file.unlink()
+
+        proc = subprocess.Popen(
+            [str(menu_exe), str(pan_dir / "MENU.INP"), str(runbpe_men)],
+            env=exec_env,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            cwd=str(work_dir),
+        )
+
+        # Wait briefly for menu.sh to spawn BPE processes
+        time.sleep(2)
+
+        # menu.sh returns immediately after spawning BPE - get its return code
+        menu_returncode = proc.poll()
+        if menu_returncode is None:
+            try:
+                proc.wait(timeout=30)
+                menu_returncode = proc.returncode
+            except subprocess.TimeoutExpired:
+                menu_returncode = 0  # Assume OK if still running
+
+        if menu_returncode != 0:
+            _, stderr = proc.communicate(timeout=5)
+            return BPEResult(
+                success=False,
+                return_code=menu_returncode,
+                error_message=f"menu.sh failed: {stderr}",
+                runtime_seconds=time.time() - start_time,
+            )
+
+        # Wait for BPE to complete by monitoring output file
+        completed, sessions_finished, sessions_error = self._wait_for_bpe_completion(
+            output_file, timeout
+        )
+
+        runtime = time.time() - start_time
+
+        # Cleanup temp user area only AFTER BPE is done
+        if not config.no_clean and completed:
+            self._cleanup_temp_user_area()
+
+        success = completed and sessions_error == 0
+
+        error_msg = None
+        if not completed:
+            error_msg = f"BPE did not complete within {timeout}s"
+        elif sessions_error > 0:
+            error_msg = f"BPE completed with {sessions_error} session errors"
+
+        return BPEResult(
+            success=success,
+            return_code=0 if completed else -1,
+            output_file=output_file if output_file.exists() else None,
+            status_file=status_file if status_file.exists() else None,
+            error_message=error_msg,
+            runtime_seconds=runtime,
+            sessions_finished=sessions_finished,
+            sessions_error=sessions_error,
+        )
+
+    # ── Main entry point ─────────────────────────────────────────────
+
     def run(
         self,
         config: BPEConfig,
@@ -746,13 +1036,11 @@ class BPERunner:
     ) -> BPEResult:
         """Run BPE processing.
 
-        Follows the RUNBPE.pm pattern:
-        1. Create temporary user area ($T/BPE_...)
-        2. Copy INP files from OPT to temp $U/PAN
-        3. Customize INP files with session/campaign info
-        4. Create MENU_$$.TMP control file
-        5. Execute menu.sh with proper arguments
-        6. Parse results and cleanup
+        Follows the RUNBPE.pm pattern in 4 phases:
+        1. Setup - temp user area, campaign essentials, OPT/PAN copies
+        2. Customize - session/campaign values, BSW options, user variables
+        3. Configure - RUNBPE.INP settings, variable expansion
+        4. Execute - spawn BPE via menu.sh, monitor completion
 
         Args:
             config: BPE configuration
@@ -767,13 +1055,6 @@ class BPERunner:
         """
         start_time = time.time()
 
-        # Get environment
-        env = self._get_env()
-
-        # Campaign directory
-        camp_root = Path(env.get("P", str(self.env.campaign_root)))
-        campaign_dir = camp_root / config.campaign
-
         logger.info(
             "Starting BPE",
             pcf=config.pcf_file,
@@ -783,240 +1064,24 @@ class BPERunner:
         )
 
         try:
-            # Step 1: Ensure campaign has essential files (SESSIONS.SES, etc.)
-            self.ensure_campaign_essentials(campaign_dir)
-
-            # NOTE: PZH/PZO copies for Melbourne-Wuebbena AR are now created by
-            # the PPPIARAP script, which runs AFTER RXOBV3 creates CZH/CZO files
-            # and BEFORE PPPIAR_P needs them for MW ambiguity resolution.
-
-            # Step 2: Add campaign to MENU_CMP.INP
-            self.add_campaign(config.campaign)
-
-            # Step 3: Create temporary user area (like RUNBPE::copyUarea)
-            temp_u = self._create_temp_user_area(config)
-            pan_dir = temp_u / "PAN"
-            work_dir = temp_u / "WORK"
-
-            # Step 4: Copy INP files from OPT to temp OPT directories
-            # This allows us to customize INP files without modifying the originals
-            temp_opt = temp_u / "OPT"
-            if opt_dirs:
-                self.copy_opt_to_temp(temp_u, opt_dirs, prod_mode)
-
-            # Copy ALL panel files from user PAN to temp PAN
-            # PUTKEYW modifies panel files in $U/PAN, so they must exist there
-            # Not just MENU*.INP - also program panels like RESRMS.INP, GPSXTR.INP, etc.
-            user_pan = self.env.user_dir / "PAN"
-            u_orig = str(self.env.user_dir)
-            if user_pan.exists():
-                for src in user_pan.glob("*.INP"):
-                    shutil.copy2(src, pan_dir / src.name)
-                # Also copy .CPU files
-                for src in user_pan.glob("*.CPU"):
-                    shutil.copy2(src, pan_dir / src.name)
-
-            # Fix paths in MENU.INP to use original user directory
-            # The menu.INP file has references like ${U}/PAN/MENU_CMP.INP that
-            # need to point to the original user directory, not the temp area
-            menu_inp = pan_dir / "MENU.INP"
-            if menu_inp.exists():
-                content = menu_inp.read_text()
-                # Replace ${U} with the original user directory
-                content = content.replace('${U}/', f'{u_orig}/')
-                menu_inp.write_text(content)
-
-            # Fix paths in MENU_EXT.INP to use original user directory
-            # The menu system uses PTH_* paths to find files
-            menu_ext = pan_dir / "MENU_EXT.INP"
-            if menu_ext.exists():
-                content = menu_ext.read_text()
-                # Replace ${U} with the original user directory in path definitions
-                content = content.replace('${U}/', f'{u_orig}/')
-                menu_ext.write_text(content)
-
-            # Step 5: Customize INP files with session/campaign values
-            mjd = GNSSDate(config.year, 1, 1).add_days(int(config.session[:3]) - 1).mjd
-            session_char = config.session[3] if len(config.session) > 3 else "0"
-            session_full = config.session[:3] + session_char
-
-            # Update MENU.INP
-            self.put_key(pan_dir / "MENU.INP", "ACTIVE_CAMPAIGN", f"${{P}}/{config.campaign}")
-            self.put_key(pan_dir / "MENU.INP", "SESSION_CHAR", session_char)
-            self.put_key(pan_dir / "MENU.INP", "MODJULDATE", str(mjd))
-            self.put_key(pan_dir / "MENU.INP", "SESSION_TABLE", f"${{P}}/{config.campaign}/GEN/SESSIONS.SES")
-
-            # Step 6: Customize INP files from bsw_options in temp OPT directories
-            if bsw_options:
-                keys_set = self.customize_inp_files(
-                    temp_opt, bsw_options, variable_substitutions
-                )
-                logger.info(f"Customized {keys_set} INP keys in temp OPT")
-
-            # Step 6b: Substitute BPE user variables ($(FL), $(CLUSTER), etc.)
-            # These are normally set by Perl scripts using setUserVar(), but Python bypasses them
-            self.substitute_bpe_user_vars(temp_opt, pan_dir)
-
-            # Step 7: Configure RUNBPE.INP with BPE settings (like startBPE::run)
-            runbpe_inp = pan_dir / "RUNBPE.INP"
-            if runbpe_inp.exists():
-                # Construct full paths for various settings
-                # Use original user directory for PCF and CPU since temp area doesn't have them
-                loadgps_setvar = env.get("C", str(self.env.bsw_root)) + "/LOADGPS.setvar"
-                pcf_path = f"{u_orig}/PCF/{config.pcf_file}.PCF"
-                cpu_path = f"{u_orig}/PAN/{config.cpu_file}.CPU"
-                bpe_campaign = str(campaign_dir)
-                session_table = f"${{P}}/{config.campaign}/GEN/SESSIONS.SES"
-                sysout_path = f"${{P}}/{config.campaign}/BPE/{config.sysout}.OUT"
-                status_path = f"${{P}}/{config.campaign}/BPE/{config.status}"
-
-                # Set RUNBPE.INP keys
-                self.put_key(runbpe_inp, "BPE_CLIENT", f"${{BPE}}/RUNBPE.sh")
-                self.put_key(runbpe_inp, "CLIENT_ENV", loadgps_setvar)
-                # PCF_FILE needs selector to update the "# NAME" comment that menu uses
-                pcf_name = config.pcf_file.replace(".PCF", "")
-                self.put_key(runbpe_inp, "PCF_FILE", pcf_path, selector=pcf_name)
-                self.put_key(runbpe_inp, "CPU_FILE", cpu_path)
-                self.put_key(runbpe_inp, "CPUUPDRATE", str(config.cpu_update_rate))
-                self.put_key(runbpe_inp, "BPE_CAMPAIGN", bpe_campaign)
-                self.put_key(runbpe_inp, "SESSION_TABLE", session_table)
-                self.put_key(runbpe_inp, "YEAR", str(config.year))
-                self.put_key(runbpe_inp, "SESSION", session_full)
-                self.put_key(runbpe_inp, "NUM_SESS", str(config.num_sessions))
-                self.put_key(runbpe_inp, "MODULO_SESS", str(config.modulo_sessions))
-                self.put_key(runbpe_inp, "NEXTSESS", str(config.next_session))
-                self.put_key(runbpe_inp, "TASKID", config.task_id)
-                # SYSOUT and STATUS need selectors to update the "# NAME" comment
-                # The selector is the base name without path or extension
-                self.put_key(runbpe_inp, "SYSOUT", sysout_path, selector=config.sysout)
-                status_base = config.status.replace(".RUN", "").replace(".SUM", "")
-                self.put_key(runbpe_inp, "STATUS", status_path, selector=status_base)
-                self.put_key(runbpe_inp, "DEBUG", "1" if config.debug else "0")
-                self.put_key(runbpe_inp, "NOCLEAN", "1" if config.no_clean else "0")
-                self.put_key(runbpe_inp, "BPE_MAXTIME", str(config.max_time))
-                logger.debug("Configured RUNBPE.INP for BPE execution")
-
-            # Step 8: Create environment for execution
-            pid = os.getpid()
-            exec_env = env.copy()
-            exec_env["U"] = str(temp_u)
-            exec_env["T"] = str(temp_u / "WORK" / "T:")
-
-            # Step 9: Find menu.sh executable
-            xq = env.get("XQ", str(self.env.queue_dir))
-            menu_exe = Path(xq) / "menu.sh"
-
-            if not menu_exe.exists():
-                menu_exe = Path(xq) / "menu"
-
-            if not menu_exe.exists():
-                raise BSWError("BPE", f"menu executable not found in {xq}")
-
-            # Step 10: Run menu to expand variables in RUNBPE.INP (like startBPE)
-            setvar_file = work_dir / f"SETVAR.MEN_{pid}"
-            with open(setvar_file, "w") as f:
-                f.write(f"INP_FILE_NAME 1 {runbpe_inp}\n\n")
-                f.write(f"OUT_FILE_NAME 1 {runbpe_inp}\n\n")
-
-            # Execute menu.sh to expand variables
-            result = subprocess.run(
-                [str(menu_exe), str(pan_dir / "MENU.INP"), str(setvar_file)],
-                env=exec_env,
-                stdin=subprocess.DEVNULL,  # Prevent stdin blocking
-                capture_output=True,
-                text=True,
-                timeout=60,
-                cwd=str(work_dir),
+            # Phase 1: Setup temporary environment
+            temp_u, campaign_dir, menu_exe = self._phase_setup(
+                config, opt_dirs, prod_mode
             )
 
-            if result.returncode != 0:
-                logger.warning(f"Variable expansion returned {result.returncode}: {result.stderr}")
-
-            # Step 11: Create RUN_BPE command file (like startBPE::run)
-            runbpe_men = work_dir / f"RUNBPE.MEN_{pid}"
-            with open(runbpe_men, "w") as f:
-                f.write(f"RUN_BPE 1 {runbpe_inp}\n\n")
-                f.write("PRINT_PID 1 \"1\"\n\n")
-
-            logger.info("Executing BPE via menu.sh", temp_u=str(temp_u))
-
-            # Step 12: Execute BPE via menu.sh with RUN_BPE command
-            # Use Popen because menu.sh spawns background BPE processes and returns
-            # immediately. We need to wait for BPE completion by monitoring output.
-            output_file = campaign_dir / "BPE" / f"{config.sysout}.OUT"
-            status_file = campaign_dir / "BPE" / f"{config.status}"
-            logger.debug(f"Campaign directory: {campaign_dir}")
-            logger.debug(f"BPE output file will be: {output_file}")
-
-            # Clear any existing output file to detect new output
-            if output_file.exists():
-                logger.debug(f"Removing existing output file: {output_file}")
-                output_file.unlink()
-
-            # menu.sh expects: menu.sh "$MENU_INP" "$RUNBPE_MEN"
-            # First arg: MENU.INP file with environment settings
-            # Second arg: the command file containing RUN_BPE command
-            proc = subprocess.Popen(
-                [str(menu_exe), str(pan_dir / "MENU.INP"), str(runbpe_men)],
-                env=exec_env,
-                stdin=subprocess.DEVNULL,  # Prevent stdin blocking
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                cwd=str(work_dir),
+            # Phase 2: Customize processing options
+            self._phase_customize(
+                temp_u, config, bsw_options, variable_substitutions
             )
 
-            # Wait briefly for menu.sh to spawn BPE processes
-            time.sleep(2)
-
-            # menu.sh returns immediately after spawning BPE - get its return code
-            menu_returncode = proc.poll()
-            if menu_returncode is None:
-                # Still running, wait a bit more
-                try:
-                    proc.wait(timeout=30)
-                    menu_returncode = proc.returncode
-                except subprocess.TimeoutExpired:
-                    menu_returncode = 0  # Assume OK if still running
-
-            if menu_returncode != 0:
-                _, stderr = proc.communicate(timeout=5)
-                return BPEResult(
-                    success=False,
-                    return_code=menu_returncode,
-                    error_message=f"menu.sh failed: {stderr}",
-                    runtime_seconds=time.time() - start_time,
-                )
-
-            # Step 13: Wait for BPE to complete by monitoring output file
-            # BPE writes "Sessions finished: OK: N  Error: M" when done
-            completed, sessions_finished, sessions_error = self._wait_for_bpe_completion(
-                output_file, timeout
+            # Phase 3: Configure RUNBPE.INP
+            self._phase_configure_runbpe(
+                temp_u, config, campaign_dir, menu_exe
             )
 
-            runtime = time.time() - start_time
-
-            # Step 14: Cleanup temp user area only AFTER BPE is done
-            if not config.no_clean and completed:
-                self._cleanup_temp_user_area()
-
-            success = completed and sessions_error == 0
-
-            error_msg = None
-            if not completed:
-                error_msg = f"BPE did not complete within {timeout}s"
-            elif sessions_error > 0:
-                error_msg = f"BPE completed with {sessions_error} session errors"
-
-            return BPEResult(
-                success=success,
-                return_code=0 if completed else -1,
-                output_file=output_file if output_file.exists() else None,
-                status_file=status_file if status_file.exists() else None,
-                error_message=error_msg,
-                runtime_seconds=runtime,
-                sessions_finished=sessions_finished,
-                sessions_error=sessions_error,
+            # Phase 4: Execute BPE and wait for completion
+            return self._phase_execute(
+                temp_u, config, campaign_dir, menu_exe, timeout, start_time
             )
 
         except subprocess.TimeoutExpired:
@@ -1036,140 +1101,10 @@ class BPERunner:
             )
 
 
-def parse_bsw_options_file(config_path: Path) -> dict[str, dict[str, dict[str, str]]]:
-    """Parse BSW options from YAML or XML file.
-
-    Supports both YAML (preferred) and XML (legacy) formats.
-
-    YAML format:
-        bern_options:
-            D_PPPGEN:
-                CODSPP:
-                    key1: value1
-
-    XML format:
-        <recipe>
-            <bernOptions>
-                <D_PPPGEN>
-                    <CODSPP>
-                        <key1>value1</key1>
-                    </CODSPP>
-                </D_PPPGEN>
-            </bernOptions>
-        </recipe>
-
-    Args:
-        config_path: Path to YAML or XML file
-
-    Returns:
-        Nested dict: opt_dir -> inp_file -> key -> value
-    """
-    path = Path(config_path)
-
-    # Try YAML first
-    yaml_path = path.with_suffix('.yaml')
-    xml_path = path.with_suffix('.xml')
-
-    if yaml_path.exists():
-        return _parse_bsw_options_yaml(yaml_path)
-    elif path.suffix == '.yaml' and path.exists():
-        return _parse_bsw_options_yaml(path)
-    elif xml_path.exists():
-        return _parse_bsw_options_xml(xml_path)
-    elif path.exists():
-        if path.suffix == '.yaml':
-            return _parse_bsw_options_yaml(path)
-        else:
-            return _parse_bsw_options_xml(path)
-
-    return {}
-
-
-def _parse_bsw_options_yaml(yaml_path: Path) -> dict[str, dict[str, dict[str, str]]]:
-    """Parse BSW options from YAML file.
-
-    Args:
-        yaml_path: Path to YAML file
-
-    Returns:
-        Nested dict: opt_dir -> inp_file -> key -> value
-    """
-    import yaml
-
-    if not yaml_path.exists():
-        return {}
-
-    with open(yaml_path) as f:
-        data = yaml.safe_load(f)
-
-    result: dict[str, dict[str, dict[str, str]]] = {}
-
-    bern_opts = data.get("bern_options", {})
-
-    for opt_name, opt_data in bern_opts.items():
-        result[opt_name] = {}
-        if isinstance(opt_data, dict):
-            for inp_name, inp_data in opt_data.items():
-                result[opt_name][inp_name] = {}
-                if isinstance(inp_data, dict):
-                    for key_name, key_value in inp_data.items():
-                        # Convert to string for consistency
-                        result[opt_name][inp_name][key_name] = str(key_value) if key_value is not None else ""
-
-    return result
-
-
-def _parse_bsw_options_xml(xml_path: Path) -> dict[str, dict[str, dict[str, str]]]:
-    """Parse BSW options from XML file (legacy format).
-
-    Args:
-        xml_path: Path to XML file
-
-    Returns:
-        Nested dict: opt_dir -> inp_file -> key -> value
-    """
-    from xml.etree import ElementTree
-
-    if not xml_path.exists():
-        return {}
-
-    tree = ElementTree.parse(xml_path)
-    root = tree.getroot()
-
-    result: dict[str, dict[str, dict[str, str]]] = {}
-
-    # Find bernOptions element
-    bern_opts = root.find(".//bernOptions")
-    if bern_opts is None:
-        # Try recipe/bernOptions
-        bern_opts = root.find("recipe/bernOptions")
-
-    if bern_opts is None:
-        return {}
-
-    # Iterate over OPT directories
-    for opt_elem in bern_opts:
-        opt_name = opt_elem.tag
-        result[opt_name] = {}
-
-        # Iterate over INP files
-        for inp_elem in opt_elem:
-            inp_name = inp_elem.tag
-            result[opt_name][inp_name] = {}
-
-            # Iterate over keys
-            for key_elem in inp_elem:
-                key_name = key_elem.tag
-                key_value = key_elem.text or ""
-                result[opt_name][inp_name][key_name] = key_value.strip()
-
-    return result
-
-
-# Backward compatibility alias
-def parse_bsw_options_xml(xml_path: Path) -> dict[str, dict[str, dict[str, str]]]:
-    """Parse BSW options file (backward compatibility alias).
-
-    Now supports both YAML and XML formats.
-    """
-    return parse_bsw_options_file(xml_path)
+# Backward compatibility - re-export from bsw_options_parser
+from pygnss_rt.bsw.bsw_options_parser import (  # noqa: E402, F401
+    parse_bsw_options_file,
+    _parse_bsw_options_yaml,
+    _parse_bsw_options_xml,
+    parse_bsw_options_xml,
+)
